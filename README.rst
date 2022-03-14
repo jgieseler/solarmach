@@ -17,26 +17,28 @@ Usage
 
 .. code:: python
 
-   import datetime as dt
    from solarmach import SolarMACH
 
    # necessary:
-   body_list = ['STEREO-A', 'STEREO-B', 'Earth', 'MPO', 'PSP', 'Solar Orbiter', 'Mars']
-   vsw_list = [300, 400, 500, 600, 700, 800, 900, 200]
-   reference_long = 0
+   body_list = ['STEREO-A', 'Earth', 'BepiColombo', 'PSP', 'Solar Orbiter', 'Mars']
+   vsw_list = [400, 400, 400, 400, 400, 400, 400]
+   reference_long = 273
    reference_lat = 0
-   date = '2020-05-01 13:00:00'
+   date = '2021-10-28 15:15:00'
    
    # optional:
    plot_spirals = True
    plot_sun_body_line = True
-   show_earth_centered_coord = True
+   show_earth_centered_coord = False
    reference_vsw = 400
    transparent = False
    numbered_markers = True
+   filename = 'Solar-MACH_'+date.replace(' ', '_')
      
+   # initialize
    sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat)
    
+   # make plot
    sm.plot(
       plot_spirals=plot_spirals,                            # plot Parker spirals for each body
       plot_sun_body_line=plot_sun_body_line,                # plot straight line between Sun and body
@@ -44,12 +46,11 @@ Usage
       reference_vsw=reference_vsw,                          # define solar wind speed at reference
       transparent=transparent,
       numbered_markers=numbered_markers,
-      # outfile=filename+'.png'                               # output file (optional)
+      outfile=filename+'.png'                               # output file (optional)
    )
    
-   plt.show()
-   
+   # print out table of results
    display(sm.coord_table)
 
-
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://solar-mach.github.io)
+.. image:: https://github.com/jgieseler/solarmach/raw/main/examples/Solar-MACH_2021-10-28_15:15:00.png
+  :alt: Example output figure
