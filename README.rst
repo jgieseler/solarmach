@@ -27,26 +27,26 @@ Usage
    date = '2021-10-28 15:15:00'
    
    # optional:
-   plot_spirals = True
-   plot_sun_body_line = True
-   show_earth_centered_coord = False
-   reference_vsw = 400
-   transparent = False
-   numbered_markers = True
-   filename = 'Solar-MACH_'+date.replace(' ', '_')
+   plot_spirals = True                              # plot Parker spirals for each body
+   plot_sun_body_line = True                        # plot straight line between Sun and body
+   show_earth_centered_coord = False                # display Earth-aligned coordinate system
+   reference_vsw = 400                              # define solar wind speed at reference
+   transparent = False                              # make figure background transparent
+   numbered_markers = True                          # plot each body with a numbered marker
+   filename = 'Solar-MACH_'+date.replace(' ', '_')  # define filename of output figure
      
    # initialize
    sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat)
    
    # make plot
    sm.plot(
-      plot_spirals=plot_spirals,                            # plot Parker spirals for each body
-      plot_sun_body_line=plot_sun_body_line,                # plot straight line between Sun and body
-      show_earth_centered_coord=show_earth_centered_coord,  # display Earth-aligned coordinate system
-      reference_vsw=reference_vsw,                          # define solar wind speed at reference
+      plot_spirals=plot_spirals,                            
+      plot_sun_body_line=plot_sun_body_line,                
+      show_earth_centered_coord=show_earth_centered_coord,  
+      reference_vsw=reference_vsw,                          
       transparent=transparent,
       numbered_markers=numbered_markers,
-      outfile=filename+'.png'                               # output file (optional)
+      outfile=filename+'.png'
    )
    
    # print out table of results
