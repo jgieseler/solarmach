@@ -54,3 +54,15 @@ Usage
 
 .. image:: https://github.com/jgieseler/solarmach/raw/main/examples/Solar-MACH_2021-10-28_15:15:00.png
   :alt: Example output figure
+  
+Example Notebook
+----------------
+
+**solarmach** can easily be run in a Jupyter Notebook. 
+
+- `Download example notebook <https://github.com/jgieseler/solarmach/raw/main/examples/example.ipynb>`_
+
+- Try it online: |binder|
+  
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/jgieseler/solarmach/main?labpath=examples%2Fexample.ipynb
