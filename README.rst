@@ -1,5 +1,19 @@
-Solar MAgnetic Connection Haus tool
-===================================
+solarmach
+=========
+
+The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longitudinal configuration plotter. This is the repository of the pip package of Solar-MACH, called **solarmach**. For the corresponding streamlit repository, which is used for https://solar-mach.github.io, visit https://github.com/jgieseler/Solar-MACH
+
+Installation
+------------
+
+solarmach can be installed from this repository using pip:
+
+.. code:: bash
+
+    pip install git+https://github.com/jgieseler/solarmach
+
+Usage
+-----
 
 .. code:: python
 
