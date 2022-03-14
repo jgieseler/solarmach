@@ -1,21 +1,41 @@
-# Solar MAgnetic Connection Haus tool
+Solar MAgnetic Connection Haus tool
+===================================
 
-Adapted from [github.com/esdc-esac-esa-int/Solar-MACH](https://github.com/esdc-esac-esa-int/Solar-MACH) and modified to [run with Streamlit](https://solar-mach.github.io). Slightly extended functionality (provide reference longitude in Stonyhurst coordinates, download bodies coordinates list).
+.. code:: python
 
-To install and start a local server using `streamlit` run the following commands in your terminal:
+   import datetime as dt
+   from solarmach import SolarMACH
 
-```python
-# optional: create and activate virtual environment in python (alternatively use anaconda)
-python3 -m venv env
-source env/bin/activate
+   # necessary:
+   body_list = ['STEREO-A', 'STEREO-B', 'Earth', 'MPO', 'PSP', 'Solar Orbiter', 'Mars']
+   vsw_list = [300, 400, 500, 600, 700, 800, 900, 200]
+   reference_long = 0
+   reference_lat = 0
+   date = '2020-05-01 13:00:00'
+   
+   # optional:
+   plot_spirals = True
+   plot_sun_body_line = True
+   show_earth_centered_coord = True
+   reference_vsw = 400
+   transparent = False
+   numbered_markers = True
+     
+   sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat)
+   
+   sm.plot(
+      plot_spirals=plot_spirals,                            # plot Parker spirals for each body
+      plot_sun_body_line=plot_sun_body_line,                # plot straight line between Sun and body
+      show_earth_centered_coord=show_earth_centered_coord,  # display Earth-aligned coordinate system
+      reference_vsw=reference_vsw,                          # define solar wind speed at reference
+      transparent=transparent,
+      numbered_markers=numbered_markers,
+      # outfile=filename+'.png'                               # output file (optional)
+   )
+   
+   plt.show()
+   
+   display(sm.coord_table)
 
-# install requirements with pip (alternatively use anaconda)
-pip3 install -r requirements.txt
-
-# run the actual streamlit app
-streamlit run app.py
-```
-
-Afterwards the app should open in your browser.
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://solar-mach.github.io)

@@ -73,7 +73,7 @@ def print_body_list():
     return data
 
 
-class HeliosphericConstellation():
+class SolarMACH():
     """
     Class which handles the selected bodies
 
