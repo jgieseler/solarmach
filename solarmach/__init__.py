@@ -99,7 +99,7 @@ class SolarMACH():
         self.reference_long = reference_long
         self.reference_lat = reference_lat
 
-        pos_E = get_horizons_coord(399, self.date, 'id')  # (lon, lat, radius) in (deg, deg, AU)
+        pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
         self.pos_E = pos_E.transform_to(frames.HeliographicCarrington(observer='Sun'))
 
         if len(vsw_list) == 0:
@@ -131,7 +131,7 @@ class SolarMACH():
                 bodies.update(dict.fromkeys([body_id], [body_id, body_lab, body_color]))
 
             try:
-                pos = get_horizons_coord(body_id, date, 'id')  # (lon, lat, radius) in (deg, deg, AU)
+                pos = get_horizons_coord(body_id, date, None)  # (lon, lat, radius) in (deg, deg, AU)
                 pos = pos.transform_to(frames.HeliographicCarrington(observer='Sun'))
                 bodies[body_id].append(pos)
                 bodies[body_id].append(vsw_list[i])
