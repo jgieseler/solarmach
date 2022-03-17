@@ -67,7 +67,7 @@ def print_body_list():
     # print('Please visit https://ssd.jpl.nasa.gov/horizons.cgi?s_target=1#top for a complete list of available bodies')
     data = pd.DataFrame\
         .from_dict(body_dict, orient='index', columns=['ID', 'Body', 'Color'])\
-        .drop(['ID', 'Color'], 'columns')\
+        .drop(columns=['ID', 'Color'])\
         .drop_duplicates()
     data.index.name = 'Key'
     return data
