@@ -62,7 +62,7 @@ body_dict.update(dict.fromkeys(['Voyager2', -32], [-32, 'Voyager 2', 'midnightbl
 def print_body_list():
     """
     prints a selection of body keys and the corresponding body names which may be provided to the
-    HeliosphericConstellation class
+    SolarMACH class
     """
     # print('Please visit https://ssd.jpl.nasa.gov/horizons.cgi?s_target=1#top for a complete list of available bodies')
     data = pd.DataFrame\
@@ -258,6 +258,10 @@ class SolarMACH():
                     if True, additional longitudinal tickmarks are shown with Earth at longitude 0
         reference_vsw: int
                     if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
+        transparent: bool
+                    if True, output image has transparent background
+        numbered_markers: bool
+                    if True, body markers contain numbers for better identification
         outfile: string
                 if provided, the plot is saved with outfile as filename
         """
