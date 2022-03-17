@@ -29,7 +29,7 @@ Usage
 
 .. code:: python
 
-   from solarmach import SolarMACH
+   from solarmach import SolarMACH, print_body_list
    
    # optional: get list of available bodies/spacecraft
    print(print_body_list().index)
