@@ -266,6 +266,7 @@ class SolarMACH():
                 if provided, the plot is saved with outfile as filename
         """
         # import pylab as pl
+        hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
 
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=(12, 8), dpi=200)
@@ -382,13 +383,13 @@ class SolarMACH():
 
         ax.tick_params(axis='x', pad=10)
 
-        # remove Solar-MACH logo from output figure in python package:
-        # ax.text(0.94, 0.16, 'Solar-MACH',
-        #         fontfamily='DejaVu Serif', fontsize=28,
-        #         ha='right', va='bottom', transform=fig.transFigure)
-        # ax.text(0.94, 0.12, 'https://solar-mach.github.io',
-        #         fontfamily='DejaVu Sans', fontsize=18,
-        #         ha='right', va='bottom', transform=fig.transFigure)
+        if not hide_logo:
+            ax.text(0.94, 0.16, 'Solar-MACH',
+                    fontfamily='DejaVu Serif', fontsize=28,
+                    ha='right', va='bottom', transform=fig.transFigure)
+            ax.text(0.94, 0.12, 'https://solar-mach.github.io',
+                    fontfamily='DejaVu Sans', fontsize=18,
+                    ha='right', va='bottom', transform=fig.transFigure)
 
         if transparent:
             fig.patch.set_alpha(0.0)
