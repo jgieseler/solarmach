@@ -16,13 +16,19 @@ The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longi
 Installation
 ------------
 
-solarmach can be installed from `PyPI <https://pypi.org/project/solarmach/>`_ using:
+solarmach requires python >= 3.6.
+
+It can be installed either from `PyPI <https://pypi.org/project/solarmach/>`_ using:
 
 .. code:: bash
 
     pip install solarmach
+    
+or from `conda <https://anaconda.org/conda-forge/solarmach/>`_ using:
 
-`conda <https://anaconda.org/conda-forge/solarmach/>`_ version upcoming.
+.. code:: bash
+
+    conda install -c conda-forge solarmach
 
 Usage
 -----
