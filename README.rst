@@ -7,7 +7,7 @@ solarmach
    :target: https://pypi.org/project/solarmach/
 .. |conda version| image:: https://img.shields.io/conda/vn/conda-forge/solarmach?style=flat&logo=anaconda
    :target: https://anaconda.org/conda-forge/solarmach/
-.. |license| image:: https://img.shields.io/conda/l/conda-forge/solo-epd-loader?style=flat
+.. |license| image:: https://img.shields.io/conda/l/conda-forge/solarmach?style=flat
    :target: https://github.com/jgieseler/solarmach/blob/main/LICENSE.rst
 .. |python version| image:: https://img.shields.io/pypi/pyversions/solarmach?style=flat&logo=python
 
