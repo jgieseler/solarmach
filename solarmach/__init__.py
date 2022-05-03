@@ -179,7 +179,7 @@ class SolarMACH():
         self.max_dist = np.max(body_dist_list)
         self.coord_table = pd.DataFrame(
             {'Spacecraft/Body': list(self.body_dict.keys()), 'Carrington Longitude (°)': body_lon_list,
-             'Latitude (°)': body_lat_list, 'Heliocentric Distance (AU)': body_dist_list,
+             'Carrington Latitude (°)': body_lat_list, 'Heliocentric Distance (AU)': body_dist_list,
              "Longitudinal separation to Earth's longitude": longsep_E_list,
              "Latitudinal separation to Earth's latitude": latsep_E_list, 'Vsw': body_vsw_list,
              'Magnetic footpoint longitude (Carrington)': footp_long_list})
