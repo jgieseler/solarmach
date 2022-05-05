@@ -11,7 +11,7 @@ solarmach
    :target: https://github.com/jgieseler/solarmach/blob/main/LICENSE.rst
 .. |python version| image:: https://img.shields.io/pypi/pyversions/solarmach?style=flat&logo=python
 
-The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longitudinal configuration plotter. This is the repository of the pip package of Solar-MACH, called **solarmach**. For the corresponding streamlit repository, which is used for https://solar-mach.github.io, visit https://github.com/jgieseler/Solar-MACH
+The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longitudinal configuration plotter. This is the repository of the pip/conda package of Solar-MACH, called **solarmach**. For the corresponding streamlit repository, which is used for `solar-mach.github.io <https://solar-mach.github.io>`_, see `github.com/jgieseler/Solar-MACH <https://github.com/jgieseler/Solar-MACH>`_.
 
 Installation
 ------------
@@ -99,3 +99,17 @@ Example Notebook
   
 .. |binder| image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/jgieseler/solarmach/main?labpath=examples%2Fexample.ipynb
+ 
+Acknowledgements
+----------------
+ 
+The Solar-MACH tool was originally developed at Kiel University, Germany and further discussed within the `ESA Heliophysics Archives USer (HAUS) <https://www.cosmos.esa.int/web/esdc/archives-user-groups/heliophysics>`_ group (`original code <https://github.com/esdc-esac-esa-int/Solar-MACH>`_).
+
+Powered by: |matplotlib| |sunpy|
+
+.. |matplotlib| image:: https://matplotlib.org/stable/_static/logo2_compressed.svg
+   :height: 25px
+   :target: https://matplotlib.org
+.. |sunpy| image:: https://raw.githubusercontent.com/sunpy/sunpy-logo/master/generated/sunpy_logo_landscape.svg
+   :height: 30px
+   :target: https://sunpy.org
