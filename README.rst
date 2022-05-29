@@ -85,7 +85,7 @@ Usage
    # obtain data as Pandas DataFrame
    display(sm.coord_table)
 
-.. image:: https://github.com/jgieseler/solarmach/raw/main/examples/Solar-MACH_2021-10-28_15:15:00.png
+.. image:: https://github.com/jgieseler/solarmach/raw/main/examples/solarmach.png
   :alt: Example output figure
   
 Example Notebook
