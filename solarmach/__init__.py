@@ -16,6 +16,7 @@ import matplotlib.text
 import numpy as np
 import pandas as pd
 import scipy.constants as const
+from astropy.coordinates import SkyCoord
 from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
@@ -244,6 +245,7 @@ class SolarMACH():
              reference_vsw=400,
              transparent=False,
              numbered_markers=False,
+             coord_sys='Carrington',
              outfile=''):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
@@ -251,29 +253,47 @@ class SolarMACH():
         Parameters
         ----------
         plot_spirals: bool
-                    if True, the magnetic field lines connecting the bodies with the Sun are plotted
+            if True, the magnetic field lines connecting the bodies with the Sun are plotted
         plot_sun_body_line: bool
-                    if True, straight lines connecting the bodies with the Sun are plotted
+            if True, straight lines connecting the bodies with the Sun are plotted
         show_earth_centered_coord: bool
-                    if True, additional longitudinal tickmarks are shown with Earth at longitude 0
+            if True, additional longitudinal tickmarks are shown with Earth at longitude 0
         reference_vsw: int
-                    if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
+            if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
         transparent: bool
-                    if True, output image has transparent background
+            if True, output image has transparent background
         numbered_markers: bool
-                    if True, body markers contain numbers for better identification
+            if True, body markers contain numbers for better identification
+        coord_sys: string
+            Defines the coordinate system for the plot: 'Carrington' (default) or 'Stonyhurst'
         outfile: string
-                if provided, the plot is saved with outfile as filename
+            if provided, the plot is saved with outfile as filename
         """
         # import pylab as pl
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
+
+        if coord_sys.lower().startswith('car') or coord_sys is None:
+            coord_sys = 'Carrington'
+        if coord_sys.lower().startswith('sto') or coord_sys.lower() == 'Earth':
+            coord_sys = 'Stonyhurst'
 
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=(12, 8), dpi=200)
         self.ax = ax
 
         r = np.arange(0.007, self.max_dist + 0.3, 0.001)
         omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
+
+        # internaly, always Carrigton coordinates are used. Convert the variables for plotting to Stonyhurst here if needed:
+        if coord_sys == 'Stonyhurst':
+            coord = SkyCoord(self.pos_E.lon.value*u.deg, self.pos_E.lat.value*u.deg, frame=frames.HeliographicCarrington, obstime=self.date)
+            coord = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
+            E_long = coord.lon.value                 # Stonyhurst longitude
+            E_lat = coord.lat.value                  # Stonyhurst latitude   
+        else:
+            E_long = self.pos_E.lon.value
+            E_lat = self.pos_E.lat.value
+        dist_e = self.pos_E.radius.value
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -283,10 +303,16 @@ class SolarMACH():
 
             pos = body_pos
             dist_body = pos.radius.value
-            body_long = pos.lon.value
 
-            E_long = self.pos_E.lon.value
-            dist_e = self.pos_E.radius.value
+            # internaly, always Carrigton coordinates are used. Convert the variables for plotting to Stonyhurst here if needed:
+            if coord_sys == 'Stonyhurst':
+                coord = SkyCoord(pos.lon.value*u.deg, coord.lat.value*u.deg, frame=frames.HeliographicCarrington, obstime=self.date)
+                coord = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
+                body_long = coord.lon.value                 # Stonyhurst longitude
+                body_lat = coord.lat.value                  # Stonyhurst latitude 
+            else:
+                body_long = pos.lon.value
+                body_lat = pos.lat.value
 
             # plot body positions
             if numbered_markers:
