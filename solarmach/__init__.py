@@ -240,7 +240,7 @@ class SolarMACH():
 
     def plot(self, plot_spirals=True,
              plot_sun_body_line=False,
-             show_earth_centered_coord=True,
+             show_earth_centered_coord2=True,
              reference_vsw=400,
              transparent=False,
              numbered_markers=False,
