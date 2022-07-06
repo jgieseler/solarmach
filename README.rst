@@ -1,7 +1,7 @@
 solarmach
 =========
 
-|pypi Version| |conda version| |license| |python version| |pytesting|
+|pypi Version| |conda version| |license| |python version| |pytest|
 
 .. |pypi Version| image:: https://img.shields.io/pypi/v/solarmach?style=flat&logo=pypi
    :target: https://pypi.org/project/solarmach/
@@ -10,7 +10,7 @@ solarmach
 .. |license| image:: https://img.shields.io/conda/l/conda-forge/solarmach?style=flat
    :target: https://github.com/jgieseler/solarmach/blob/main/LICENSE.rst
 .. |python version| image:: https://img.shields.io/pypi/pyversions/solarmach?style=flat&logo=python
-.. |pytesting| image:: https://github.com/jgieseler/solarmach/workflows/pytesting/badge.svg
+.. |pytest| image:: https://github.com/jgieseler/solarmach/workflows/pytest/badge.svg
 
 The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longitudinal configuration plotter. This is the repository of the pip/conda package of Solar-MACH, called **solarmach**. For the corresponding streamlit repository, which is used for `solar-mach.github.io <https://solar-mach.github.io>`_, see `github.com/jgieseler/Solar-MACH <https://github.com/jgieseler/Solar-MACH>`_.
 
