@@ -104,7 +104,7 @@ Example Notebook
 Acknowledgements
 ----------------
  
-The Solar-MACH tool was originally developed at Kiel University, Germany and further discussed within the `ESA Heliophysics Archives USer (HAUS) <https://www.cosmos.esa.int/web/esdc/archives-user-groups/heliophysics>`_ group (`original code <https://github.com/esdc-esac-esa-int/Solar-MACH>`_).
+The Solar-MACH tool was originally developed at Kiel University, Germany and further discussed within the `ESA Heliophysics Archives USer (HAUS) <https://www.cosmos.esa.int/web/esdc/archives-user-groups/heliophysics>`_ group.
 
 Powered by: |matplotlib| |sunpy|
 
