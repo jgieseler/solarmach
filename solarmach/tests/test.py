@@ -8,10 +8,10 @@ from solarmach import SolarMACH, print_body_list
 
 def test_solarmach_initialize():
     body_list = ['STEREO-A']
-    vsw_list = [400]   # position-sensitive solar wind speed per body in body_list
+    vsw_list = [400]
     date = '2021-10-28 15:15:00'
-    reference_long = 273                             # Carrington longitude of reference (None to omit)
-    reference_lat = 9                                # Carrington latitude of reference (None to omit)
+    reference_long = 273
+    reference_lat = 9
 
     sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat)
 
@@ -30,13 +30,16 @@ def test_solarmach_initialize():
     assert np.round(sm.coord_table['Longitudinal separation between body and reference_long'][0], 1) == -39.9
     assert np.round(sm.coord_table["Longitudinal separation between body's mangetic footpoint and reference_long"][0], 2) == 18.96
 
+    # verify backwards compatibility: undefined coord_sys is interpreted as 'Carrington'
+    assert sm.coord_sys == 'Carrington'
+
 
 def test_solarmach_plot():
     body_list = ['STEREO-A']
-    vsw_list = [400]   # position-sensitive solar wind speed per body in body_list
+    vsw_list = [400]
     date = '2021-10-28 15:15:00'
-    reference_long = 273                             # Carrington longitude of reference (None to omit)
-    reference_lat = 9                                # Carrington latitude of reference (None to omit)
+    reference_long = 273
+    reference_lat = 9
     reference_vsw = 400
     filename = 'test.png'
 

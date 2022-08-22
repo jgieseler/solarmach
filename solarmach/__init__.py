@@ -82,26 +82,37 @@ class SolarMACH():
     ----------
     date: str
     body_list: list
-            list of body keys to be used. Keys can be string of int.
+        list of body keys to be used. Keys can be string of int.
     vsw_list: list, optional
-            list of solar wind speeds at the position of the different bodies. Must have the same length as body_list.
-            Default is an epmty list leading to vsw=400km/s used for every body.
+        list of solar wind speeds at the position of the different bodies. Must have the same length as body_list.
+        Default is an epmty list leading to vsw=400km/s used for every body.
     reference_long: float, optional
-                Carrington longitute of reference position at the Sun
+        Longitute of reference position at the Sun
     reference_lat: float, optional
-                Heliographic latitude of referene position at the Sun
+        Latitude of referene position at the Sun
+    coord_sys: string
+        Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None):
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington'):
         body_list = list(dict.fromkeys(body_list))
         bodies = deepcopy(body_dict)
+
+        if coord_sys.lower().startswith('car') or coord_sys is None:
+            coord_sys = 'Carrington'
+        if coord_sys.lower().startswith('sto') or coord_sys.lower() == 'Earth':
+            coord_sys = 'Stonyhurst'
 
         self.date = date
         self.reference_long = reference_long
         self.reference_lat = reference_lat
+        self.coord_sys = coord_sys
 
         pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
-        self.pos_E = pos_E.transform_to(frames.HeliographicCarrington(observer='Sun'))
+        if coord_sys=='Carrington':
+            self.pos_E = pos_E.transform_to(frames.HeliographicCarrington(observer='Sun'))
+        elif coord_sys=='Stonyhurst':
+            self.pos_E = pos_E
 
         if len(vsw_list) == 0:
             vsw_list = np.zeros(len(body_list)) + 400
@@ -133,7 +144,8 @@ class SolarMACH():
 
             try:
                 pos = get_horizons_coord(body_id, date, None)  # (lon, lat, radius) in (deg, deg, AU)
-                pos = pos.transform_to(frames.HeliographicCarrington(observer='Sun'))
+                if coord_sys=='Carrington':
+                    pos = pos.transform_to(frames.HeliographicCarrington(observer='Sun'))
                 bodies[body_id].append(pos)
                 bodies[body_id].append(vsw_list[i])
 
@@ -179,11 +191,11 @@ class SolarMACH():
         self.body_dict = body_dict_short
         self.max_dist = np.max(body_dist_list)
         self.coord_table = pd.DataFrame(
-            {'Spacecraft/Body': list(self.body_dict.keys()), 'Carrington Longitude (°)': body_lon_list,
-             'Carrington Latitude (°)': body_lat_list, 'Heliocentric Distance (AU)': body_dist_list,
+            {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} Longitude (°)': body_lon_list,
+             f'{coord_sys} Latitude (°)': body_lat_list, 'Heliocentric Distance (AU)': body_dist_list,
              "Longitudinal separation to Earth's longitude": longsep_E_list,
              "Latitudinal separation to Earth's latitude": latsep_E_list, 'Vsw': body_vsw_list,
-             'Magnetic footpoint longitude (Carrington)': footp_long_list})
+             f'Magnetic footpoint longitude ({coord_sys})': footp_long_list})
 
         if self.reference_long is not None:
             self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
@@ -202,11 +214,11 @@ class SolarMACH():
         Parameters
         ----------
         body_pos : astropy.coordinates.sky_coordinate.SkyCoord
-               coordinate of the body in Carrington coordinates
+               coordinates of the body
         date: str
               e.g., '2020-03-22 12:30'
         reference_long: float
-                        Carrington longitude of reference point at Sun to which we determine the longitudinal separation
+                        Longitude of reference point at Sun to which we determine the longitudinal separation
         vsw: float
              solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
 
@@ -245,7 +257,8 @@ class SolarMACH():
              reference_vsw=400,
              transparent=False,
              numbered_markers=False,
-             coord_sys='Carrington',
+             return_plot_object=False,
+             long_offset=270,
              outfile=''):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
@@ -257,15 +270,18 @@ class SolarMACH():
         plot_sun_body_line: bool
             if True, straight lines connecting the bodies with the Sun are plotted
         show_earth_centered_coord: bool
-            if True, additional longitudinal tickmarks are shown with Earth at longitude 0
+            if True, additional longitudinal tickmarks are shown with Earth at longitude 0.
+            With the introduction of coord_sys in class SolarMACH() this function is more or less redundant.
         reference_vsw: int
             if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
         transparent: bool
             if True, output image has transparent background
         numbered_markers: bool
             if True, body markers contain numbers for better identification
-        coord_sys: string
-            Defines the coordinate system for the plot: 'Carrington' (default) or 'Stonyhurst'
+        return_plot_object: bool
+            if True, the axis object of matplotib is returned, allowing further adjustments to the figure
+        long_offset: int or float
+            longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
         outfile: string
             if provided, the plot is saved with outfile as filename
         """
@@ -273,26 +289,14 @@ class SolarMACH():
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
 
-        if coord_sys.lower().startswith('car') or coord_sys is None:
-            coord_sys = 'Carrington'
-        if coord_sys.lower().startswith('sto') or coord_sys.lower() == 'Earth':
-            coord_sys = 'Stonyhurst'
-
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=(12, 8), dpi=200)
         self.ax = ax
 
         r = np.arange(0.007, self.max_dist + 0.3, 0.001)
         omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
-        # internaly, always Carrigton coordinates are used. Convert the variables for plotting to Stonyhurst here if needed:
-        if coord_sys == 'Stonyhurst':
-            coord = SkyCoord(self.pos_E.lon.value*u.deg, self.pos_E.lat.value*u.deg, frame=frames.HeliographicCarrington, obstime=self.date)
-            coord = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
-            E_long = coord.lon.value                 # Stonyhurst longitude
-            E_lat = coord.lat.value                  # Stonyhurst latitude   
-        else:
-            E_long = self.pos_E.lon.value
-            E_lat = self.pos_E.lat.value
+        E_long = self.pos_E.lon.value
+        E_lat = self.pos_E.lat.value
         dist_e = self.pos_E.radius.value
 
         for i, body_id in enumerate(self.body_dict):
@@ -304,15 +308,8 @@ class SolarMACH():
             pos = body_pos
             dist_body = pos.radius.value
 
-            # internaly, always Carrigton coordinates are used. Convert the variables for plotting to Stonyhurst here if needed:
-            if coord_sys == 'Stonyhurst':
-                coord = SkyCoord(pos.lon.value*u.deg, coord.lat.value*u.deg, frame=frames.HeliographicCarrington, obstime=self.date)
-                coord = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
-                body_long = coord.lon.value                 # Stonyhurst longitude
-                body_lat = coord.lat.value                  # Stonyhurst latitude 
-            else:
-                body_long = pos.lon.value
-                body_lat = pos.lat.value
+            body_long = pos.lon.value
+            body_lat = pos.lat.value
 
             # plot body positions
             if numbered_markers:
@@ -376,8 +373,14 @@ class SolarMACH():
             if text.get_text() == 'SEMB-L1':
                 text.set_text('L1')
 
+        # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
+        # NB: this remove the rgridlines for unknown reasons! deactivated for now
+        # if self.coord_sys=='Stonyhurst':
+        #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
+        #     ax.set_thetalim(-np.pi, np.pi)
+
         ax.set_rlabel_position(E_long + 120)
-        ax.set_theta_offset(np.deg2rad(270 - E_long))
+        ax.set_theta_offset(np.deg2rad(long_offset - E_long))
         ax.set_rmax(self.max_dist + 0.3)
         ax.set_rmin(0.01)
         ax.yaxis.get_major_locator().base.set_params(nbins=4)
@@ -389,12 +392,12 @@ class SolarMACH():
                             fill=False, lw=2)
         ax.add_patch(circle)
 
-        # manually plot r-grid lines with different resolution depending on maximum distance bodyz
+        # manually plot r-grid lines with different resolution depending on maximum distance body
         if self.max_dist < 2:
-            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=22.5)
+            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=112.5)
         else:
             if self.max_dist < 10:
-                ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=22.5)
+                ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=112.5)
 
         ax.set_title(self.date + '\n', pad=60)
 
@@ -423,6 +426,9 @@ class SolarMACH():
         if outfile != '':
             plt.savefig(outfile, bbox_inches="tight")
         # st.pyplot(fig, dpi=200)
+
+        if return_plot_object:
+            return ax
 
     def _polar_twin(self, ax, E_long, position):
         """
