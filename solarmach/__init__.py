@@ -98,7 +98,7 @@ class SolarMACH():
         body_list = list(dict.fromkeys(body_list))
         bodies = deepcopy(body_dict)
 
-        if coord_sys.lower().startswith('car') or coord_sys is None:
+        if coord_sys.lower().startswith('car'):
             coord_sys = 'Carrington'
         if coord_sys.lower().startswith('sto') or coord_sys.lower() == 'Earth':
             coord_sys = 'Stonyhurst'
@@ -253,7 +253,7 @@ class SolarMACH():
 
     def plot(self, plot_spirals=True,
              plot_sun_body_line=False,
-             show_earth_centered_coord=True,
+             show_earth_centered_coord=False,
              reference_vsw=400,
              transparent=False,
              numbered_markers=False,
@@ -270,8 +270,7 @@ class SolarMACH():
         plot_sun_body_line: bool
             if True, straight lines connecting the bodies with the Sun are plotted
         show_earth_centered_coord: bool
-            if True, additional longitudinal tickmarks are shown with Earth at longitude 0.
-            With the introduction of coord_sys in class SolarMACH() this function is more or less redundant.
+            Deprecated! With the introduction of coord_sys in class SolarMACH() this function is redundant and not functional any more!
         reference_vsw: int
             if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
         transparent: bool
@@ -405,10 +404,11 @@ class SolarMACH():
         plt.subplots_adjust(bottom=0.15)
 
         if show_earth_centered_coord:
-            pos1 = ax.get_position()  # get the original position of the polar plot
-            offset = 0.12
-            pos2 = [pos1.x0 - offset / 2, pos1.y0 - offset / 2, pos1.width + offset, pos1.height + offset]
-            ax2 = self._polar_twin(ax, E_long, pos2, long_offset)
+            print("The option 'show_earth_centered_coord' is deprecated! Please initialize SolarMACH with coord_sys='Stoneyhurst' to get an Earth-centered coordinate system.") 
+            # pos1 = ax.get_position()  # get the original position of the polar plot
+            # offset = 0.12
+            # pos2 = [pos1.x0 - offset / 2, pos1.y0 - offset / 2, pos1.width + offset, pos1.height + offset]
+            # ax2 = self._polar_twin(ax, E_long, pos2, long_offset)
 
         ax.tick_params(axis='x', pad=10)
 
