@@ -428,7 +428,7 @@ class SolarMACH():
         # st.pyplot(fig, dpi=200)
 
         if return_plot_object:
-            return ax
+            return fig, ax
 
     def _polar_twin(self, ax, E_long, position, long_offset):
         """
