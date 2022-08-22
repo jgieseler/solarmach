@@ -408,7 +408,7 @@ class SolarMACH():
             pos1 = ax.get_position()  # get the original position of the polar plot
             offset = 0.12
             pos2 = [pos1.x0 - offset / 2, pos1.y0 - offset / 2, pos1.width + offset, pos1.height + offset]
-            ax2 = self._polar_twin(ax, E_long, pos2)
+            ax2 = self._polar_twin(ax, E_long, pos2, long_offset)
 
         ax.tick_params(axis='x', pad=10)
 
@@ -430,7 +430,7 @@ class SolarMACH():
         if return_plot_object:
             return ax
 
-    def _polar_twin(self, ax, E_long, position):
+    def _polar_twin(self, ax, E_long, position, long_offset):
         """
         add an additional axes which is needed to plot additional longitudinal tickmarks with Earth at longitude 0
         """
@@ -445,6 +445,7 @@ class SolarMACH():
         ax2.tick_params(axis='x', colors='darkgreen', pad=10)
         ax2.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
         ax2.set_thetalim(-np.pi, np.pi)
+        ax2.set_theta_offset(np.deg2rad(long_offset - E_long))
         gridlines = ax2.xaxis.get_gridlines()
         for xax in gridlines:
             xax.set_color('darkgreen')
