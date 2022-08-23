@@ -278,7 +278,7 @@ class SolarMACH():
         numbered_markers: bool
             if True, body markers contain numbers for better identification
         return_plot_object: bool
-            if True, the axis object of matplotib is returned, allowing further adjustments to the figure
+            if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
         long_offset: int or float
             longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
         outfile: string
