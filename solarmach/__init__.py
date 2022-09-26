@@ -259,7 +259,9 @@ class SolarMACH():
              numbered_markers=False,
              return_plot_object=False,
              long_offset=270,
-             outfile=''):
+             outfile='',
+             figsize=(12, 8),
+             dpi=200):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -288,7 +290,7 @@ class SolarMACH():
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
 
-        fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=(12, 8), dpi=200)
+        fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
         self.ax = ax
 
         r = np.arange(0.007, self.max_dist + 0.3, 0.001)
