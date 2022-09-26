@@ -51,7 +51,7 @@ Usage
    date = '2021-10-28 15:15:00'
 
    # optional parameters
-   coord_sys = 'Carrington'                         # 'Carrington' (default) or 'Stoneyhurst'
+   coord_sys = 'Carrington'                         # 'Carrington' (default) or 'Stonyhurst'
    reference_long = 273                             # longitude of reference (None to omit)
    reference_lat = 0                                # latitude of reference (None to omit)
    plot_spirals = True                              # plot Parker spirals for each body

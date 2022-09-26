@@ -404,7 +404,7 @@ class SolarMACH():
         plt.subplots_adjust(bottom=0.15)
 
         if show_earth_centered_coord:
-            print("The option 'show_earth_centered_coord' is deprecated! Please initialize SolarMACH with coord_sys='Stoneyhurst' to get an Earth-centered coordinate system.") 
+            print("The option 'show_earth_centered_coord' is deprecated! Please initialize SolarMACH with coord_sys='Stonyhurst' to get an Earth-centered coordinate system.") 
             # pos1 = ax.get_position()  # get the original position of the polar plot
             # offset = 0.12
             # pos2 = [pos1.x0 - offset / 2, pos1.y0 - offset / 2, pos1.width + offset, pos1.height + offset]
