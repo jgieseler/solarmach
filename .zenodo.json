@@ -1,0 +1,32 @@
+{
+    "description": "Python package of the multi-spacecraft longitudinal configuration plotter Solar-MACH",
+    "upload_type": "software",
+    "creators": [
+        {
+            "name": "Jan Gieseler,  Jan",
+            "orcid": "0000-0003-1848-7067",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Dresing, Nina",
+            "orcid": "0000-0003-3903-4649",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Freiherr von Forstner, Johan L.",
+            "affiliation": "Paradox Cat GmbH"
+        },
+        {
+            "name": "Palmroos, Christian",
+            "orcid": "0000-0002-7778-5454",
+            "affiliation": "University of Turku"
+        },
+        {
+            "name": "Vainio, Rami",
+            "orcid": "0000-0002-3298-2067",
+            "affiliation": "University of Turku"
+        }
+    ],
+    "access_right": "open",
+    "grants": [{"id":"101004159"}]
+}
