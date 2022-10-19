@@ -1,6 +1,11 @@
 {
     "description": "Python package of the multi-spacecraft longitudinal configuration plotter Solar-MACH",
     "upload_type": "software",
+    "grants": [
+        {
+            "id": "10.13039/501100000780::101004159"
+        }
+    ], 
     "creators": [
         {
             "name": "Jan Gieseler,  Jan",
@@ -27,6 +32,5 @@
             "affiliation": "University of Turku"
         }
     ],
-    "access_right": "open",
-    "grants": [{"id":"101004159"}]
+    "access_right": "open"
 }
