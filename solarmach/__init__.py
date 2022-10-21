@@ -21,10 +21,6 @@ from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 
-plt.rcParams['axes.linewidth'] = 1.5
-plt.rcParams['font.size'] = 15
-plt.rcParams['agg.path.chunksize'] = 20000
-
 # pd.options.display.max_rows = None
 pd.options.display.float_format = '{:.1f}'.format
 
@@ -286,9 +282,14 @@ class SolarMACH():
         outfile: string
             if provided, the plot is saved with outfile as filename
         """
-        # import pylab as pl
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
+
+        # save inital rcParams and update some of them:
+        original_rcparams = plt.rcParams.copy()
+        plt.rcParams['axes.linewidth'] = 1.5
+        plt.rcParams['font.size'] = 15
+        plt.rcParams['agg.path.chunksize'] = 20000
 
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
         self.ax = ax
@@ -406,7 +407,7 @@ class SolarMACH():
         plt.subplots_adjust(bottom=0.15)
 
         if show_earth_centered_coord:
-            print("The option 'show_earth_centered_coord' is deprecated! Please initialize SolarMACH with coord_sys='Stonyhurst' to get an Earth-centered coordinate system.") 
+            print("The option 'show_earth_centered_coord' is deprecated! Please initialize SolarMACH with coord_sys='Stonyhurst' to get an Earth-centered coordinate system.")
             # pos1 = ax.get_position()  # get the original position of the polar plot
             # offset = 0.12
             # pos2 = [pos1.x0 - offset / 2, pos1.y0 - offset / 2, pos1.width + offset, pos1.height + offset]
@@ -428,6 +429,9 @@ class SolarMACH():
         if outfile != '':
             plt.savefig(outfile, bbox_inches="tight")
         # st.pyplot(fig, dpi=200)
+
+        # restore initial rcParams that have been saved at the beginning of this function:
+        plt.rcParams.update(orig_rcparams)
 
         if return_plot_object:
             return fig, ax
