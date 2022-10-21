@@ -25,7 +25,7 @@ plt.rcParams['axes.linewidth'] = 1.5
 plt.rcParams['font.size'] = 15
 plt.rcParams['agg.path.chunksize'] = 20000
 
-pd.options.display.max_rows = None
+# pd.options.display.max_rows = None
 pd.options.display.float_format = '{:.1f}'.format
 
 # disable unnecessary logging
