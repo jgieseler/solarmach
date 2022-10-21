@@ -22,10 +22,12 @@ from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 
 # pd.options.display.max_rows = None
-pd.options.display.float_format = '{:.1f}'.format
-
-# disable unnecessary logging
-log.setLevel('WARNING')
+# pd.options.display.float_format = '{:.1f}'.format
+# if needed, rather use the following to have the desired display:
+"""
+with pd.option_context('display.float_format', '{:0.1f}'.format):
+    display(df)
+"""
 
 
 # initialize the body dictionary
@@ -91,6 +93,10 @@ class SolarMACH():
     """
 
     def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington'):
+        # get initial sunpy logging level and disable unnecessary logging
+        initial_log_level = log.getEffectiveLevel()
+        log.setLevel('WARNING')
+
         body_list = list(dict.fromkeys(body_list))
         bodies = deepcopy(body_dict)
 
@@ -200,8 +206,12 @@ class SolarMACH():
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
 
+        # Does this still have a use?
         pass
         self.coord_table.style.set_properties(**{'text-align': 'left'})
+        
+        # reset sunpy log level to initial state
+        log.setLevel(initial_log_level)
 
     def backmapping(self, body_pos, date, reference_long, vsw=400):
         """
