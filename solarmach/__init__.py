@@ -286,7 +286,7 @@ class SolarMACH():
         AU = const.au / 1000  # km
 
         # save inital rcParams and update some of them:
-        original_rcparams = plt.rcParams.copy()
+        initial_rcparams = plt.rcParams.copy()
         plt.rcParams['axes.linewidth'] = 1.5
         plt.rcParams['font.size'] = 15
         plt.rcParams['agg.path.chunksize'] = 20000
@@ -431,7 +431,7 @@ class SolarMACH():
         # st.pyplot(fig, dpi=200)
 
         # restore initial rcParams that have been saved at the beginning of this function:
-        plt.rcParams.update(orig_rcparams)
+        plt.rcParams.update(initial_rcparams)
 
         if return_plot_object:
             return fig, ax
