@@ -439,6 +439,7 @@ class SolarMACH():
     def _polar_twin(self, ax, E_long, position, long_offset):
         """
         add an additional axes which is needed to plot additional longitudinal tickmarks with Earth at longitude 0
+        not used any more!
         """
         ax2 = ax.figure.add_axes(position, projection='polar',
                                  label='twin', frameon=False,
