@@ -25,7 +25,7 @@ from sunpy.coordinates import frames, get_horizons_coord
 # pd.options.display.float_format = '{:.1f}'.format
 # if needed, rather use the following to have the desired display:
 """
-with pd.option_context('display.float_format', '{:0.1f}'.format):
+with pd.option_context('display.float_format', '{:0.2f}'.format):
     display(df)
 """
 
