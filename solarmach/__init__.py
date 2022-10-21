@@ -209,7 +209,7 @@ class SolarMACH():
         # Does this still have a use?
         pass
         self.coord_table.style.set_properties(**{'text-align': 'left'})
-        
+
         # reset sunpy log level to initial state
         log.setLevel(initial_log_level)
 
