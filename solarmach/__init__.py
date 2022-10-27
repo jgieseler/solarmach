@@ -443,6 +443,13 @@ class SolarMACH():
         # restore initial rcParams that have been saved at the beginning of this function:
         plt.rcParams.update(initial_rcparams)
 
+        # if using streamlit, send plot to streamlit output, else call plt.show()
+        if _isstreamlit():
+            import streamlit as st
+            st.pyplot(fig)  # , dpi=200)
+        else:
+            plt.show()
+
         if return_plot_object:
             return fig, ax
 
@@ -468,3 +475,24 @@ class SolarMACH():
             xax.set_color('darkgreen')
 
         return ax2
+
+
+def _isstreamlit():
+    """
+    Function to check whether python code is run within streamlit
+
+    Returns
+    -------
+    use_streamlit : boolean
+        True if code is run within streamlit, else False
+    """
+    # https://discuss.streamlit.io/t/how-to-check-if-code-is-run-inside-streamlit-and-not-e-g-ipython/23439
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        if not get_script_run_ctx():
+            use_streamlit = False
+        else:
+            use_streamlit = True
+    except ModuleNotFoundError:
+        use_streamlit = False
+    return use_streamlit
