@@ -193,8 +193,8 @@ class SolarMACH():
         self.body_dict = body_dict_short
         self.max_dist = np.max(body_dist_list)
         self.coord_table = pd.DataFrame(
-            {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} Longitude (°)': body_lon_list,
-             f'{coord_sys} Latitude (°)': body_lat_list, 'Heliocentric Distance (AU)': body_dist_list,
+            {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} longitude (°)': body_lon_list,
+             f'{coord_sys} latitude (°)': body_lat_list, 'Heliocentric distance (AU)': body_dist_list,
              "Longitudinal separation to Earth's longitude": longsep_E_list,
              "Latitudinal separation to Earth's latitude": latsep_E_list, 'Vsw': body_vsw_list,
              f'Magnetic footpoint longitude ({coord_sys})': footp_long_list})
@@ -238,9 +238,15 @@ class SolarMACH():
 
         pos = body_pos
         lon = pos.lon.value
+        lat = pos.lat.value
         dist = pos.radius.value
 
-        omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
+        # take into account solar differential rotation wrt. latitude
+        # rotation in rad/sec based on rLSQ method of Poljancic Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
+        # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+        omega = np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
+        # old:
+        # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
 
         tt = dist * AU / vsw
         alpha = math.degrees(omega * tt)
@@ -305,7 +311,8 @@ class SolarMACH():
         self.ax = ax
 
         r = np.arange(0.007, self.max_dist + 0.3, 0.001)
-        omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
+        # take into account solar differential rotation wrt. latitude. Thus move calculation of omega to the per-body section below
+        # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
         E_long = self.pos_E.lon.value
         E_lat = self.pos_E.lat.value
@@ -322,6 +329,13 @@ class SolarMACH():
 
             body_long = pos.lon.value
             body_lat = pos.lat.value
+
+            # take into account solar differential rotation wrt. latitude
+            # rotation in rad/sec based on rLSQ method of Poljancic Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
+            # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+            omega = np.radians((14.50-2.87*np.sin(np.deg2rad(body_lat))**2)/(24*60*60))
+            # old:
+            # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
             # plot body positions
             if numbered_markers:
@@ -347,7 +361,18 @@ class SolarMACH():
             delta_ref = self.reference_long
             if delta_ref < 0.:
                 delta_ref = delta_ref + 360.
-            alpha_ref = np.deg2rad(delta_ref) + omega / (reference_vsw / AU) * (dist_e / AU - r) - (omega / (reference_vsw / AU) * (dist_e / AU))
+            if self.reference_lat is None:
+                ref_lat = 0.
+            else:
+                ref_lat = self.reference_lat
+            # take into account solar differential rotation wrt. latitude
+            # rotation in rad/sec based on rLSQ method of Poljancic Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
+            # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+            omega_ref = np.radians((14.50-2.87*np.sin(np.deg2rad(ref_lat))**2)/(24*60*60))
+
+            # old eq. for alpha_ref contained redundant dist_e variable:
+            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
+            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (0 - r)  # TODO: replace 0 with r of source surface (or photosphere)
             # old arrow style:
             # arrow_dist = min([self.max_dist + 0.1, 2.])
             # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.12, head_length=0.11, edgecolor='black',
