@@ -273,7 +273,8 @@ class SolarMACH():
              long_offset=270,
              outfile='',
              figsize=(12, 8),
-             dpi=200):
+             dpi=200,
+             plot_distance='heliographic-equator'):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -316,7 +317,10 @@ class SolarMACH():
 
         E_long = self.pos_E.lon.value
         E_lat = self.pos_E.lat.value
-        dist_e = self.pos_E.radius.value
+        if plot_distance == 'heliographic-equator':
+            dist_e = self.pos_E.cylindrical.rho.value
+        if plot_distance == 'heliographic-radius':
+            dist_e = self.pos_E.radius.value
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -325,7 +329,10 @@ class SolarMACH():
             body_pos = self.body_dict[body_id][3]
 
             pos = body_pos
-            dist_body = pos.radius.value
+            if plot_distance == 'heliographic-equator':
+                dist_body = pos.cylindrical.rho.value
+            if plot_distance == 'heliographic-radius':
+                dist_body = pos.radius.value
 
             body_long = pos.lon.value
             body_lat = pos.lat.value
