@@ -92,7 +92,8 @@ class SolarMACH():
         Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington'):
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', diff_rot=True):
+        self.diff_rot = diff_rot
         # get initial sunpy logging level and disable unnecessary logging
         initial_log_level = log.getEffectiveLevel()
         log.setLevel('WARNING')
@@ -193,8 +194,8 @@ class SolarMACH():
         self.body_dict = body_dict_short
         self.max_dist = np.max(body_dist_list)
         self.coord_table = pd.DataFrame(
-            {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} Longitude (°)': body_lon_list,
-             f'{coord_sys} Latitude (°)': body_lat_list, 'Heliocentric Distance (AU)': body_dist_list,
+            {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} longitude (°)': body_lon_list,
+             f'{coord_sys} latitude (°)': body_lat_list, 'Heliocentric distance (AU)': body_dist_list,
              "Longitudinal separation to Earth's longitude": longsep_E_list,
              "Latitudinal separation to Earth's latitude": latsep_E_list, 'Vsw': body_vsw_list,
              f'Magnetic footpoint longitude ({coord_sys})': footp_long_list})
@@ -238,9 +239,13 @@ class SolarMACH():
 
         pos = body_pos
         lon = pos.lon.value
+        lat = pos.lat.value
         dist = pos.radius.value
 
-        omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
+        # take into account solar differential rotation wrt. latitude
+        omega = self.solar_diff_rot(lat)
+        # old:
+        # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
 
         tt = dist * AU / vsw
         alpha = math.degrees(omega * tt)
@@ -257,6 +262,27 @@ class SolarMACH():
 
         return sep, alpha
 
+    def solar_diff_rot(self, lat):
+        """
+        Calculate solar differential rotation wrt. latitude,
+        based on rLSQ method of Beljan et al. (2017),
+        doi: 10.1051/0004-6361/201731047
+
+        Parameters
+        ----------
+        lat : number (int, flotat)
+            Heliographic latitude in degrees
+
+        Returns
+        -------
+        numpy.float64
+            Solar angular rotation in rad/sec
+        """
+        # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+        if self.diff_rot is False:
+            lat = 0
+        return np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
+
     def plot(self, plot_spirals=True,
              plot_sun_body_line=False,
              show_earth_centered_coord=False,
@@ -267,7 +293,8 @@ class SolarMACH():
              long_offset=270,
              outfile='',
              figsize=(12, 8),
-             dpi=200):
+             dpi=200,
+             plot_distance='heliographic-equator'):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -305,11 +332,15 @@ class SolarMACH():
         self.ax = ax
 
         r = np.arange(0.007, self.max_dist + 0.3, 0.001)
-        omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
+        # take into account solar differential rotation wrt. latitude. Thus move calculation of omega to the per-body section below
+        # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
         E_long = self.pos_E.lon.value
         E_lat = self.pos_E.lat.value
-        dist_e = self.pos_E.radius.value
+        if plot_distance == 'heliographic-equator':
+            dist_e = self.pos_E.cylindrical.rho.value
+        if plot_distance == 'heliographic-radius':
+            dist_e = self.pos_E.radius.value
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -318,10 +349,18 @@ class SolarMACH():
             body_pos = self.body_dict[body_id][3]
 
             pos = body_pos
-            dist_body = pos.radius.value
+            if plot_distance == 'heliographic-equator':
+                dist_body = pos.cylindrical.rho.value
+            if plot_distance == 'heliographic-radius':
+                dist_body = pos.radius.value
 
             body_long = pos.lon.value
             body_lat = pos.lat.value
+
+            # take into account solar differential rotation wrt. latitude
+            omega = self.solar_diff_rot(body_lat)
+            # old:
+            # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
             # plot body positions
             if numbered_markers:
@@ -347,7 +386,16 @@ class SolarMACH():
             delta_ref = self.reference_long
             if delta_ref < 0.:
                 delta_ref = delta_ref + 360.
-            alpha_ref = np.deg2rad(delta_ref) + omega / (reference_vsw / AU) * (dist_e / AU - r) - (omega / (reference_vsw / AU) * (dist_e / AU))
+            if self.reference_lat is None:
+                ref_lat = 0.
+            else:
+                ref_lat = self.reference_lat
+            # take into account solar differential rotation wrt. latitude
+            omega_ref = self.solar_diff_rot(ref_lat)
+
+            # old eq. for alpha_ref contained redundant dist_e variable:
+            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
+            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (0 - r)  # TODO: replace 0 with r of source surface (or photosphere)
             # old arrow style:
             # arrow_dist = min([self.max_dist + 0.1, 2.])
             # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.12, head_length=0.11, edgecolor='black',
