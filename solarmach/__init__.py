@@ -388,9 +388,7 @@ class SolarMACH():
             else:
                 ref_lat = self.reference_lat
             # take into account solar differential rotation wrt. latitude
-            # rotation in rad/sec based on rLSQ method of Poljancic Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
-            # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
-            omega_ref = np.radians((14.50-2.87*np.sin(np.deg2rad(ref_lat))**2)/(24*60*60))
+            omega_ref = self.solar_diff_rot(ref_lat)
 
             # old eq. for alpha_ref contained redundant dist_e variable:
             # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
