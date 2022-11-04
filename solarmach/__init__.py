@@ -242,9 +242,7 @@ class SolarMACH():
         dist = pos.radius.value
 
         # take into account solar differential rotation wrt. latitude
-        # rotation in rad/sec based on rLSQ method of Poljancic Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
-        # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
-        omega = np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
+        omega = self.solar_diff_rot(lat)
         # old:
         # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
 
@@ -262,6 +260,25 @@ class SolarMACH():
             sep = np.nan
 
         return sep, alpha
+
+    def solar_diff_rot(lat):
+        """
+        Calculate solar differential rotation wrt. latitude,
+        based on rLSQ method of Beljan et al. (2017),
+        doi: 10.1051/0004-6361/201731047
+
+        Parameters
+        ----------
+        lat : number (int, flotat)
+            Heliographic latitude in degrees
+
+        Returns
+        -------
+        numpy.float64
+            Solar angular rotation in rad/sec
+        """
+        # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+        return np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
 
     def plot(self, plot_spirals=True,
              plot_sun_body_line=False,
@@ -338,9 +355,7 @@ class SolarMACH():
             body_lat = pos.lat.value
 
             # take into account solar differential rotation wrt. latitude
-            # rotation in rad/sec based on rLSQ method of Poljancic Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
-            # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
-            omega = np.radians((14.50-2.87*np.sin(np.deg2rad(body_lat))**2)/(24*60*60))
+            omega = self.solar_diff_rot(body_lat)
             # old:
             # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
