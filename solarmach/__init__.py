@@ -261,7 +261,7 @@ class SolarMACH():
 
         return sep, alpha
 
-    def solar_diff_rot(lat):
+    def solar_diff_rot(self, lat):
         """
         Calculate solar differential rotation wrt. latitude,
         based on rLSQ method of Beljan et al. (2017),
