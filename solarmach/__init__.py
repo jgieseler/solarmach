@@ -92,7 +92,8 @@ class SolarMACH():
         Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington'):
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', diff_rot=True):
+        self.diff_rot = diff_rot
         # get initial sunpy logging level and disable unnecessary logging
         initial_log_level = log.getEffectiveLevel()
         log.setLevel('WARNING')
@@ -278,6 +279,8 @@ class SolarMACH():
             Solar angular rotation in rad/sec
         """
         # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+        if self.diff_rot is False:
+            lat = 0
         return np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
 
     def plot(self, plot_spirals=True,
