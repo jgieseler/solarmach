@@ -416,7 +416,8 @@ class SolarMACH():
         #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
         #     ax.set_thetalim(-np.pi, np.pi)
 
-        ax.set_rlabel_position(E_long + 120)
+        rlabel_pos = E_long + 120
+        ax.set_rlabel_position(rlabel_pos)
         ax.set_theta_offset(np.deg2rad(long_offset - E_long))
         ax.set_rmax(self.max_dist + 0.3)
         ax.set_rmin(0.01)
@@ -431,10 +432,10 @@ class SolarMACH():
 
         # manually plot r-grid lines with different resolution depending on maximum distance body
         if self.max_dist < 2:
-            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=112.5)
+            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=rlabel_pos)
         else:
             if self.max_dist < 10:
-                ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=112.5)
+                ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
 
         ax.set_title(self.date + '\n', pad=60)
 
