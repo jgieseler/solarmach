@@ -28,7 +28,7 @@ def test_solarmach_initialize():
     assert sm.coord_table.shape == (1, 11)
 
     assert np.round(sm.coord_table['Longitudinal separation between body and reference_long'][0], 1) == -39.9
-    assert np.round(sm.coord_table["Longitudinal separation between body's mangetic footpoint and reference_long"][0], 2) == 20.09
+    assert np.round(sm.coord_table["Longitudinal separation between body's mangetic footpoint and reference_long"][0], 2) == 19.8
 
     # verify backwards compatibility: undefined coord_sys is interpreted as 'Carrington'
     assert sm.coord_sys == 'Carrington'
