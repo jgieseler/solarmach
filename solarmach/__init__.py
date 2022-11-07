@@ -412,7 +412,9 @@ class SolarMACH():
             # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.12, head_length=0.11, edgecolor='black',
             #                     facecolor='black', lw=2, zorder=5, overhang=0.2)
             arrow_dist = min([self.max_dist/3.2, 2.])
-            ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
+            # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
+            #                     facecolor='black', lw=1.8, zorder=5, overhang=0.2)
+            ref_arr = plt.arrow(delta_ref, 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
                                 facecolor='black', lw=1.8, zorder=5, overhang=0.2)
 
             if plot_spirals:
