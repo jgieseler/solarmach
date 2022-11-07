@@ -406,7 +406,7 @@ class SolarMACH():
 
             # old eq. for alpha_ref contained redundant dist_e variable:
             # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
-            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (0 - r)  # TODO: replace 0 with r of source surface (or photosphere)
+            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (aconst.R_sun.to(u.km).value - r)
             # old arrow style:
             # arrow_dist = min([self.max_dist + 0.1, 2.])
             # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.12, head_length=0.11, edgecolor='black',
