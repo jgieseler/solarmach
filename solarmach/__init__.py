@@ -9,6 +9,7 @@ except DistributionNotFound:
 import math
 from copy import deepcopy
 
+import astropy.constants as aconst
 import astropy.units as u
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -92,8 +93,16 @@ class SolarMACH():
         Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', diff_rot=True):
-        self.diff_rot = diff_rot
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
+        if 'diff_rot' in kwargs.keys():
+            self.diff_rot = kwargs['diff_rot']
+        else:
+            self.diff_rot = True
+        if 'target_solar_radius' in kwargs.keys():
+            self.target_solar_radius = kwargs['target_solar_radius']
+        else:
+            self.target_solar_radius = 1
+
         # get initial sunpy logging level and disable unnecessary logging
         initial_log_level = log.getEffectiveLevel()
         log.setLevel('WARNING')
@@ -165,7 +174,7 @@ class SolarMACH():
 
                 body_vsw_list.append(vsw_list[i])
 
-                sep, alpha = self.backmapping(pos, date, reference_long, vsw=vsw_list[i])
+                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list[i])
                 bodies[body_id].append(sep)
 
                 body_footp_long = pos.lon.value + alpha
@@ -214,18 +223,18 @@ class SolarMACH():
         # reset sunpy log level to initial state
         log.setLevel(initial_log_level)
 
-    def backmapping(self, body_pos, date, reference_long, vsw=400):
+    def backmapping(self, body_pos, reference_long, target_solar_radius=1, vsw=400):
         """
         Determine the longitudinal separation angle of a given spacecraft and a given reference longitude
 
         Parameters
         ----------
         body_pos : astropy.coordinates.sky_coordinate.SkyCoord
-               coordinates of the body
-        date: str
-              e.g., '2020-03-22 12:30'
+            coordinates of the body
         reference_long: float
-                        Longitude of reference point at Sun to which we determine the longitudinal separation
+            Longitude of reference point at Sun to which we determine the longitudinal separation
+        target_solar_radius: float
+            Target solar radius to which to be backmapped. 0 corresponds to Sun's center, 1 to 1 solar radius, and e.g. 2.5 to the source surface.
         vsw: float
              solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
 
@@ -235,20 +244,22 @@ class SolarMACH():
             alpha: float
                 backmapping angle
         """
-        AU = const.au / 1000  # km
+        # AU = const.au / 1000  # km
 
         pos = body_pos
         lon = pos.lon.value
         lat = pos.lat.value
-        dist = pos.radius.value
+        # dist = pos.radius.value
+        radius = pos.radius
 
         # take into account solar differential rotation wrt. latitude
         omega = self.solar_diff_rot(lat)
         # old:
         # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
 
-        tt = dist * AU / vsw
-        alpha = math.degrees(omega * tt)
+        # tt = dist * AU / vsw
+        # alpha = math.degrees(omega * tt)
+        alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw)
 
         if reference_long is not None:
             sep = (lon + alpha) - reference_long
