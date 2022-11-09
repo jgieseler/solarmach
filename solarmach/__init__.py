@@ -201,7 +201,8 @@ class SolarMACH():
 
         body_dict_short = {sel_key: bodies[sel_key] for sel_key in body_list}
         self.body_dict = body_dict_short
-        self.max_dist = np.max(body_dist_list)
+        self.max_dist = np.max(body_dist_list)  # spherical radius
+        self.max_dist_lat = body_lat_list[np.argmax(body_dist_list)]  # latitude connected to max spherical radius
         self.coord_table = pd.DataFrame(
             {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} longitude (°)': body_lon_list,
              f'{coord_sys} latitude (°)': body_lat_list, 'Heliocentric distance (AU)': body_dist_list,
@@ -259,7 +260,7 @@ class SolarMACH():
 
         # tt = dist * AU / vsw
         # alpha = math.degrees(omega * tt)
-        alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw)
+        alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
 
         if reference_long is not None:
             sep = (lon + alpha) - reference_long
@@ -304,8 +305,7 @@ class SolarMACH():
              long_offset=270,
              outfile='',
              figsize=(12, 8),
-             dpi=200,
-             plot_distance='heliographic-equator'):
+             dpi=200):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -342,16 +342,12 @@ class SolarMACH():
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
         self.ax = ax
 
-        r = np.arange(0.007, self.max_dist + 0.3, 0.001)
+        # build array of values for radius (in spherical coordinates!) given in AU!
+        r_array = np.arange(0.007, self.max_dist/np.cos(np.deg2rad(self.max_dist_lat)) + 0.3, 0.001)
         # take into account solar differential rotation wrt. latitude. Thus move calculation of omega to the per-body section below
         # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
         E_long = self.pos_E.lon.value
-        E_lat = self.pos_E.lat.value
-        if plot_distance == 'heliographic-equator':
-            dist_e = self.pos_E.cylindrical.rho.value
-        if plot_distance == 'heliographic-radius':
-            dist_e = self.pos_E.radius.value
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -360,10 +356,7 @@ class SolarMACH():
             body_pos = self.body_dict[body_id][3]
 
             pos = body_pos
-            if plot_distance == 'heliographic-equator':
-                dist_body = pos.cylindrical.rho.value
-            if plot_distance == 'heliographic-radius':
-                dist_body = pos.radius.value
+            dist_body = pos.radius.value
 
             body_long = pos.lon.value
             body_lat = pos.lat.value
@@ -375,23 +368,24 @@ class SolarMACH():
 
             # plot body positions
             if numbered_markers:
-                ax.plot(np.deg2rad(body_long), dist_body, 'o', ms=15, color=body_color, label=body_lab)
-                ax.annotate(i+1, xy=(np.deg2rad(body_long), dist_body), color='white',
+                ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 'o', ms=15, color=body_color, label=body_lab)
+                ax.annotate(i+1, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
                             fontsize="small", weight='heavy',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
-                ax.plot(np.deg2rad(body_long), dist_body, 's', color=body_color, label=body_lab)
+                ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 's', color=body_color, label=body_lab)
 
             if plot_sun_body_line:
                 # ax.plot(alpha_ref[0], 0.01, 0)
-                ax.plot([np.deg2rad(body_long), np.deg2rad(body_long)], [0.01, dist_body], ':', color=body_color)
+                ax.plot([np.deg2rad(body_long), np.deg2rad(body_long)], [0.01, dist_body*np.cos(np.deg2rad(body_lat))], ':', color=body_color)
             # plot the spirals
             if plot_spirals:
-                tt = dist_body * AU / body_vsw
-                alpha = np.degrees(omega * tt)
-                alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r)
-                ax.plot(alpha_body, r, color=body_color)
+                # tt = dist_body * AU / body_vsw
+                # alpha = np.degrees(omega * tt)
+                # alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array)
+                alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
+                ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
 
         if self.reference_long is not None:
             delta_ref = self.reference_long
@@ -405,8 +399,10 @@ class SolarMACH():
             omega_ref = self.solar_diff_rot(ref_lat)
 
             # old eq. for alpha_ref contained redundant dist_e variable:
-            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
-            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (aconst.R_sun.to(u.km).value - r)
+            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r_array) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
+            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (aconst.R_sun.to(u.AU).value - r_array)
+            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(ref_lat))
+
             # old arrow style:
             # arrow_dist = min([self.max_dist + 0.1, 2.])
             # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.12, head_length=0.11, edgecolor='black',
@@ -418,7 +414,7 @@ class SolarMACH():
                                 facecolor='black', lw=1.8, zorder=5, overhang=0.2)
 
             if plot_spirals:
-                ax.plot(alpha_ref, r, '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
+                ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
 
         leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
 
