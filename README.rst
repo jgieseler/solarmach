@@ -98,6 +98,14 @@ Example Notebook
 .. |binder| image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/jgieseler/solarmach/main?labpath=examples%2Fexample.ipynb
  
+Citation
+--------
+
+Please cite the following paper if you use **solarmach** in your publication:
+
+Gieseler, J., Dresing, N., Palmroos, C., von Forstner, J.L.F., Price, D.J., Vainio, R. et al. (2022).
+Solar-MACH: An open-source tool to analyze solar magnetic connection configurations. *Front. Astronomy Space Sci.* 9. `doi:10.3389/fspas.2022.1058810 <https://doi.org/10.3389/fspas.2022.1058810>`_ 
+ 
 Acknowledgements
 ----------------
  
