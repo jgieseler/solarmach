@@ -85,12 +85,12 @@ class SolarMACH():
     vsw_list: list, optional
         list of solar wind speeds at the position of the different bodies. Must have the same length as body_list.
         Default is an epmty list leading to vsw=400km/s used for every body.
+    coord_sys: string, optional
+        Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     reference_long: float, optional
         Longitute of reference position at the Sun
     reference_lat: float, optional
         Latitude of referene position at the Sun
-    coord_sys: string
-        Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     """
 
     def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
@@ -305,7 +305,10 @@ class SolarMACH():
              long_offset=270,
              outfile='',
              figsize=(12, 8),
-             dpi=200):
+             dpi=200,
+             fill_between=None,
+             fill_between_vsw=None,
+             fill_between_color='red'):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -329,6 +332,12 @@ class SolarMACH():
             longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
         outfile: string
             if provided, the plot is saved with outfile as filename
+        fill_between: list of 2 numbers, optional
+            Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for fill_between_vsw=None).
+        fill_between_Vsw: list of 2 numbers, optional
+            Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by fill_between) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
+        fill_between_color: string, optional
+            String defining the matplotlib color used for the shading defined by fill_between. By default 'red'.
         """
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
@@ -343,7 +352,7 @@ class SolarMACH():
         self.ax = ax
 
         # build array of values for radius (in spherical coordinates!) given in AU!
-        r_array = np.arange(0.007, self.max_dist/np.cos(np.deg2rad(self.max_dist_lat)) + 0.3, 0.001)
+        r_array = np.arange(0.007, (self.max_dist*3)/np.cos(np.deg2rad(self.max_dist_lat)) + 0.3, 0.001)
         # take into account solar differential rotation wrt. latitude. Thus move calculation of omega to the per-body section below
         # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
@@ -415,6 +424,43 @@ class SolarMACH():
 
             if plot_spirals:
                 ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
+
+        if fill_between is not None:
+            if type(fill_between) == list and len(fill_between)==2:
+                # fill_between_width = abs(180 - abs(abs(self.fill_between[0] - self.fill_between[1]) - 180))
+                # cone_dist = self.max_dist+0.3
+                # plt.bar(np.deg2rad(self.fill_between[0]), cone_dist, width=np.deg2rad(fill_between_width), align='edge', bottom=0.0, color=self.fill_between_color, alpha=0.5)
+            
+                delta_ref1 = fill_between[0]
+                if delta_ref1 < 0.:
+                    delta_ref1 = delta_ref1 + 360.
+                delta_ref2 = fill_between[1]
+                if delta_ref2 < 0.:
+                    delta_ref2 = delta_ref2 + 360.
+
+                fill_between_lat = [0, 0]  # maybe later add option to have different latitudes, so that the fill_between plane is out of the ecliptic
+                # take into account solar differential rotation wrt. latitude
+                omega_ref1 = self.solar_diff_rot(fill_between_lat[0])
+                omega_ref2 = self.solar_diff_rot(fill_between_lat[1])
+
+                if fill_between_vsw is not None:
+                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (fill_between_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(fill_between_lat[0]))
+                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (fill_between_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(fill_between_lat[1]))
+                else:
+                    # if no solar wind speeds for Parker spirals are provided, use straight lines:
+                    alpha_ref1 = [np.deg2rad(delta_ref1)] * len(r_array)
+                    alpha_ref2 = [np.deg2rad(delta_ref2)] * len(r_array)
+
+                c1 = plt.polar(alpha_ref1, r_array * np.cos(np.deg2rad(fill_between_lat[0])), lw=0, color=fill_between_color, alpha=0.5)[0]
+                x1 = c1.get_xdata()
+                y1 = c1.get_ydata()
+                c2 = plt.polar(alpha_ref2, r_array * np.cos(np.deg2rad(fill_between_lat[1])), lw=0, color=fill_between_color, alpha=0.5)[0]
+                x2 = c2.get_xdata()
+                y2 = c2.get_ydata()
+
+                plt.fill_betweenx(y1, x1, x2, lw=0, color=fill_between_color, alpha=0.5)
+            else:
+                print("Ill-defined 'fill_between'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'fill_between=[15,45]'")
 
         leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
 
