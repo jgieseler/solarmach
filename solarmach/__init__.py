@@ -306,9 +306,9 @@ class SolarMACH():
              outfile='',
              figsize=(12, 8),
              dpi=200,
-             fill_between=None,
-             fill_between_vsw=None,
-             fill_between_color='red',
+             long_sector=None,
+             long_sector_vsw=None,
+             long_sector_color='red',
              background_spirals=None):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
@@ -333,12 +333,12 @@ class SolarMACH():
             longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
         outfile: string
             if provided, the plot is saved with outfile as filename
-        fill_between: list of 2 numbers, optional
-            Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for fill_between_vsw=None).
-        fill_between_vsw: list of 2 numbers, optional
-            Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by fill_between) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
-        fill_between_color: string, optional
-            String defining the matplotlib color used for the shading defined by fill_between. By default 'red'.
+        long_sector: list of 2 numbers, optional
+            Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for long_sector_vsw=None).
+        long_sector_vsw: list of 2 numbers, optional
+            Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by long_sector) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
+        long_sector_color: string, optional
+            String defining the matplotlib color used for the shading defined by long_sector. By default 'red'.
         background_spirals: list of 2 numbers (and 3 optional strings), optional
             If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
         """
@@ -428,42 +428,42 @@ class SolarMACH():
             if plot_spirals:
                 ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
 
-        if fill_between is not None:
-            if type(fill_between) == list and len(fill_between)==2:
-                # fill_between_width = abs(180 - abs(abs(self.fill_between[0] - self.fill_between[1]) - 180))
+        if long_sector is not None:
+            if type(long_sector) == list and len(long_sector)==2:
+                # long_sector_width = abs(180 - abs(abs(self.long_sector[0] - self.long_sector[1]) - 180))
                 # cone_dist = self.max_dist+0.3
-                # plt.bar(np.deg2rad(self.fill_between[0]), cone_dist, width=np.deg2rad(fill_between_width), align='edge', bottom=0.0, color=self.fill_between_color, alpha=0.5)
+                # plt.bar(np.deg2rad(self.long_sector[0]), cone_dist, width=np.deg2rad(long_sector_width), align='edge', bottom=0.0, color=self.long_sector_color, alpha=0.5)
 
-                delta_ref1 = fill_between[0]
+                delta_ref1 = long_sector[0]
                 if delta_ref1 < 0.:
                     delta_ref1 = delta_ref1 + 360.
-                delta_ref2 = fill_between[1]
+                delta_ref2 = long_sector[1]
                 if delta_ref2 < 0.:
                     delta_ref2 = delta_ref2 + 360.
 
-                fill_between_lat = [0, 0]  # maybe later add option to have different latitudes, so that the fill_between plane is out of the ecliptic
+                long_sector_lat = [0, 0]  # maybe later add option to have different latitudes, so that the long_sector plane is out of the ecliptic
                 # take into account solar differential rotation wrt. latitude
-                omega_ref1 = self.solar_diff_rot(fill_between_lat[0])
-                omega_ref2 = self.solar_diff_rot(fill_between_lat[1])
+                omega_ref1 = self.solar_diff_rot(long_sector_lat[0])
+                omega_ref2 = self.solar_diff_rot(long_sector_lat[1])
 
-                if fill_between_vsw is not None:
-                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (fill_between_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(fill_between_lat[0]))
-                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (fill_between_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(fill_between_lat[1]))
+                if long_sector_vsw is not None:
+                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[0]))
+                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[1]))
                 else:
                     # if no solar wind speeds for Parker spirals are provided, use straight lines:
                     alpha_ref1 = [np.deg2rad(delta_ref1)] * len(r_array)
                     alpha_ref2 = [np.deg2rad(delta_ref2)] * len(r_array)
 
-                c1 = plt.polar(alpha_ref1, r_array * np.cos(np.deg2rad(fill_between_lat[0])), lw=0, color=fill_between_color, alpha=0.5)[0]
+                c1 = plt.polar(alpha_ref1, r_array * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
                 x1 = c1.get_xdata()
                 y1 = c1.get_ydata()
-                c2 = plt.polar(alpha_ref2, r_array * np.cos(np.deg2rad(fill_between_lat[1])), lw=0, color=fill_between_color, alpha=0.5)[0]
+                c2 = plt.polar(alpha_ref2, r_array * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0.5)[0]
                 x2 = c2.get_xdata()
                 y2 = c2.get_ydata()
 
-                plt.fill_betweenx(y1, x1, x2, lw=0, color=fill_between_color, alpha=0.5)
+                plt.fill_betweenx(y1, x1, x2, lw=0, color=long_sector_color, alpha=0.5)
             else:
-                print("Ill-defined 'fill_between'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'fill_between=[15,45]'")
+                print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
 
         if background_spirals is not None:
             if type(background_spirals) == list and len(background_spirals)>=2:
@@ -491,7 +491,7 @@ class SolarMACH():
                     alpha_ref = np.deg2rad(l) + omega_ref / (background_spirals[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(background_spirals_lat))
                     ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(background_spirals_lat)), ls=background_spirals_ls, c=background_spirals_c, alpha=background_spirals_alpha)
             else:
-                print("Ill-defined 'background_spirals'. It should be a list with at least 2 elements defining the number of field lines and the solar wind speed used for them in km/s; e.g. 'fill_between=[10,400]'")
+                print("Ill-defined 'background_spirals'. It should be a list with at least 2 elements defining the number of field lines and the solar wind speed used for them in km/s; e.g. 'background_spirals=[10, 400]'")
 
         leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
 
