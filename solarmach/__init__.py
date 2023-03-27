@@ -308,7 +308,8 @@ class SolarMACH():
              dpi=200,
              fill_between=None,
              fill_between_vsw=None,
-             fill_between_color='red'):
+             fill_between_color='red',
+             background_spirals=None):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -334,10 +335,12 @@ class SolarMACH():
             if provided, the plot is saved with outfile as filename
         fill_between: list of 2 numbers, optional
             Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for fill_between_vsw=None).
-        fill_between_Vsw: list of 2 numbers, optional
+        fill_between_vsw: list of 2 numbers, optional
             Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by fill_between) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
         fill_between_color: string, optional
             String defining the matplotlib color used for the shading defined by fill_between. By default 'red'.
+        background_spirals: list of 2 numbers (and 3 optional strings), optional
+            If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
         """
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
@@ -430,7 +433,7 @@ class SolarMACH():
                 # fill_between_width = abs(180 - abs(abs(self.fill_between[0] - self.fill_between[1]) - 180))
                 # cone_dist = self.max_dist+0.3
                 # plt.bar(np.deg2rad(self.fill_between[0]), cone_dist, width=np.deg2rad(fill_between_width), align='edge', bottom=0.0, color=self.fill_between_color, alpha=0.5)
-            
+
                 delta_ref1 = fill_between[0]
                 if delta_ref1 < 0.:
                     delta_ref1 = delta_ref1 + 360.
@@ -461,6 +464,34 @@ class SolarMACH():
                 plt.fill_betweenx(y1, x1, x2, lw=0, color=fill_between_color, alpha=0.5)
             else:
                 print("Ill-defined 'fill_between'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'fill_between=[15,45]'")
+
+        if background_spirals is not None:
+            if type(background_spirals) == list and len(background_spirals)>=2:
+                # maybe later add option to have a non-zero latitude, so that the field lines are out of the ecliptic
+                background_spirals_lat = 0
+                # take into account solar differential rotation wrt. latitude
+                omega_ref = self.solar_diff_rot(background_spirals_lat)
+
+                if len(background_spirals)>=3:
+                    background_spirals_ls = background_spirals[2]
+                else:
+                    background_spirals_ls = ':'
+
+                if len(background_spirals)>=4:
+                    background_spirals_c = background_spirals[3]
+                else:
+                    background_spirals_c = 'grey'
+
+                if len(background_spirals)>=5:
+                    background_spirals_alpha = background_spirals[4]
+                else:
+                    background_spirals_alpha = 0.5
+                
+                for l in np.arange(0, 360, 360/background_spirals[0]):
+                    alpha_ref = np.deg2rad(l) + omega_ref / (background_spirals[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(background_spirals_lat))
+                    ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(background_spirals_lat)), ls=background_spirals_ls, c=background_spirals_c, alpha=background_spirals_alpha)
+            else:
+                print("Ill-defined 'background_spirals'. It should be a list with at least 2 elements defining the number of field lines and the solar wind speed used for them in km/s; e.g. 'fill_between=[10,400]'")
 
         leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
 
