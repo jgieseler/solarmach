@@ -66,8 +66,6 @@ Usage
    # initialize
    sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat, coord_sys)
 
-
-
    # make plot
    sm.plot(
       plot_spirals=plot_spirals,
