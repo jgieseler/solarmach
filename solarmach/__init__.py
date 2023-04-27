@@ -39,6 +39,7 @@ body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
 body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
 
 body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
+body_dict.update(dict.fromkeys(['ACE', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
 
 body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'b']))
 body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
