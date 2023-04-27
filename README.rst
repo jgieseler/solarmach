@@ -84,6 +84,8 @@ Usage
 .. image:: https://github.com/jgieseler/solarmach/raw/main/examples/solarmach.png
   :alt: Example output figure
   
+See `example notebook <https://github.com/jgieseler/solarmach/blob/main/examples/example.ipynb>`_ for all options!
+  
 Example Notebook
 ----------------
 
