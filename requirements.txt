@@ -1,6 +1,7 @@
 astropy
 astroquery
 Jinja2
+lxml
 matplotlib
 numpy
 pandas
