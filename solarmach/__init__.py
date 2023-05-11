@@ -23,7 +23,7 @@ from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 
 # New addition to imports, contains the necessary functions to run pfss-extrapolation for sub-source surface magnetic field
-from pfss_utilities import *
+from solarmach.pfss_utilities import *
 
 # pd.options.display.max_rows = None
 # pd.options.display.float_format = '{:.1f}'.format
