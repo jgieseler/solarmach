@@ -1,5 +1,6 @@
 astropy
 astroquery
+drms
 Jinja2
 lxml
 matplotlib
