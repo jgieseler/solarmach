@@ -1,617 +1,697 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+"""
+This library holds the necessary functions to support the pfss-extension of Solar-MACH.
+"""
+
 from pkg_resources import get_distribution, DistributionNotFound
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     pass  # package is not installed
 
-import math
-from copy import deepcopy
+import os
+import pickle
+import glob
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+import sunpy.map
+from sunpy.net import Fido, attrs as a
 
 import astropy.constants as aconst
 import astropy.units as u
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
-import matplotlib.text
-import numpy as np
-import pandas as pd
-import scipy.constants as const
 from astropy.coordinates import SkyCoord
-from matplotlib.legend_handler import HandlerPatch
-from sunpy import log
-from sunpy.coordinates import frames, get_horizons_coord
 
-# pd.options.display.max_rows = None
-# pd.options.display.float_format = '{:.1f}'.format
-# if needed, rather use the following to have the desired display:
-"""
-with pd.option_context('display.float_format', '{:0.2f}'.format):
-    display(df)
-"""
+import pfsspy
 
-
-# initialize the body dictionary
-body_dict = dict.fromkeys(['Mercury', 199], [199, 'Mercury', 'darkturquoise'])
-body_dict.update(dict.fromkeys(['Venus', 299], [299, 'Venus', 'darkorchid']))
-body_dict.update(dict.fromkeys(['Earth', 'EARTH', 'earth', 399], [399, 'Earth', 'green']))
-body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
-body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
-
-body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
-body_dict.update(dict.fromkeys(['ACE', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
-
-body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'b']))
-body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
-body_dict.update(dict.fromkeys(['SOHO', 'soho', -21], [-21, 'SOHO', 'darkgreen']))
-body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
-body_dict.update(dict.fromkeys(['PSP', 'Parker Solar Probe', 'parkersolarprobe', 'ParkerSolarProbe', -96], [-96, 'Parker Solar Probe', 'purple']))
-body_dict.update(dict.fromkeys(['BepiColombo', 'Bepi Colombo', 'Bepi', 'MPO', -121], [-121, 'BepiColombo', 'orange']))
-body_dict.update(dict.fromkeys(['MAVEN', -202], [-202, 'MAVEN', 'brown']))
-body_dict.update(dict.fromkeys(['Mars Express', -41], [-41, 'Mars Express', 'darkorange']))
-body_dict.update(dict.fromkeys(['MESSENGER', -236], [-236, 'MESSENGER', 'olivedrab']))
-body_dict.update(dict.fromkeys(['JUICE', -28], [-28, 'JUICE', 'violet']))
-body_dict.update(dict.fromkeys(['Juno', -61], [-61, 'Juno', 'orangered']))
-body_dict.update(dict.fromkeys(['Cassini', -82], [-82, 'Cassini', 'mediumvioletred']))
-body_dict.update(dict.fromkeys(['Rosetta', -226], [-226, 'Rosetta', 'blueviolet']))
-body_dict.update(dict.fromkeys(['Pioneer10', -23], [-23, 'Pioneer 10', 'teal']))
-body_dict.update(dict.fromkeys(['Pioneer11', -24], [-24, 'Pioneer 11', 'darkblue']))
-body_dict.update(dict.fromkeys(['Ulysses', -55], [-55, 'Ulysses', 'dimgray']))
-body_dict.update(dict.fromkeys(['Voyager1', -31], [-31, 'Voyager 1', 'darkred']))
-body_dict.update(dict.fromkeys(['Voyager2', -32], [-32, 'Voyager 2', 'midnightblue']))
-
-
-def print_body_list():
+# @st_cache_decorator
+def get_pfss_hmimap(filepath, email, carrington_rot, date, rss=2.5, nrho=35):
     """
-    prints a selection of body keys and the corresponding body names which may be provided to the
-    SolarMACH class
-    """
-    # print('Please visit https://ssd.jpl.nasa.gov/horizons.cgi?s_target=1#top for a complete list of available bodies')
-    data = pd.DataFrame\
-        .from_dict(body_dict, orient='index', columns=['ID', 'Body', 'Color'])\
-        .drop(columns=['ID', 'Color'])\
-        .drop_duplicates()
-    data.index.name = 'Key'
-    return data
+    Downloading hmi map or calculating the PFSS solution
 
-
-class SolarMACH():
-    """
-    Class which handles the selected bodies
-
-    Parameters
-    ----------
+    params
+    -------
+    filepath: str
+            Path to the hmimap, if exists.
+    email: str
+            The email address of a registered user
+    carrington_rot: int
+            The Carrington rotation corresponding to the hmi map
     date: str
-    body_list: list
-        list of body keys to be used. Keys can be string of int.
-    vsw_list: list, optional
-        list of solar wind speeds at the position of the different bodies. Must have the same length as body_list.
-        Default is an epmty list leading to vsw=400km/s used for every body.
-    coord_sys: string, optional
-        Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
-    reference_long: float, optional
-        Longitute of reference position at the Sun
-    reference_lat: float, optional
-        Latitude of referene position at the Sun
+            The date of the map. Format = 'YYYY/MM/DD'
+    rss: float (default = 2.5)
+            The height of the potential field source surface for the solution.
+    nrho: int (default = 35)
+            The resolution of the PFSS-solved field line objects
+    
+    returns
+    -------
+    output: hmi_synoptic_map object
+            The PFSS-solution
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
-        if 'diff_rot' in kwargs.keys():
-            self.diff_rot = kwargs['diff_rot']
-        else:
-            self.diff_rot = True
-        if 'target_solar_radius' in kwargs.keys():
-            self.target_solar_radius = kwargs['target_solar_radius']
-        else:
-            self.target_solar_radius = 1
+    time = a.Time(date, date)
+    pfname =  f"PFSS_output_{str(time.start.datetime.date())}_CR{str(carrington_rot)}_SS{str(rss)}_nrho{str(nrho)}.p"
 
-        # get initial sunpy logging level and disable unnecessary logging
-        initial_log_level = log.getEffectiveLevel()
-        log.setLevel('WARNING')
+    # Check if PFSS file already exists locally:
+    print(f"Searching for PFSS file from {filepath}")
+    try:
+        with open(f"{filepath}/{pfname}", 'rb') as f:
+            u = pickle._Unpickler(f)
+            u.encoding = 'latin1'
+            output = u.load()
+        print("Found pickled PFSS file!")
 
-        body_list = list(dict.fromkeys(body_list))
-        bodies = deepcopy(body_dict)
+    # If not, then download MHI mag, calc. PFSS, and save as picle file for next time
+    except FileNotFoundError:
+        print("PFSS file not found.\nDownloading...")
+        series = a.jsoc.Series('hmi.synoptic_mr_polfil_720s')
+        crot = a.jsoc.PrimeKey('CAR_ROT', carrington_rot)
+        result = Fido.search(time, series, crot, a.jsoc.Notify(email))
+        files = Fido.fetch(result)
+        hmi_map = sunpy.map.Map(files[0])
+        pfsspy.utils.fix_hmi_meta(hmi_map)
+        print('Data shape: ', hmi_map.data.shape)
 
-        if coord_sys.lower().startswith('car'):
-            coord_sys = 'Carrington'
-        if coord_sys.lower().startswith('sto') or coord_sys.lower() == 'Earth':
-            coord_sys = 'Stonyhurst'
+        hmi_map = hmi_map.resample([360, 180]*u.pix)
+        print('New shape: ', hmi_map.data.shape)
 
-        self.date = date
-        self.reference_long = reference_long
-        self.reference_lat = reference_lat
-        self.coord_sys = coord_sys
+        pfss_input = pfsspy.Input(hmi_map, nrho, rss)
+        output = pfsspy.pfss(pfss_input)
+        with open(pfname, 'wb') as f:
+            pickle.dump(output, f)
 
-        pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
-        if coord_sys=='Carrington':
-            self.pos_E = pos_E.transform_to(frames.HeliographicCarrington(observer='Sun'))
-        elif coord_sys=='Stonyhurst':
-            self.pos_E = pos_E
+    return output
 
-        if len(vsw_list) == 0:
-            vsw_list = np.zeros(len(body_list)) + 400
 
-        random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
-                       'c', 'darkslategray', 'yellow', 'darkolivegreen']
-        body_lon_list = []
-        body_lat_list = []
-        body_dist_list = []
-        longsep_E_list = []
-        latsep_E_list = []
-        body_vsw_list = []
-        footp_long_list = []
-        longsep_list = []
-        latsep_list = []
-        footp_longsep_list = []
+def multicolorline(x, y, cvals, ax, vmin=-90, vmax=90):
+    """
+    Constructs a line object, with each segment of the line color coded
+    Original example from: https://matplotlib.org/stable/gallery/lines_bars_and_markers/multicolored_line.html
 
-        for i, body in enumerate(body_list.copy()):
-            if body in bodies:
-                body_id = bodies[body][0]
-                body_lab = bodies[body][1]
-                body_color = bodies[body][2]
+    params
+    -------
+    x, y: float
+    cvals: str
+    ax: Figure.Axes object
+    vmin, vmax: int (default = -90, 90)
 
+    returns
+    -------
+    line: LineCollection object
+    """
+
+    import matplotlib.colors as mcolors
+    import cmasher as cmr
+
+    from matplotlib.collections import LineCollection
+
+    # Create a set of line segments so that we can color them individually
+    # This creates the points as a N x 1 x 2 array so that we can stack points
+    # together easily to get the segments. The segments array for line collection
+    # needs to be (numlines) x (points per line) x 2 (for x and y)
+    points = np.array([x, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    # Create a continuous norm to map from data points to colors
+    norm = plt.Normalize(vmin, vmax)
+
+    cmrmap = cmr.redshift
+
+    # sample the colormaps that you want to use. Use 90 from each so there is one
+    # color for each degree
+    colors_pos = cmrmap(np.linspace(0.0, 0.30, 45))
+    colors_neg = cmrmap(np.linspace(0.70, 1.0, 45))
+
+    # combine them and build a new colormap
+    colors = np.vstack((colors_pos, colors_neg))
+    mymap = mcolors.LinearSegmentedColormap.from_list('my_colormap', colors)
+
+    # establish the linecollection object
+    lc = LineCollection(segments, cmap=mymap, norm=norm)
+
+    # set the values used for colormapping
+    lc.set_array(cvals)
+
+    # set the width of line
+    lc.set_linewidth(3)
+
+    # this we want to return
+    line = ax.add_collection(lc)
+
+    return line
+
+
+def get_field_line_coords(longitude, latitude, hmimap, seedheight):
+    """
+    Returns triplets of open magnetic field line coordinates, and the field line object itself
+
+    params
+    -------
+    longitude: int/float
+            Carrington longitude of the seeding point for the FieldLine tracing
+    latitude: int/float
+            Carrington latitude of the seeding point for the FieldLine tracing
+    hmimap: hmi_synoptic_map object
+    seedheight: float
+            Heliocentric height of the seeding point
+
+    returns
+    -------
+    coordlist: list[list[float,float,float]]
+            The list of lists  of all coordinate triplets that correspond to the FieldLine objects traced
+    flinelist: list[FieldLine]
+            List of all FieldLine objects traced
+    """
+
+    # The amount of coordinate triplets we are going to trace
+    try:
+        coord_triplets = len(latitude)
+    except TypeError:
+        coord_triplets = 1
+        latitude = [latitude]
+        longitude = [longitude]
+
+    # The loop in which we trace the field lines and collect them to the coordlist
+    coordlist = []
+    flinelist = []
+    for i in range(coord_triplets):
+
+        # Inits for finding another seed point if we hit null or closed line
+        turn = 'lon'
+        sign_switch = 1
+        
+        # Steps to the next corner, steps taken
+        corner_tracker = [1,0]
+        
+        init_lon, init_lat = longitude[i], latitude[i]
+
+        # Keep tracing the field line until a valid one is found
+        while(True):
+
+            # Trace a field line downward from the point lon,lat on the pfss
+            fline = trace_field_line(longitude[i], latitude[i], hmimap, seedheight=seedheight)
+
+            radius0 = fline.coords.radius[0].value
+            radius9 = fline.coords.radius[-1].value
+            bool_key = (radius0==radius9)
+
+            # If fline is not a valid field line, then spiral out from init_point and try again
+            # Also check if this is a null line (all coordinates identical)
+            # Also check if polarity is 0, meaning that the field line is NOT open
+            if( (len(fline.coords) < 10) or bool_key or fline.polarity==0): #fline.polarity==0 
+
+                longitude[i], latitude[i], sign_switch, corner_tracker, turn = spiral_out(longitude[i], latitude[i], sign_switch, corner_tracker, turn)
+
+            # If there was nothing wrong, break the loop and proceed with the traced field line
             else:
-                body_id = body
-                body_lab = str(body)
-                body_color = random_cols[i]
-                bodies.update(dict.fromkeys([body_id], [body_id, body_lab, body_color]))
+                break
 
-            try:
-                pos = get_horizons_coord(body_id, date, None)  # (lon, lat, radius) in (deg, deg, AU)
-                if coord_sys=='Carrington':
-                    pos = pos.transform_to(frames.HeliographicCarrington(observer='Sun'))
-                bodies[body_id].append(pos)
-                bodies[body_id].append(vsw_list[i])
+            # Check that we are not too far from the original coordinate
+            if(corner_tracker[0] >= 10):
+                print(f"no open field line found in the vicinity of {init_lon},{init_lat}")
+                break
 
-                longsep_E = pos.lon.value - self.pos_E.lon.value
-                if longsep_E > 180:
-                    longsep_E = longsep_E - 360.
-                latsep_E = pos.lat.value - self.pos_E.lat.value
+        # Get the field line coordinate values in the correct order
+        # Start on the photopshere, end at the pfss
+        fl_r, fl_lon, fl_lat = get_coord_values(fline)
 
-                body_lon_list.append(pos.lon.value)
-                body_lat_list.append(pos.lat.value)
-                body_dist_list.append(pos.radius.value)
-                longsep_E_list.append(longsep_E)
-                latsep_E_list.append(latsep_E)
+        # Fill in the lists
+        triplet = [fl_r, fl_lon, fl_lat]
+        coordlist.append(triplet)
+        flinelist.append(fline)
 
-                body_vsw_list.append(vsw_list[i])
+    return coordlist, flinelist
 
-                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list[i])
-                bodies[body_id].append(sep)
 
-                body_footp_long = pos.lon.value + alpha
-                if body_footp_long > 360:
-                    body_footp_long = body_footp_long - 360
-                footp_long_list.append(body_footp_long)
+def vary_flines(lon, lat, hmimap, n_varies, rss):
+    """
+    Finds a set of sub-pfss fieldlines connected to or very near a single footpoint on the pfss.
+    
+    lon: longitude of the footpoint [rad]
+    lat: latitude of the footpoint [rad]
+    
+    n_varies:   tuple that holds the amount of circles and the number of dummy flines per circle
+                if type(n_varies)=int, consider that as the amount of circles, and set the 
+                amount of dummy flines per circle to 16
 
-                if self.reference_long is not None:
-                    bodies[body_id].append(sep)
-                    long_sep = pos.lon.value - self.reference_long
-                    if long_sep > 180:
-                        long_sep = long_sep - 360.
+    params
+    -------
+    lon: int/float
+            The longitude of the footpoint in radians
+    lat: int/float
+            The latitude of the footpoint in radians
+    hmimap: hmi_synoptic_map object
+            The pfss-solution used to calculate the field lines
+    n_varies: list[int,int] or int 
+            A list that holds the amount of circles and the number of dummy flines per circle
+            if type(n_varies)=int, consider that as the amount of circles, and set the
+            amount of dummy flines per circle to 16
+    rss: float
+            Heliocentric height of the source surface
 
-                    longsep_list.append(long_sep)
-                    footp_longsep_list.append(sep)
+    returns
+    -------
+    coordlist: list[float,float,float]
+            List of coordinate triplets of the original field lines (lon,lat,height)
+    flinelist: list[FieldLine-object]
+            List of Fieldline objects of the original field lines
+    varycoords: list[float,float,float]
+            List of coordinate triplets of the varied field lines
+    varyflines: list[FieldLine-object]
+            List of Fieldline objects of the varied field lines
+    """
 
-                if self.reference_lat is not None:
-                    lat_sep = pos.lat.value - self.reference_lat
-                    latsep_list.append(lat_sep)
-            except ValueError:
-                print('')
-                print('!!! No ephemeris for target "' + str(body) + '" for date ' + self.date)
-                body_list.remove(body)
+    # Field lines per n_circles (circle)
+    if isinstance(n_varies,list):
+        n_circles = n_varies[0]
+        n_flines = n_varies[1]
+    else:
+        n_circles = n_varies
+        n_flines = 16
 
-        body_dict_short = {sel_key: bodies[sel_key] for sel_key in body_list}
-        self.body_dict = body_dict_short
-        self.max_dist = np.max(body_dist_list)  # spherical radius
-        self.max_dist_lat = body_lat_list[np.argmax(body_dist_list)]  # latitude connected to max spherical radius
-        self.coord_table = pd.DataFrame(
-            {'Spacecraft/Body': list(self.body_dict.keys()), f'{coord_sys} longitude (°)': body_lon_list,
-             f'{coord_sys} latitude (°)': body_lat_list, 'Heliocentric distance (AU)': body_dist_list,
-             "Longitudinal separation to Earth's longitude": longsep_E_list,
-             "Latitudinal separation to Earth's latitude": latsep_E_list, 'Vsw': body_vsw_list,
-             f'Magnetic footpoint longitude ({coord_sys})': footp_long_list})
+    # First produce new points around the given lonlat_pair
+    lons, lats= np.array([lon]), np.array([lat])
+    increments = np.array([0.03, 0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29])
+    for circle in range(n_circles):
 
-        if self.reference_long is not None:
-            self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
-            self.coord_table[
-                "Longitudinal separation between body's mangetic footpoint and reference_long"] = footp_longsep_list
-        if self.reference_lat is not None:
-            self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
+        newlons, newlats = circle_around(lon,lat,n_flines,r=increments[circle])
+        lons, lats = np.append(lons,newlons), np.append(lats,newlats)
 
-        # Does this still have a use?
-        pass
-        self.coord_table.style.set_properties(**{'text-align': 'left'})
+    pointlist = np.array([lons, lats])
 
-        # reset sunpy log level to initial state
-        log.setLevel(initial_log_level)
+    # Trace fieldlines from all of these points
+    varycoords, varyflines = get_field_line_coords(pointlist[0],pointlist[1],hmimap, rss)
 
-    def backmapping(self, body_pos, reference_long, target_solar_radius=1, vsw=400):
+    # Because the original fieldlines and the varied ones are all in the same arrays,
+    # Extract the varied ones to their own arrays
+    coordlist, flinelist = [], []
+
+    # Total amount of flines = 1 + (circles) * (fieldlines_per_circle)
+    total_per_fp = n_flines*n_circles+1
+    erased_indices = []
+    for i in range(len(varycoords)):
+        # n_flines*n_circles = the amount of extra field lines between each "original" field line
+        if i%(total_per_fp)==0:
+            erased_indices.append(i)
+            # pop(i) removes the ith element from the list and returns it
+            # -> we append it to the list of original footpoint fieldlines
+            coordlist.append(varycoords[i]) #.pop(i)
+            flinelist.append(varyflines[i])
+
+    # Really ugly quick fix to erase values from varycoords and varyflines
+    for increment, index in enumerate(erased_indices):
+        varycoords.pop(index-increment)
+        varyflines.pop(index-increment)
+
+    return coordlist, flinelist, varycoords, varyflines
+
+
+def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
+    '''
+    Traces a single open magnetic field line at coordinates (lon0,lat0) on the pfss down
+    to the photosphere
+
+    Parameters:
+    -----------
+    lon0, lat0: float
+            Longitude and latitude of the seedpoint
+    hmimap: hmimap-object
+
+    seedheight: float
+            The height at which field line tracing is started (in solar radii)
+    rad: bool, (default True)
+            Wether or not input coordinates are in radians. If False, consider them degrees
+    
+    Returns:
+    --------
+    field_lines: FieldLine or list[FieldLine]
+            A FieldLine object, or a list of them, if input coordinates were a list
+    
+    '''
+    from pfsspy import tracing
+
+    # if lat0 and lon0 are given in deg for some reason, transform them to rad
+    if not rad:
+        lat0 = np.deg2rad(lat0)
+        lon0 = np.deg2rad(lon0)
+
+    # Start tracing from a given height
+    height = seedheight*aconst.R_sun
+    tracer = tracing.PythonTracer()
+
+    # Add unit to longitude and latitude, so that SkyCoord understands them
+    lon, lat = lon0*u.rad, lat0*u.rad
+
+    # Seed the starting coordinate at the desired coordinates
+    seed = SkyCoord(lon, lat, height, frame=hmimap.coordinate_frame)
+
+    # Trace the field line from the seed point given the hmi map
+    field_lines = tracer.trace(seed, hmimap)
+
+    # Field_lines could be list of len=1, because there's only one seed point given to the tracer
+    if len(field_lines) == 1:
+        return field_lines[0]
+    else:
+        return field_lines
+
+
+def spiral_out(lon, lat, sign_switch, corner_tracker, turn):
+    """
+    Moves the seeding point in an outward spiral.
+    
+    Parameters
+    ---------
+    lon, lat: float
+            the carrington coordinates on a surface of a sphere (sun or pfss)
+    sign_switch: int
+            -1 or 1, dictates the direction in which lon or lat is 
+            incremented
+    corner_tracker: tuple
+            first entry is steps_unti_corner, int that tells how many steps to the next corner of a spiral
+            the second entry is steps taken on a given spiral turn
+    turn: str
+            indicates which is to be incremented, lon or lat
+            
+    returns
+    -----------
+    lon, lat: float
+            new coordinate pair
+    """
+    
+    # In radians, 1 rad \approx 57.3 deg
+    step = 0.01
+    
+    # Keeps track of how many steps until it's time to turn
+    steps_until_corner, steps_moved = corner_tracker[0], corner_tracker[1]
+
+    if turn=='lon':
+        
+        lon = lon + step*sign_switch
+        lat = lat
+        
+        steps_moved += 1
+        
+        # We have arrived in a corner, time to move in lat direction
+        if steps_until_corner == steps_moved:
+            steps_moved = 0
+            turn = 'lat'
+
+        return lon, lat, sign_switch, [steps_until_corner, steps_moved], turn
+
+
+    if turn=='lat':
+        
+        lon = lon
+        lat = lat + step*sign_switch
+        
+        steps_moved += 1
+
+        # Hit a corner; start moving in the lon direction
+        if steps_until_corner == steps_moved:
+            steps_moved = 0
+            steps_until_corner += 1
+            turn = 'lon'
+            sign_switch = sign_switch*(-1)
+        
+        return lon, lat, sign_switch, [steps_until_corner, steps_moved], turn
+        
+
+def get_coord_values(field_line):
+    """
+    Gets the coordinate values from FieldLine object and makes sure that they are in the right order.
+
+    params
+    -------
+    field_line: FieldLine object
+
+    returns
+    -------
+    fl_r: list[float]
+            The list of heliocentric distances of each segment of the field line
+    fl_lon: list[float]
+            The list of Carrington longitudes of each field line segment
+    fl_lat: list[float]
+            The list of Carrington latitudes of each field line segment
+    """
+
+    # first check that the field_line object is oriented correctly (start on photosphere and end at pfss)
+    fl_coordinates = field_line.coords
+    fl_coordinates = check_field_line_alignment(fl_coordinates)
+
+    fl_r = fl_coordinates.radius.value / aconst.R_sun.value
+    fl_lon = fl_coordinates.lon.value
+    fl_lat = fl_coordinates.lat.value
+
+    return fl_r, fl_lon, fl_lat
+
+
+def circle_around(x, y, n, r=0.1):
+    """
+    Produces new points around a (x,y) point in a circle.
+    At the moment does not work perfectly in the immediate vicinity of either pole.
+
+    params
+    -------
+    x,y: int/float
+            Coordinates of the original point
+    n: int
+            The amount of new points around the origin
+    r: int/float (default = 0.1)
+            The radius of the circle at which new points are placed
+
+    returns
+    -------
+    pointlist: list[float]
+            List of new points (tuples) around the original point in a circle, placed at equal intervals
+    """
+
+    origin = (x, y)
+
+    x_coords = np.array([])
+    y_coords = np.array([])
+    for i in range(0, n):
+
+        theta = (2*i*np.pi)/n
+        newx = origin[0] + r*np.cos(theta)
+        newy = origin[1] + r*np.sin(theta)
+
+        if newx >= 2*np.pi:
+            newx = newx - 2*np.pi
+
+        if newy > np.pi/2:
+            overflow = newy - np.pi/2
+            newy = newy - 2*overflow
+
+        if newy < -np.pi/2:
+            overflow = newy + np.pi/2
+            newy = newy + 2*overflow
+
+        x_coords = np.append(x_coords, newx)
+        y_coords = np.append(y_coords, newy)
+
+    pointlist = np.array([x_coords, y_coords])
+
+    return pointlist
+
+
+def check_field_line_alignment(coordinates):
+    """
+    Checks that a field line object is oriented such that it starts from
+    the photpshere and ends at the pfss. If that is not the case, then
+    flips the field line coordinates over and returns the flipped object.
+    """
+
+    fl_r = coordinates.radius.value
+
+    if fl_r[0] > fl_r[-1]:
+        coordinates = np.flip(coordinates)
+
+    return coordinates
+
+
+def spheric2cartesian(r, theta, phi):
         """
-        Determine the longitudinal separation angle of a given spacecraft and a given reference longitude
+        Does a coordinate transformation from spherical to cartesian
 
-        Parameters
-        ----------
-        body_pos : astropy.coordinates.sky_coordinate.SkyCoord
-            coordinates of the body
-        reference_long: float
-            Longitude of reference point at Sun to which we determine the longitudinal separation
-        target_solar_radius: float
-            Target solar radius to which to be backmapped. 0 corresponds to Sun's center, 1 to 1 solar radius, and e.g. 2.5 to the source surface.
-        vsw: float
-             solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
-
-        out:
-            sep: float
-                longitudinal separation of body magnetic footpoint and reference longitude in degrees
-            alpha: float
-                backmapping angle
+        r : the distance to the origin
+        theta : the elevation angle (goes from -pi to pi)
+        phi : the azimuth angle (goes from 0 to 2pi)
         """
-        # AU = const.au / 1000  # km
 
-        pos = body_pos
-        lon = pos.lon.value
-        lat = pos.lat.value
-        # dist = pos.radius.value
-        radius = pos.radius
+        x = r * np.cos(phi) * np.cos(theta)
+        y = r * np.sin(phi) * np.cos(theta)
+        z = r * np.sin(theta)
 
-        # take into account solar differential rotation wrt. latitude
-        omega = self.solar_diff_rot(lat)
-        # old:
-        # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
+        return x, y, z
 
-        # tt = dist * AU / vsw
-        # alpha = math.degrees(omega * tt)
-        alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
 
-        if reference_long is not None:
-            sep = (lon + alpha) - reference_long
-            if sep > 180.:
-                sep = sep - 360
+def sphere(radius, clr, dist=0):
+    """
+    Constructs a sphere with a given radius and color.
 
-            if sep < -180.:
-                sep = 360 - abs(sep)
+    params
+    ---------
+    radius : float, int
+            The radius of the sphere
+    
+    clr : str
+            The color code for the sphere
+    
+    dist : float, int
+            The displacement of the sphere, if not centered at origin
+    """
+
+    import plotly.graph_objects as go
+    
+    # Set up 100 points. First, do angles
+    phi = np.linspace(0,2*np.pi,100) # phi, the azimuthal angle goes from 0 to 2pi
+    theta = np.linspace(0,np.pi,100) # theta, the elevation angle goes from 0 to pi
+    
+    # Set up coordinates for points on the sphere
+    x0 = dist + radius * np.outer(np.cos(phi),np.sin(theta))
+    y0 = radius * np.outer(np.sin(phi),np.sin(theta))
+    z0 = radius * np.outer(np.ones(100),np.cos(theta))
+    
+    # Set up trace (the object that is then plottable)
+    trace= go.Surface(x=x0, y=y0, z=z0, colorscale=[[0,clr], [1,clr]], showscale=False, name="Sun")
+
+    return trace
+
+
+def calculate_pfss_solution(gong_map, rss, nrho=35):
+    """
+    Calculates a Potential Field Source Surface solution based on a GONG map and
+    parameters.
+
+    Parameters:
+    -----------
+    date : {str}
+            date of the map
+    rss : {float}
+            source surface height
+    nrho : {float/int}
+            rho = ln(r) -> nrho is the amount of points in this logarithmic range
+
+    Returns:
+    ----------
+    pfss_solution : {pfsspy solution object}
+            The pfss solution that can be used to plot magnetic field lines under the source surface
+    """
+
+    # The pfss input object, assembled from a gong map, resolution (nrho) and source surface height (rss)
+    pfss_in = pfsspy.Input(gong_map, nrho, rss)
+
+    # This is the pfss solution, calculated from the input object
+    pfss_solution = pfsspy.pfss(pfss_in)
+
+    return pfss_solution
+
+
+def load_gong_map(filepath=None):
+    """
+    https://gong.nso.edu/data/magmap/
+    https://docs.sunpy.org/en/v4.0.6/generated/api/sunpy.net.dataretriever.GONGClient.html
+    https://gong2.nso.edu/oQR/zqs/202104/mrzqs210413/
+    
+    """
+
+    if not filepath:
+        filepath = os.getcwd()
+
+    # Load a GONG (Global Oscillation Network Group) synoptic magnetic map
+    if isinstance(filepath,str):
+
+        # Acquire a GONG map from which the pfss solution is calculated from
+        gong_map = sunpy.map.Map(filepath)
+
+    return gong_map
+
+
+def download_gong_map(timestr, filepath=None):
+    """
+    Gets the download link for a GONG synoptic map
+    """
+
+    from sunpy.net import Fido, attrs
+    import pandas as pd
+
+    if filepath is None:
+        filepath = os.getcwd()
+
+    desired_time = pd.to_datetime(timestr, yearfirst=True)
+    desired_time_plus_hour = desired_time + pd.Timedelta(hours=1)
+
+    result = Fido.search(attrs.Time(desired_time, desired_time_plus_hour), attrs.Instrument('GONG'))
+
+    file = Fido.fetch(result, path=filepath)
+
+    print(f"Downloaded file to:\n{file.data[0]}")
+    return file.data[0]
+
+
+def construct_gongmap_filename(timestr, directory):
+    """
+    Constructs a default filepath for 
+    """
+
+    yy = timestr[2:4]
+    mm = timestr[5:7]
+    dd = timestr[8:10]
+    hh = timestr[11:13]
+
+    # If directory is None, (equivalent to not directory in logic), then use the current directory as a base
+    if not directory:
+        directory = os.getcwd()
+
+    carrington_rot = sunpy.coordinates.sun.carrington_rotation_number(t=timestr).astype(int)  # dynamic CR from date
+    filename = f"mrzqs{yy}{mm}{dd}*{hh}*{carrington_rot}*.fits.gz"
+    filepath = f"{directory}{os.sep}{filename}"
+    filepaths = glob.glob(filepath)
+
+    # If exactly one match, then that most probably is the right file
+    if len(filepaths) == 1:
+        print(f"Automatic file search based on given time found {filepaths[0]}")
+        return filepaths[0]
+    else:
+        print(f"Automatic file search based on given time failed in directory {directory}")
+        return directory
+
+def get_gong_map(time:str, filepath:str=None, autodownload=True):
+    """
+    A wrapper for functions load_gong_map() and download_gong_map().
+    Returns a gong map if one is found or autodownload is True. If no map found and
+    autodownload is False, then return None.
+    
+    Parameters:
+    -----------
+    timestr : {str}
+                A pandas-compatible timestring, e.g., '2010-11-29 12:45'
+    filepath : {str}, optional, default=None
+                The path to the gong map file with the name of the file, e.g., 'use/xyz/gong_maps/mrzqs211009t0814c2249_105.fits.gz'
+                If no filepath provided, use the current directory.
+    autodownload : {bool}, optional, default=True
+                If file is not found, download it automatically. 
+    """
+
+    # Try to construct a filename from current working directory and given datetime
+    if not filepath or filepath[-8:] not in (".fits.gz"):
+        filepath = construct_gongmap_filename(timestr=time, directory=filepath)
+
+    try:
+        gong_map = load_gong_map(filepath=filepath)
+    except Exception as exception:
+        print(exception)
+        if autodownload:
+            print("Downloading...")
+            new_filepath = download_gong_map(time, filepath=filepath)
+            gong_map = load_gong_map(filepath=new_filepath)
         else:
-            sep = np.nan
+            return None
 
-        return sep, alpha
-
-    def solar_diff_rot(self, lat):
-        """
-        Calculate solar differential rotation wrt. latitude,
-        based on rLSQ method of Beljan et al. (2017),
-        doi: 10.1051/0004-6361/201731047
-
-        Parameters
-        ----------
-        lat : number (int, flotat)
-            Heliographic latitude in degrees
-
-        Returns
-        -------
-        numpy.float64
-            Solar angular rotation in rad/sec
-        """
-        # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
-        if self.diff_rot is False:
-            lat = 0
-        return np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
-
-    def plot(self, plot_spirals=True,
-             plot_sun_body_line=False,
-             show_earth_centered_coord=False,
-             reference_vsw=400,
-             transparent=False,
-             numbered_markers=False,
-             return_plot_object=False,
-             long_offset=270,
-             outfile='',
-             figsize=(12, 8),
-             dpi=200,
-             long_sector=None,
-             long_sector_vsw=None,
-             long_sector_color='red',
-             background_spirals=None):
-        """
-        Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
-
-        Parameters
-        ----------
-        plot_spirals: bool
-            if True, the magnetic field lines connecting the bodies with the Sun are plotted
-        plot_sun_body_line: bool
-            if True, straight lines connecting the bodies with the Sun are plotted
-        show_earth_centered_coord: bool
-            Deprecated! With the introduction of coord_sys in class SolarMACH() this function is redundant and not functional any more!
-        reference_vsw: int
-            if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
-        transparent: bool
-            if True, output image has transparent background
-        numbered_markers: bool
-            if True, body markers contain numbers for better identification
-        return_plot_object: bool
-            if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
-        long_offset: int or float
-            longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
-        outfile: string
-            if provided, the plot is saved with outfile as filename
-        long_sector: list of 2 numbers, optional
-            Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for long_sector_vsw=None).
-        long_sector_vsw: list of 2 numbers, optional
-            Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by long_sector) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
-        long_sector_color: string, optional
-            String defining the matplotlib color used for the shading defined by long_sector. By default 'red'.
-        background_spirals: list of 2 numbers (and 3 optional strings), optional
-            If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
-        """
-        hide_logo = False  # optional later keyword to hide logo on figure
-        AU = const.au / 1000  # km
-
-        # save inital rcParams and update some of them:
-        initial_rcparams = plt.rcParams.copy()
-        plt.rcParams['axes.linewidth'] = 1.5
-        plt.rcParams['font.size'] = 15
-        plt.rcParams['agg.path.chunksize'] = 20000
-
-        fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
-        self.ax = ax
-
-        # build array of values for radius (in spherical coordinates!) given in AU!
-        r_array = np.arange(0.007, (self.max_dist*3)/np.cos(np.deg2rad(self.max_dist_lat)) + 0.3, 0.001)
-        # take into account solar differential rotation wrt. latitude. Thus move calculation of omega to the per-body section below
-        # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
-
-        E_long = self.pos_E.lon.value
-
-        for i, body_id in enumerate(self.body_dict):
-            body_lab = self.body_dict[body_id][1]
-            body_color = self.body_dict[body_id][2]
-            body_vsw = self.body_dict[body_id][4]
-            body_pos = self.body_dict[body_id][3]
-
-            pos = body_pos
-            dist_body = pos.radius.value
-
-            body_long = pos.lon.value
-            body_lat = pos.lat.value
-
-            # take into account solar differential rotation wrt. latitude
-            omega = self.solar_diff_rot(body_lat)
-            # old:
-            # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
-
-            # plot body positions
-            if numbered_markers:
-                ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 'o', ms=15, color=body_color, label=body_lab)
-                ax.annotate(i+1, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            fontsize="small", weight='heavy',
-                            horizontalalignment='center',
-                            verticalalignment='center')
-            else:
-                ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 's', color=body_color, label=body_lab)
-
-            if plot_sun_body_line:
-                # ax.plot(alpha_ref[0], 0.01, 0)
-                ax.plot([np.deg2rad(body_long), np.deg2rad(body_long)], [0.01, dist_body*np.cos(np.deg2rad(body_lat))], ':', color=body_color)
-            # plot the spirals
-            if plot_spirals:
-                # tt = dist_body * AU / body_vsw
-                # alpha = np.degrees(omega * tt)
-                # alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array)
-                alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
-                ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
-
-        if self.reference_long is not None:
-            delta_ref = self.reference_long
-            if delta_ref < 0.:
-                delta_ref = delta_ref + 360.
-            if self.reference_lat is None:
-                ref_lat = 0.
-            else:
-                ref_lat = self.reference_lat
-            # take into account solar differential rotation wrt. latitude
-            omega_ref = self.solar_diff_rot(ref_lat)
-
-            # old eq. for alpha_ref contained redundant dist_e variable:
-            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r_array) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
-            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (aconst.R_sun.to(u.AU).value - r_array)
-            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(ref_lat))
-
-            # old arrow style:
-            # arrow_dist = min([self.max_dist + 0.1, 2.])
-            # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.12, head_length=0.11, edgecolor='black',
-            #                     facecolor='black', lw=2, zorder=5, overhang=0.2)
-            arrow_dist = min([self.max_dist/3.2, 2.])
-            # ref_arr = plt.arrow(alpha_ref[0], 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
-            #                     facecolor='black', lw=1.8, zorder=5, overhang=0.2)
-            ref_arr = plt.arrow(np.deg2rad(delta_ref), 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
-                                facecolor='black', lw=1.8, zorder=5, overhang=0.2)
-
-            if plot_spirals:
-                ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
-
-        if long_sector is not None:
-            if type(long_sector) == list and len(long_sector)==2:
-                # long_sector_width = abs(180 - abs(abs(self.long_sector[0] - self.long_sector[1]) - 180))
-                # cone_dist = self.max_dist+0.3
-                # plt.bar(np.deg2rad(self.long_sector[0]), cone_dist, width=np.deg2rad(long_sector_width), align='edge', bottom=0.0, color=self.long_sector_color, alpha=0.5)
-
-                delta_ref1 = long_sector[0]
-                if delta_ref1 < 0.:
-                    delta_ref1 = delta_ref1 + 360.
-                delta_ref2 = long_sector[1]
-                if delta_ref2 < 0.:
-                    delta_ref2 = delta_ref2 + 360.
-
-                long_sector_lat = [0, 0]  # maybe later add option to have different latitudes, so that the long_sector plane is out of the ecliptic
-                # take into account solar differential rotation wrt. latitude
-                omega_ref1 = self.solar_diff_rot(long_sector_lat[0])
-                omega_ref2 = self.solar_diff_rot(long_sector_lat[1])
-
-                if long_sector_vsw is not None:
-                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[0]))
-                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[1]))
-                else:
-                    # if no solar wind speeds for Parker spirals are provided, use straight lines:
-                    alpha_ref1 = [np.deg2rad(delta_ref1)] * len(r_array)
-                    alpha_ref2 = [np.deg2rad(delta_ref2)] * len(r_array)
-
-                c1 = plt.polar(alpha_ref1, r_array * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
-                x1 = c1.get_xdata()
-                y1 = c1.get_ydata()
-                c2 = plt.polar(alpha_ref2, r_array * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0.5)[0]
-                x2 = c2.get_xdata()
-                y2 = c2.get_ydata()
-
-                plt.fill_betweenx(y1, x1, x2, lw=0, color=long_sector_color, alpha=0.5)
-            else:
-                print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
-
-        if background_spirals is not None:
-            if type(background_spirals) == list and len(background_spirals)>=2:
-                # maybe later add option to have a non-zero latitude, so that the field lines are out of the ecliptic
-                background_spirals_lat = 0
-                # take into account solar differential rotation wrt. latitude
-                omega_ref = self.solar_diff_rot(background_spirals_lat)
-
-                if len(background_spirals)>=3:
-                    background_spirals_ls = background_spirals[2]
-                else:
-                    background_spirals_ls = ':'
-
-                if len(background_spirals)>=4:
-                    background_spirals_c = background_spirals[3]
-                else:
-                    background_spirals_c = 'grey'
-
-                if len(background_spirals)>=5:
-                    background_spirals_alpha = background_spirals[4]
-                else:
-                    background_spirals_alpha = 0.5
-                
-                for l in np.arange(0, 360, 360/background_spirals[0]):
-                    alpha_ref = np.deg2rad(l) + omega_ref / (background_spirals[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(background_spirals_lat))
-                    ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(background_spirals_lat)), ls=background_spirals_ls, c=background_spirals_c, alpha=background_spirals_alpha)
-            else:
-                print("Ill-defined 'background_spirals'. It should be a list with at least 2 elements defining the number of field lines and the solar wind speed used for them in km/s; e.g. 'background_spirals=[10, 400]'")
-
-        leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
-
-        if numbered_markers:
-            offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
-            for i, body_id in enumerate(self.body_dict):
-                yoffset = i*18.7  # 18.5 19.5
-                ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
-                            fontsize="small", weight='heavy', textcoords=offset,
-                            horizontalalignment='center',
-                            verticalalignment='center', zorder=100)
-
-        if self.reference_long is not None:
-            def legend_arrow(width, height, **_):
-                return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
-                                           head_width=0.75 * height)
-
-            leg2 = ax.legend([ref_arr], ['reference long.'], loc=(1.2, 0.6),
-                             handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
-                             fontsize=13)
-            ax.add_artist(leg1)
-
-        # replace 'SEMB-L1' in legend with 'L1' if present
-        for text in leg1.get_texts():
-            if text.get_text() == 'SEMB-L1':
-                text.set_text('L1')
-
-        # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
-        # NB: this remove the rgridlines for unknown reasons! deactivated for now
-        # if self.coord_sys=='Stonyhurst':
-        #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
-        #     ax.set_thetalim(-np.pi, np.pi)
-
-        rlabel_pos = E_long + 120
-        ax.set_rlabel_position(rlabel_pos)
-        ax.set_theta_offset(np.deg2rad(long_offset - E_long))
-        ax.set_rmax(self.max_dist + 0.3)
-        ax.set_rmin(0.01)
-        ax.yaxis.get_major_locator().base.set_params(nbins=4)
-        circle = plt.Circle((0., 0.),
-                            self.max_dist + 0.29,
-                            transform=ax.transData._b,
-                            edgecolor="k",
-                            facecolor=None,
-                            fill=False, lw=2)
-        ax.add_patch(circle)
-
-        # manually plot r-grid lines with different resolution depending on maximum distance body
-        if self.max_dist < 2:
-            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=rlabel_pos)
-        else:
-            if self.max_dist < 10:
-                ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
-
-        ax.set_title(self.date + '\n', pad=60)
-
-        plt.tight_layout()
-        plt.subplots_adjust(bottom=0.15)
-
-        if show_earth_centered_coord:
-            print("The option 'show_earth_centered_coord' is deprecated! Please initialize SolarMACH with coord_sys='Stonyhurst' to get an Earth-centered coordinate system.")
-            # pos1 = ax.get_position()  # get the original position of the polar plot
-            # offset = 0.12
-            # pos2 = [pos1.x0 - offset / 2, pos1.y0 - offset / 2, pos1.width + offset, pos1.height + offset]
-            # ax2 = self._polar_twin(ax, E_long, pos2, long_offset)
-
-        ax.tick_params(axis='x', pad=10)
-
-        if not hide_logo:
-            ax.text(0.94, 0.16, 'Solar-MACH',
-                    fontfamily='DejaVu Serif', fontsize=28,
-                    ha='right', va='bottom', transform=fig.transFigure)
-            ax.text(0.94, 0.12, 'https://solar-mach.github.io',
-                    fontfamily='DejaVu Sans', fontsize=18,
-                    ha='right', va='bottom', transform=fig.transFigure)
-
-        if transparent:
-            fig.patch.set_alpha(0.0)
-
-        if outfile != '':
-            plt.savefig(outfile, bbox_inches="tight")
-        # st.pyplot(fig, dpi=200)
-
-        # restore initial rcParams that have been saved at the beginning of this function:
-        plt.rcParams.update(initial_rcparams)
-
-        # if using streamlit, send plot to streamlit output, else call plt.show()
-        if _isstreamlit():
-            import streamlit as st
-            st.pyplot(fig)  # , dpi=200)
-        else:
-            plt.show()
-
-        if return_plot_object:
-            return fig, ax
-
-    def _polar_twin(self, ax, E_long, position, long_offset):
-        """
-        add an additional axes which is needed to plot additional longitudinal tickmarks with Earth at longitude 0
-        not used any more!
-        """
-        ax2 = ax.figure.add_axes(position, projection='polar',
-                                 label='twin', frameon=False,
-                                 theta_direction=ax.get_theta_direction(),
-                                 theta_offset=E_long)
-
-        ax2.set_rmax(self.max_dist + 0.3)
-        ax2.yaxis.set_visible(False)
-        ax2.set_theta_zero_location("S")
-        ax2.tick_params(axis='x', colors='darkgreen', pad=10)
-        ax2.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
-        ax2.set_thetalim(-np.pi, np.pi)
-        ax2.set_theta_offset(np.deg2rad(long_offset - E_long))
-        gridlines = ax2.xaxis.get_gridlines()
-        for xax in gridlines:
-            xax.set_color('darkgreen')
-
-        return ax2
+    return gong_map
 
 
 def _isstreamlit():
@@ -633,3 +713,4 @@ def _isstreamlit():
     except ModuleNotFoundError:
         use_streamlit = False
     return use_streamlit
+
