@@ -4,5 +4,6 @@ Jinja2
 matplotlib
 numpy
 pandas
+pfsspy
 scipy
 sunpy
