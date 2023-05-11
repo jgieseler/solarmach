@@ -8,3 +8,4 @@ pandas
 pfsspy
 scipy
 sunpy
+zeep
