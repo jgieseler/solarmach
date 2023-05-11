@@ -22,6 +22,9 @@ from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 
+# New addition to imports, contains the necessary functions to run pfss-extrapolation for sub-source surface magnetic field
+from solarmach.pfss_utilities import *
+
 # pd.options.display.max_rows = None
 # pd.options.display.float_format = '{:.1f}'.format
 # if needed, rather use the following to have the desired display:
@@ -614,6 +617,448 @@ class SolarMACH():
         return ax2
 
 
+
+    def plot_pfss(self, 
+                  rss=2.5,
+                  pfss_solution = None,
+                  figsize = (15,10),
+                  dpi = 200,
+                  return_plot_object = False,
+                  vary=False, n_varies=1,
+                  long_offset = 270,
+                  reference_vsw = 400.,
+                  numbered_markers = False,
+                  plot_spirals = True,
+                  long_sector = None,
+                  long_sector_vsw = None,
+                  long_sector_color = None,
+                  hide_logo = False):
+        """
+        Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
+        Also tracks an open field line down to photosphere given a point on the pfss.
+
+        rss : float
+                source surface height of the potential field in solar radii. default 2.5
+        pfss_solution : .fits
+                the pfss model calculated from magnetographic maps
+        reference_longitude : int or floar
+                draws an arrow pointing radially outward, input in degrees
+
+        """
+
+        if not pfss_solution:
+            raise Exception("A PFSS solution is required for solar magnetic field extrapolation!")
+
+        # Constants 
+        AU = const.au / 1000  # km
+        sun_radius = aconst.R_sun.value # meters
+
+        # r_scaler scales distances from astronomical units to solar radii. unit = [solar radii / AU]
+        r_scaler = (AU*1000)/sun_radius
+
+        # carrington longitude of the Earth
+        E_long = self.pos_E.lon.value
+
+        # save inital rcParams and update some of them:
+        initial_rcparams = plt.rcParams.copy()
+        plt.rcParams['axes.linewidth'] = 2.5
+        plt.rcParams['font.size'] = 15
+        plt.rcParams['agg.path.chunksize'] = 20000
+
+        # init the figure and axes
+        fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
+
+        # maximum distance anything will be plotted
+        r_max = r_scaler * 5 # 5 AU in units of solar radii
+
+        # setting the title
+        ax.set_title(self.date + '\n', pad=30, fontsize=26)
+
+        # Plot the source_surface and solar surface
+        full_circle_radians = 2*np.pi*np.linspace(0, 1, 200)
+        ax.plot(full_circle_radians, np.ones(200)*rss, c='k', ls='--', zorder=3)
+        ax.plot(full_circle_radians, np.ones(200), c='darkorange', lw=2.5, zorder=1)
+
+        # Plot the 30 and 60 deg lines on the Sun
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.866, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(30deg) = 0.866(O)
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.500, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(60deg) = 0.5(0)
+
+        # Gather field line objects, photospheric footpoints and magnetic polarities in these lists
+        # fieldlines is a class attribute, so that the field lines can be neasily 3D plotted with another method
+        self.fieldlines = []
+        photospheric_footpoints = []
+        fieldline_polarities = []
+
+        # The radial coordinates for reference parker spiral
+        reference_array = np.linspace(r_max, rss, 1000)
+
+        #
+        # reference_array for cones -> normalize their parker spiral math
+        #
+
+        for i, body_id in enumerate(self.body_dict):
+
+            body_lab = self.body_dict[body_id][1]
+            body_color = self.body_dict[body_id][2]
+            body_vsw = self.body_dict[body_id][4]
+            body_pos = self.body_dict[body_id][3]
+
+            pos = body_pos
+            dist_body = pos.radius.value
+
+            body_long = pos.lon.value
+            body_lat = pos.lat.value
+
+            # take into account solar differential rotation wrt. latitude
+            omega = self.solar_diff_rot(body_lat)
+ 
+            # The radial coordinates (outside source surface) for each object
+            r_array = np.linspace(r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), rss, 1000)
+
+            # plot body positions
+            if numbered_markers:
+                ax.plot(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), 'o', ms=15, color=body_color, label=body_lab)
+                ax.annotate(i+1, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
+                            fontsize="small", weight='heavy',
+                            horizontalalignment='center',
+                            verticalalignment='center')
+            else:
+                ax.plot(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), 's', color=body_color, label=body_lab)
+
+            # Plotting the spirals
+            if plot_spirals:
+
+                # The angular coordinates are calculated here
+                # alpha = longitude + (omega)*(distance-r)/sw
+                alpha_body = np.deg2rad(body_long) + omega / (1000*body_vsw / sun_radius) * (r_scaler*dist_body - r_array) * np.cos(np.deg2rad(body_lat))
+                ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
+
+            # acquire an array of (r,lon,lat) coordinates of the open field lines under the pfss
+            # based on the footpoint(s) of the sc
+            if vary:
+
+                # Triplets contain 35 tuples of (r,lon,lat) 
+                fline_triplets, fline_objects, varyfline_triplets, varyfline_objects = vary_flines(alpha_body[-1], np.deg2rad(body_lat), pfss_solution, n_varies, rss)
+
+                # Collect field line objects to a list
+                self.fieldlines.append(fline_objects[0])
+                for varyfline in varyfline_objects:
+                    self.fieldlines.append(varyfline)
+
+                # Plot the color coded varied field lines
+                for triplet in varyfline_triplets:
+                    v_fl_r   = triplet[0]
+                    v_fl_lon = triplet[1]
+                    v_fl_lat = triplet[2]
+
+                    fieldline = multicolorline(np.deg2rad(v_fl_lon), np.cos(np.deg2rad(v_fl_lat))*v_fl_r, ax=ax, cvals=v_fl_lat, vmin=-90, vmax=90)
+
+            else:
+                # If no varying, then just get one field line from get_field_line_coords()
+                # Note that even in the case of a singular fieldline object, this function returns a list 
+                fline_triplets, fline_objects = get_field_line_coords(alpha_body[-1], np.deg2rad(body_lat), pfss_solution, rss)
+
+                # Collect field line objects to a list
+                self.fieldlines.append(fline_objects[0])
+
+            # The middlemost field lines are always plotted regardless if varying or no
+            fl_r   = fline_triplets[0][0]
+            fl_lon = fline_triplets[0][1]
+            fl_lat = fline_triplets[0][2]
+
+            # Plot the color coded field line
+            fieldline = multicolorline(np.deg2rad(fl_lon), np.cos(np.deg2rad(fl_lat))*fl_r, ax=ax, cvals=fl_lat, vmin=-90, vmax=90)
+
+            # Finally, save the photospheric footpoint of the middlemost field lines as a tuple and magnetic polarity as +1/-1
+            photospheric_footpoints.append((fl_lon[0], fl_lat[0]))
+            fieldline_polarities.append(int(fline_objects[0].polarity))
+
+
+        # Reference longitude and corresponding parker spiral arm
+        if self.reference_long:
+            delta_ref = self.reference_long
+            if delta_ref < 0.:
+                delta_ref = delta_ref + 360.
+            if self.reference_lat is None:
+                ref_lat = 0.
+            else:
+                ref_lat = self.reference_lat
+
+            # take into account solar differential rotation wrt. latitude
+            omega_ref = self.solar_diff_rot(ref_lat)
+
+            # old eq. for alpha_ref contained redundant dist_e variable:
+            #alpha_ref = np.deg2rad(delta_ref) + omega_ref / (1000*reference_vsw / sun_radius) * (r_scaler*self.target_solar_radius*aconst.R_sun.to(u.AU).value - reference_array) * np.cos(np.deg2rad(ref_lat))
+            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+
+            # old arrow style:
+            arrow_dist = rss-1
+            ref_arr = plt.arrow(np.deg2rad(delta_ref), 1, 0, arrow_dist, head_width=0.1, head_length=0.4, edgecolor='black',
+                                facecolor='black', lw=2.0, zorder=5, overhang=0.2)
+
+            if plot_spirals:
+                ax.plot(alpha_ref, reference_array * np.cos(np.deg2rad(ref_lat)), ls='--', lw=1.8, color='k', 
+                        label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)', zorder=1)
+
+        if long_sector is not None:
+            if type(long_sector) == list and len(long_sector)==2:
+
+                delta_ref1 = long_sector[0]
+                if delta_ref1 < 0.:
+                    delta_ref1 = delta_ref1 + 360.
+                delta_ref2 = long_sector[1]
+                if delta_ref2 < 0.:
+                    delta_ref2 = delta_ref2 + 360.
+
+                # maybe later add option to have different latitudes, so that the long_sector plane is out of the ecliptic
+                long_sector_lat = [0, 0]
+
+                # take into account solar differential rotation wrt. latitude
+                omega_ref1 = self.solar_diff_rot(long_sector_lat[0])
+                omega_ref2 = self.solar_diff_rot(long_sector_lat[1])
+
+                if long_sector_vsw is not None:
+                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - reference_array) * np.cos(np.deg2rad(long_sector_lat[0]))
+                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - reference_array) * np.cos(np.deg2rad(long_sector_lat[1]))
+                else:
+                    # if no solar wind speeds for Parker spirals are provided, use straight lines:
+                    alpha_ref1 = [np.deg2rad(delta_ref1)] * len(reference_array)
+                    alpha_ref2 = [np.deg2rad(delta_ref2)] * len(reference_array)
+
+                c1 = plt.polar(alpha_ref1, reference_array * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                x1 = c1.get_xdata()
+                y1 = c1.get_ydata()
+                c2 = plt.polar(alpha_ref2, reference_array * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                x2 = c2.get_xdata()
+                y2 = c2.get_ydata()
+
+                plt.fill_betweenx(y1, x1, x2, lw=0, color=long_sector_color, alpha=0.5)
+            else:
+                print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
+
+        leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13)
+
+        if numbered_markers:
+            offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
+            for i, body_id in enumerate(self.body_dict):
+                yoffset = i*18.7  # 18.5 19.5
+                ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
+                            fontsize="small", weight='heavy', textcoords=offset,
+                            horizontalalignment='center',
+                            verticalalignment='center', zorder=100)
+
+        if self.reference_long:
+            def legend_arrow(width, height, **_):
+                return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
+                                           head_width=0.75 * height)
+
+            leg2 = ax.legend([ref_arr], ['reference long.'], loc=(1.05, 0.6),
+                             handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
+                             fontsize=15)
+            ax.add_artist(leg1)
+
+        # replace 'SEMB-L1' in legend with 'L1' if present
+        for text in leg1.get_texts():
+            if text.get_text() == 'SEMB-L1':
+                text.set_text('L1')
+
+        # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
+        # NB: this remove the rgridlines for unknown reasons! deactivated for now
+        # if self.coord_sys=='Stonyhurst':
+        #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
+        #     ax.set_thetalim(-np.pi, np.pi)
+
+        # Spin the angular coordinate so that earth is at 6 o'clock
+        ax.set_theta_offset(np.deg2rad(long_offset - E_long))
+
+        # For some reason we need to specify 'ylim' here 
+        ax.set_ylim(0,r_max)
+        ax.set_rscale('symlog', linthresh=rss)
+        ax.set_rmax(r_max)
+        ax.set_rticks([1.0, rss, 10.0, 100.0])
+        ax.set_rlabel_position(-22.5)  # Move radial labels away from plotted line
+        ax.tick_params(which='major', labelsize=22,)
+
+        rlabels = ['1', str(rss), r'$10^1$', r'$10^2$']
+        ax.set_yticklabels(rlabels)
+
+        plt.tight_layout()
+
+        if not hide_logo:
+            txt_x_begin, txt_y_begin = 0.98, 0.16
+            ax.text(txt_x_begin, txt_y_begin, 'Solar-MACH',
+                    fontfamily='DejaVu Serif', fontsize=28,
+                    ha='right', va='bottom', transform=fig.transFigure)
+            ax.text(txt_x_begin, txt_y_begin-0.04, 'https://solar-mach.github.io',
+                    fontfamily='DejaVu Sans', fontsize=18,
+                    ha='right', va='bottom', transform=fig.transFigure)
+
+        # Create the colorbar displaying values of the last fieldline plotted
+        cb = fig.colorbar(fieldline, ax=ax, location="left", anchor=(1.4, 1.2), shrink=0.6)
+
+        # Colorbar is the last object created -> it is the final index in the list of axes
+        cb_ax = fig.axes[-1]
+        cb_ax.set_ylabel('Heliographic latitude [deg]', fontsize=20)
+
+        # Add footpoints and magnetic polarities to coord_table
+        self.coord_table["PFSS_Footpoint"] = photospheric_footpoints
+        self.coord_table["Magnetic polarity"] = fieldline_polarities
+
+        # if using streamlit, send plot to streamlit output, else call plt.show()
+        if _isstreamlit():
+            import streamlit as st
+            st.pyplot(fig)  # , dpi=200)
+        else:
+            plt.show()
+
+        if return_plot_object:
+            return fig, ax
+
+
+    def pfss_3d(self, active_area=(None,None,None,None), color_code='object'):
+        """
+        https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Scatter3d.html
+        https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
+        https://plotly.com/python-api-reference/plotly.graph_objects.html
+        https://fslab.org/XPlot/chart/plotly-3d-line-plots.html
+
+        Opens up an interactive 3d-plot of the Sun and FieldLine objects. Also shows the flare area if provided.
+
+        params
+        -------
+        active_area: (lonmax, lonmin, latmax, latmin)
+                    A tuple of the max and min of longitude and latitude in degrees
+        
+        color_code: str
+                    Choose either 'polarity' or 'object'
+        """
+
+        import plotly.graph_objects as go
+        import plotly.express as px
+
+        from plotly.graph_objects import Line
+
+        from astropy.constants import R_sun
+
+        # Flare site (or whatever area of interest) is plotted at this height
+        FLARE_HEIGHT = 1.005
+
+        object_names = list(self.body_dict.keys())
+
+        # choose the color coding as either polarity or object
+        if color_code=='object':
+
+            # Number of objects, modulator that is the amount of field lines per object and color list that holds the corresponding color names
+            num_objects = len(self.body_dict)
+            modulator = len(self.fieldlines)//num_objects
+            color_list = [self.body_dict[body_id][2] for body_id in self.body_dict]
+
+            # Plotly doesn't like color 'b', so check if that exists and change it to more specific identifier
+            for i, color in enumerate(color_list):
+                if color=='b':
+                    color_list[i] = "blue"
+
+        elif color_code=='polarity':
+
+            colors = {0: 'black', 
+                      -1: 'blue', 
+                      1: 'red'}
+
+        else:
+            raise Exception(f"Invalid color_code=={color_code}. Choose either 'polarity' or 'object'.")
+        
+        # create the sun object, a sphere, for plotting
+        sun = sphere(radius=1, clr='#ffff55') # '#ffff00'
+
+        # and add it to the list of traces
+        # traces are all the objects that will be plotted
+        traces = [sun]
+
+        # go through field lines, assign a color to them and append them to the list of traces
+        for i, field_line in enumerate(self.fieldlines):
+
+                coords = field_line.coords
+                coords.representation_type = "cartesian"
+
+                if color_code=="polarity":
+                    color = colors.get(field_line.polarity)
+                if color_code=='object':
+                    color = color_list[i//modulator]
+
+                # New object's lines being plotted
+                if i%modulator==0: 
+                    line_label = object_names[i//modulator]
+                    show_in_legend = True
+                else:
+                    show_in_legend = False
+
+                fieldline_trace = go.Scatter3d(x=coords.x/R_sun, y=coords.y/R_sun, z=coords.z/R_sun, 
+                                            mode='lines', 
+                                            line = Line(color = color, width = 3.5),
+                                            name = line_label,
+                                            showlegend = show_in_legend
+                                            )
+
+                traces.append(fieldline_trace)
+
+
+        if active_area[0]:
+
+            # the flare area is bound by the extreme values of longitude and latitude
+            lonmax, lonmin = np.deg2rad(active_area[0]), np.deg2rad(active_area[1])
+            latmax, latmin = np.deg2rad(active_area[2]), np.deg2rad(active_area[3])
+
+            # the perimeter of flare area in four segments
+            perimeter1 = (np.linspace(lonmin, lonmax, 10), [latmax]*10)
+            perimeter2 = (np.linspace(lonmin, lonmax, 10), [latmin]*10)
+            perimeter3 = ([lonmax]*10, np.linspace(latmin, latmax, 10))
+            perimeter4 = ([lonmin]*10, np.linspace(latmin, latmax, 10))
+
+            # the perimeter in terms of elevation and azimuthal angles
+            perimeter_phis = np.append(np.append(np.append(perimeter1[0],perimeter2[0]),perimeter3[0]),perimeter4[0])
+            perimeter_thetas = np.append(np.append(np.append(perimeter1[1],perimeter2[1]),perimeter3[1]),perimeter4[1])
+
+            # the perimeter in terms of cartesian components
+            perimeter_cartesian = spheric2cartesian([FLARE_HEIGHT]*40, theta=perimeter_thetas, phi=perimeter_phis)
+
+            # flare area object
+            active_area = go.Scatter3d(x=perimeter_cartesian[0], y=perimeter_cartesian[1], z=perimeter_cartesian[2], 
+                                    mode='lines', 
+                                    line = Line(color = 'purple', width = 5.5),
+                                    name = "Active Area"
+                                    )
+
+            traces.append(active_area)
+
+        # the 0-latitude line, i.e. the equator
+        equator_sphericals = (np.ones(101)*FLARE_HEIGHT,np.zeros(101),np.linspace(0,2*np.pi,101))
+        equator_cartesians = spheric2cartesian(equator_sphericals[0],equator_sphericals[1],equator_sphericals[2])
+
+        equator_line = go.Scatter3d(x=equator_cartesians[0], y=equator_cartesians[1], z=equator_cartesians[2], 
+                                    mode='lines', 
+                                    line = Line(color = 'black', width = 5.5),
+                                    name = "0 Latitude"
+                                )
+
+        traces.append(equator_line)
+
+        # create the figure
+        fig = go.Figure(data=traces)
+
+        # additional figure settings, like aspect mode, extreme values of axes etc...
+        fig.update_layout(scene_aspectmode='cube')
+        fig.update_layout(scene = dict(
+                        xaxis = dict(nticks=4, range=[-2.5,2.5],), 
+                        yaxis = dict(nticks=4, range=[-2.5,2.5],), 
+                        zaxis = dict(nticks=4, range=[-2.5,2.5],),), 
+                        width=1280, height=720, 
+                        margin=dict(r=20, l=10, b=10, t=10))
+
+        fig.show()
+
+        return 0
+
+
 def _isstreamlit():
     """
     Function to check whether python code is run within streamlit
@@ -633,3 +1078,4 @@ def _isstreamlit():
     except ModuleNotFoundError:
         use_streamlit = False
     return use_streamlit
+
