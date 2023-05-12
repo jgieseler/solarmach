@@ -4,7 +4,7 @@ cmasher
 drms
 Jinja2
 lxml
-matplotlib
+matplotlib==3.5.3
 numpy
 pandas
 pfsspy
