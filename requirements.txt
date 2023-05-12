@@ -1,5 +1,6 @@
 astropy
 astroquery
+cmasher
 drms
 Jinja2
 lxml
