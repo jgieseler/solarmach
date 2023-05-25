@@ -435,10 +435,6 @@ class SolarMACH():
 
         if long_sector is not None:
             if type(long_sector) == list and len(long_sector)==2:
-                # long_sector_width = abs(180 - abs(abs(self.long_sector[0] - self.long_sector[1]) - 180))
-                # cone_dist = self.max_dist+0.3
-                # plt.bar(np.deg2rad(self.long_sector[0]), cone_dist, width=np.deg2rad(long_sector_width), align='edge', bottom=0.0, color=self.long_sector_color, alpha=0.5)
-
                 delta_ref1 = long_sector[0]
                 if delta_ref1 < 0.:
                     delta_ref1 = delta_ref1 + 360.
@@ -482,8 +478,8 @@ class SolarMACH():
 
                 else:
                     # if no solar wind speeds for Parker spirals are provided, use straight lines:
-                    alpha_ref1 = [np.deg2rad(delta_ref1)] * len(r_array)
-                    alpha_ref2 = [np.deg2rad(delta_ref2)] * len(r_array)
+                    alpha_ref1 = np.array([np.deg2rad(delta_ref1)] * len(r_array))
+                    alpha_ref2 = np.array([np.deg2rad(delta_ref2)] * len(r_array))
 
                 c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
                 x1 = c1.get_xdata()
@@ -492,19 +488,16 @@ class SolarMACH():
                 x2 = c2.get_xdata()
                 y2 = c2.get_ydata()
 
-                if long_sector_vsw is not None:
-                    # Check that plotted are is between the two spirals, and do not fill after potential crossing
-                    clause1 = x1 < x2
-                    clause2 = alpha_ref1[clause1] < alpha_ref2[clause1]
+                # Check that plotted are is between the two spirals, and do not fill after potential crossing
+                clause1 = x1 < x2
+                clause2 = alpha_ref1[clause1] < alpha_ref2[clause1]
 
-                    # Take only the points that fill the above clauses
-                    y1_fill = y1[clause1][clause2]
-                    x1_fill = x1[clause1][clause2]
-                    x2_fill = x2[clause1][clause2]
+                # Take only the points that fill the above clauses
+                y1_fill = y1[clause1][clause2]
+                x1_fill = x1[clause1][clause2]
+                x2_fill = x2[clause1][clause2]
 
-                    plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=long_sector_color, alpha=0.5)
-                else:
-                    plt.fill_betweenx(y1, x1, x2, lw=0, color=long_sector_color, alpha=0.5)
+                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=long_sector_color, alpha=0.5)
             else:
                 print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
 
