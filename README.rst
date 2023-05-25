@@ -84,19 +84,23 @@ Usage
 .. image:: https://github.com/jgieseler/solarmach/raw/main/examples/solarmach.png
   :alt: Example output figure
   
-See `example notebook <https://github.com/jgieseler/solarmach/blob/main/examples/example.ipynb>`_ for all options!
+See example notebooks in next section for all options!
   
-Example Notebook
-----------------
+Example Notebooks
+-----------------
 
 **solarmach** can easily be run in a Jupyter Notebook. 
 
-- `Download example notebook <https://github.com/jgieseler/solarmach/raw/main/examples/example.ipynb>`_
-
-- Try it online: |binder|
-  
-.. |binder| image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/jgieseler/solarmach/main?labpath=examples%2Fexample.ipynb
+- `Show simple example notebook <https://nbviewer.org/github/jgieseler/solarmach/blob/main/examples/example.ipynb>`_ |nbviewer1|
+ 
+- `Show extended example notebook <https://nbviewer.org/github/serpentine-h2020/serpentine/blob/main/notebooks/solarmach/solarmach.ipynb>`_ |nbviewer2| (provided by `SERPENTINE <https://serpentine-h2020.eu>`_ project)
+ 
+ 
+.. |nbviewer1| image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
+ :target: https://nbviewer.org/github/jgieseler/solarmach/blob/main/examples/example.ipynb
+ 
+.. |nbviewer2| image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
+ :target: https://nbviewer.org/github/serpentine-h2020/serpentine/blob/main/notebooks/solarmach/solarmach.ipynb
  
 Citation
 --------
@@ -110,6 +114,8 @@ Acknowledgements
 ----------------
  
 The Solar-MACH tool was originally developed at Kiel University, Germany and further discussed within the `ESA Heliophysics Archives USer (HAUS) <https://www.cosmos.esa.int/web/esdc/archives-user-groups/heliophysics>`_ group.
+
+This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 101004159.
 
 Powered by: |matplotlib| |sunpy|
 
