@@ -10,21 +10,20 @@ try:
 except DistributionNotFound:
     pass  # package is not installed
 
+import glob
 import os
 import pickle
-import glob
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-import sunpy.map
-from sunpy.net import Fido, attrs as a
 
 import astropy.constants as aconst
 import astropy.units as u
-from astropy.coordinates import SkyCoord
-
+import matplotlib.pyplot as plt
+import numpy as np
 import pfsspy
+import sunpy.map
+from astropy.coordinates import SkyCoord
+from sunpy.net import Fido
+from sunpy.net import attrs as a
+
 
 # @st_cache_decorator
 def get_pfss_hmimap(filepath, email, carrington_rot, date, rss=2.5, nrho=35):
@@ -45,7 +44,7 @@ def get_pfss_hmimap(filepath, email, carrington_rot, date, rss=2.5, nrho=35):
             The height of the potential field source surface for the solution.
     nrho: int (default = 35)
             The resolution of the PFSS-solved field line objects
-    
+
     returns
     -------
     output: hmi_synoptic_map object
@@ -103,9 +102,8 @@ def multicolorline(x, y, cvals, ax, vmin=-90, vmax=90):
     line: LineCollection object
     """
 
-    import matplotlib.colors as mcolors
     import cmasher as cmr
-
+    import matplotlib.colors as mcolors
     from matplotlib.collections import LineCollection
 
     # Create a set of line segments so that we can color them individually
@@ -182,14 +180,14 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
         # Inits for finding another seed point if we hit null or closed line
         turn = 'lon'
         sign_switch = 1
-        
+
         # Steps to the next corner, steps taken
-        corner_tracker = [1,0]
-        
+        corner_tracker = [1, 0]
+
         init_lon, init_lat = longitude[i], latitude[i]
 
         # Keep tracing the field line until a valid one is found
-        while(True):
+        while (True):
 
             # Trace a field line downward from the point lon,lat on the pfss
             fline = trace_field_line(longitude[i], latitude[i], hmimap, seedheight=seedheight)
@@ -201,7 +199,7 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
             # If fline is not a valid field line, then spiral out from init_point and try again
             # Also check if this is a null line (all coordinates identical)
             # Also check if polarity is 0, meaning that the field line is NOT open
-            if( (len(fline.coords) < 10) or bool_key or fline.polarity==0): #fline.polarity==0 
+            if ((len(fline.coords) < 10) or bool_key or fline.polarity==0):  # fline.polarity==0
 
                 longitude[i], latitude[i], sign_switch, corner_tracker, turn = spiral_out(longitude[i], latitude[i], sign_switch, corner_tracker, turn)
 
@@ -210,7 +208,7 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
                 break
 
             # Check that we are not too far from the original coordinate
-            if(corner_tracker[0] >= 10):
+            if (corner_tracker[0] >= 10):
                 print(f"no open field line found in the vicinity of {init_lon},{init_lat}")
                 break
 
@@ -229,12 +227,12 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
 def vary_flines(lon, lat, hmimap, n_varies, rss):
     """
     Finds a set of sub-pfss fieldlines connected to or very near a single footpoint on the pfss.
-    
+
     lon: longitude of the footpoint [rad]
     lat: latitude of the footpoint [rad]
-    
+
     n_varies:   tuple that holds the amount of circles and the number of dummy flines per circle
-                if type(n_varies)=int, consider that as the amount of circles, and set the 
+                if type(n_varies)=int, consider that as the amount of circles, and set the
                 amount of dummy flines per circle to 16
 
     params
@@ -245,7 +243,7 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
             The latitude of the footpoint in radians
     hmimap: hmi_synoptic_map object
             The pfss-solution used to calculate the field lines
-    n_varies: list[int,int] or int 
+    n_varies: list[int,int] or int
             A list that holds the amount of circles and the number of dummy flines per circle
             if type(n_varies)=int, consider that as the amount of circles, and set the
             amount of dummy flines per circle to 16
@@ -265,7 +263,7 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
     """
 
     # Field lines per n_circles (circle)
-    if isinstance(n_varies,list):
+    if isinstance(n_varies, list):
         n_circles = n_varies[0]
         n_flines = n_varies[1]
     else:
@@ -277,13 +275,13 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
     increments = np.array([0.03, 0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29])
     for circle in range(n_circles):
 
-        newlons, newlats = circle_around(lon,lat,n_flines,r=increments[circle])
-        lons, lats = np.append(lons,newlons), np.append(lats,newlats)
+        newlons, newlats = circle_around(lon, lat, n_flines, r=increments[circle])
+        lons, lats = np.append(lons, newlons), np.append(lats, newlats)
 
     pointlist = np.array([lons, lats])
 
     # Trace fieldlines from all of these points
-    varycoords, varyflines = get_field_line_coords(pointlist[0],pointlist[1],hmimap, rss)
+    varycoords, varyflines = get_field_line_coords(pointlist[0], pointlist[1], hmimap, rss)
 
     # Because the original fieldlines and the varied ones are all in the same arrays,
     # Extract the varied ones to their own arrays
@@ -298,7 +296,7 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
             erased_indices.append(i)
             # pop(i) removes the ith element from the list and returns it
             # -> we append it to the list of original footpoint fieldlines
-            coordlist.append(varycoords[i]) #.pop(i)
+            coordlist.append(varycoords[i])  # .pop(i)
             flinelist.append(varyflines[i])
 
     # Really ugly quick fix to erase values from varycoords and varyflines
@@ -324,12 +322,12 @@ def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
             The height at which field line tracing is started (in solar radii)
     rad: bool, (default True)
             Wether or not input coordinates are in radians. If False, consider them degrees
-    
+
     Returns:
     --------
     field_lines: FieldLine or list[FieldLine]
             A FieldLine object, or a list of them, if input coordinates were a list
-    
+
     '''
     from pfsspy import tracing
 
@@ -361,39 +359,39 @@ def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
 def spiral_out(lon, lat, sign_switch, corner_tracker, turn):
     """
     Moves the seeding point in an outward spiral.
-    
+
     Parameters
     ---------
     lon, lat: float
             the carrington coordinates on a surface of a sphere (sun or pfss)
     sign_switch: int
-            -1 or 1, dictates the direction in which lon or lat is 
+            -1 or 1, dictates the direction in which lon or lat is
             incremented
     corner_tracker: tuple
             first entry is steps_unti_corner, int that tells how many steps to the next corner of a spiral
             the second entry is steps taken on a given spiral turn
     turn: str
             indicates which is to be incremented, lon or lat
-            
+
     returns
     -----------
     lon, lat: float
             new coordinate pair
     """
-    
+
     # In radians, 1 rad \approx 57.3 deg
     step = 0.01
-    
+
     # Keeps track of how many steps until it's time to turn
     steps_until_corner, steps_moved = corner_tracker[0], corner_tracker[1]
 
     if turn=='lon':
-        
+
         lon = lon + step*sign_switch
         lat = lat
-        
+
         steps_moved += 1
-        
+
         # We have arrived in a corner, time to move in lat direction
         if steps_until_corner == steps_moved:
             steps_moved = 0
@@ -401,12 +399,11 @@ def spiral_out(lon, lat, sign_switch, corner_tracker, turn):
 
         return lon, lat, sign_switch, [steps_until_corner, steps_moved], turn
 
-
     if turn=='lat':
-        
+
         lon = lon
         lat = lat + step*sign_switch
-        
+
         steps_moved += 1
 
         # Hit a corner; start moving in the lon direction
@@ -415,9 +412,9 @@ def spiral_out(lon, lat, sign_switch, corner_tracker, turn):
             steps_until_corner += 1
             turn = 'lon'
             sign_switch = sign_switch*(-1)
-        
+
         return lon, lat, sign_switch, [steps_until_corner, steps_moved], turn
-        
+
 
 def get_coord_values(field_line):
     """
@@ -513,19 +510,19 @@ def check_field_line_alignment(coordinates):
 
 
 def spheric2cartesian(r, theta, phi):
-        """
-        Does a coordinate transformation from spherical to cartesian
+    """
+    Does a coordinate transformation from spherical to cartesian
 
-        r : the distance to the origin
-        theta : the elevation angle (goes from -pi to pi)
-        phi : the azimuth angle (goes from 0 to 2pi)
-        """
+    r : the distance to the origin
+    theta : the elevation angle (goes from -pi to pi)
+    phi : the azimuth angle (goes from 0 to 2pi)
+    """
 
-        x = r * np.cos(phi) * np.cos(theta)
-        y = r * np.sin(phi) * np.cos(theta)
-        z = r * np.sin(theta)
+    x = r * np.cos(phi) * np.cos(theta)
+    y = r * np.sin(phi) * np.cos(theta)
+    z = r * np.sin(theta)
 
-        return x, y, z
+    return x, y, z
 
 
 def sphere(radius, clr, dist=0):
@@ -536,27 +533,27 @@ def sphere(radius, clr, dist=0):
     ---------
     radius : float, int
             The radius of the sphere
-    
+
     clr : str
             The color code for the sphere
-    
+
     dist : float, int
             The displacement of the sphere, if not centered at origin
     """
 
     import plotly.graph_objects as go
-    
+
     # Set up 100 points. First, do angles
-    phi = np.linspace(0,2*np.pi,100) # phi, the azimuthal angle goes from 0 to 2pi
-    theta = np.linspace(0,np.pi,100) # theta, the elevation angle goes from 0 to pi
-    
+    phi = np.linspace(0, 2*np.pi, 100)  # phi, the azimuthal angle goes from 0 to 2pi
+    theta = np.linspace(0, np.pi, 100)  # theta, the elevation angle goes from 0 to pi
+
     # Set up coordinates for points on the sphere
-    x0 = dist + radius * np.outer(np.cos(phi),np.sin(theta))
-    y0 = radius * np.outer(np.sin(phi),np.sin(theta))
-    z0 = radius * np.outer(np.ones(100),np.cos(theta))
-    
+    x0 = dist + radius * np.outer(np.cos(phi), np.sin(theta))
+    y0 = radius * np.outer(np.sin(phi), np.sin(theta))
+    z0 = radius * np.outer(np.ones(100), np.cos(theta))
+
     # Set up trace (the object that is then plottable)
-    trace= go.Surface(x=x0, y=y0, z=z0, colorscale=[[0,clr], [1,clr]], showscale=False, name="Sun")
+    trace= go.Surface(x=x0, y=y0, z=z0, colorscale=[[0, clr], [1, clr]], showscale=False, name="Sun")
 
     return trace
 
@@ -595,14 +592,14 @@ def load_gong_map(filepath=None):
     https://gong.nso.edu/data/magmap/
     https://docs.sunpy.org/en/v4.0.6/generated/api/sunpy.net.dataretriever.GONGClient.html
     https://gong2.nso.edu/oQR/zqs/202104/mrzqs210413/
-    
+
     """
 
     if not filepath:
         filepath = os.getcwd()
 
     # Load a GONG (Global Oscillation Network Group) synoptic magnetic map
-    if isinstance(filepath,str):
+    if isinstance(filepath, str):
 
         # Acquire a GONG map from which the pfss solution is calculated from
         gong_map = sunpy.map.Map(filepath)
@@ -615,8 +612,8 @@ def download_gong_map(timestr, filepath=None):
     Gets the download link for a GONG synoptic map
     """
 
-    from sunpy.net import Fido, attrs
     import pandas as pd
+    from sunpy.net import Fido, attrs
 
     if filepath is None:
         filepath = os.getcwd()
@@ -634,7 +631,7 @@ def download_gong_map(timestr, filepath=None):
 
 def construct_gongmap_filename(timestr, directory):
     """
-    Constructs a default filepath for 
+    Constructs a default filepath
     """
 
     yy = timestr[2:4]
@@ -659,12 +656,13 @@ def construct_gongmap_filename(timestr, directory):
         print(f"Automatic file search based on given time failed in directory {directory}")
         return directory
 
+
 def get_gong_map(time:str, filepath:str=None, autodownload=True):
     """
     A wrapper for functions load_gong_map() and download_gong_map().
     Returns a gong map if one is found or autodownload is True. If no map found and
     autodownload is False, then return None.
-    
+
     Parameters:
     -----------
     timestr : {str}
@@ -673,7 +671,7 @@ def get_gong_map(time:str, filepath:str=None, autodownload=True):
                 The path to the gong map file with the name of the file, e.g., 'use/xyz/gong_maps/mrzqs211009t0814c2249_105.fits.gz'
                 If no filepath provided, use the current directory.
     autodownload : {bool}, optional, default=True
-                If file is not found, download it automatically. 
+                If file is not found, download it automatically.
     """
 
     # Try to construct a filename from current working directory and given datetime
@@ -692,25 +690,3 @@ def get_gong_map(time:str, filepath:str=None, autodownload=True):
             return None
 
     return gong_map
-
-
-def _isstreamlit():
-    """
-    Function to check whether python code is run within streamlit
-
-    Returns
-    -------
-    use_streamlit : boolean
-        True if code is run within streamlit, else False
-    """
-    # https://discuss.streamlit.io/t/how-to-check-if-code-is-run-inside-streamlit-and-not-e-g-ipython/23439
-    try:
-        from streamlit.runtime.scriptrunner import get_script_run_ctx
-        if not get_script_run_ctx():
-            use_streamlit = False
-        else:
-            use_streamlit = True
-    except ModuleNotFoundError:
-        use_streamlit = False
-    return use_streamlit
-

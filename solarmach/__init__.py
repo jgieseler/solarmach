@@ -22,8 +22,7 @@ from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 
-# New addition to imports, contains the necessary functions to run pfss-extrapolation for sub-source surface magnetic field
-from solarmach.pfss_utilities import *
+from solarmach.pfss_utilities import calculate_pfss_solution, get_field_line_coords, get_gong_map, multicolorline, vary_flines
 
 # pd.options.display.max_rows = None
 # pd.options.display.float_format = '{:.1f}'.format
@@ -960,12 +959,10 @@ class SolarMACH():
                     Choose either 'polarity' or 'object'
         """
 
-        import plotly.graph_objects as go
         import plotly.express as px
-
-        from plotly.graph_objects import Line
-
+        import plotly.graph_objects as go
         from astropy.constants import R_sun
+        from plotly.graph_objects import Line
 
         # Flare site (or whatever area of interest) is plotted at this height
         FLARE_HEIGHT = 1.005
