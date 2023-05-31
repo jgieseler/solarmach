@@ -646,21 +646,21 @@ class SolarMACH():
 
         return ax2
 
-    def plot_pfss(self,
+    def plot_pfss(self, 
                   rss=2.5,
-                  pfss_solution=None,
-                  figsize=(15, 10),
-                  dpi=200,
-                  return_plot_object=False,
+                  pfss_solution = None,
+                  figsize = (15,10),
+                  dpi = 200,
+                  return_plot_object = False,
                   vary=False, n_varies=1,
-                  long_offset=270,
-                  reference_vsw=400.,
-                  numbered_markers=False,
-                  plot_spirals=True,
-                  long_sector=None,
-                  long_sector_vsw=None,
-                  long_sector_color=None,
-                  hide_logo=False):
+                  long_offset = 270,
+                  reference_vsw = 400.,
+                  numbered_markers = False,
+                  plot_spirals = True,
+                  long_sector = None,
+                  long_sector_vsw = None,
+                  long_sector_color = None,
+                  hide_logo = False):
         """
         Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
         Also tracks an open field line down to photosphere given a point on the pfss.
@@ -677,9 +677,9 @@ class SolarMACH():
         if not pfss_solution:
             raise Exception("A PFSS solution is required for solar magnetic field extrapolation!")
 
-        # Constants
+        # Constants 
         AU = const.au / 1000  # km
-        sun_radius = aconst.R_sun.value  # meters
+        sun_radius = aconst.R_sun.value # meters
 
         # r_scaler scales distances from astronomical units to solar radii. unit = [solar radii / AU]
         r_scaler = (AU*1000)/sun_radius
@@ -697,7 +697,7 @@ class SolarMACH():
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
 
         # maximum distance anything will be plotted
-        r_max = r_scaler * 5  # 5 AU in units of solar radii
+        r_max = r_scaler * 5 # 5 AU = 1075 in units of solar radii
 
         # setting the title
         ax.set_title(self.date + '\n', pad=30, fontsize=26)
@@ -708,8 +708,8 @@ class SolarMACH():
         ax.plot(full_circle_radians, np.ones(200), c='darkorange', lw=2.5, zorder=1)
 
         # Plot the 30 and 60 deg lines on the Sun
-        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.866, c='darkgray', lw=1.5, ls=":", zorder=3)  # cos(30deg) = 0.866(O)
-        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.500, c='darkgray', lw=1.5, ls=":", zorder=3)  # cos(60deg) = 0.5(0)
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.866, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(30deg) = 0.866(O)
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.500, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(60deg) = 0.5(0)
 
         # Gather field line objects, photospheric footpoints and magnetic polarities in these lists
         # fieldlines is a class attribute, so that the field lines can be neasily 3D plotted with another method
@@ -717,12 +717,8 @@ class SolarMACH():
         photospheric_footpoints = []
         fieldline_polarities = []
 
-        # The radial coordinates for reference parker spiral
-        reference_array = np.linspace(r_max, rss, 1000)
-
-        #
-        # reference_array for cones -> normalize their parker spiral math
-        #
+        # The radial coordinates for reference parker spiral (plot even outside the figure boundaries to avert visual bugs)
+        reference_array = np.linspace(rss, r_max+200, int(1e3))
 
         for i, body_id in enumerate(self.body_dict):
 
@@ -739,7 +735,7 @@ class SolarMACH():
 
             # take into account solar differential rotation wrt. latitude
             omega = self.solar_diff_rot(body_lat)
-
+ 
             # The radial coordinates (outside source surface) for each object
             r_array = np.linspace(r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), rss, 1000)
 
@@ -761,11 +757,11 @@ class SolarMACH():
                 alpha_body = np.deg2rad(body_long) + omega / (1000*body_vsw / sun_radius) * (r_scaler*dist_body - r_array) * np.cos(np.deg2rad(body_lat))
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
 
-            # acquire an array of (r,lon,lat) coordinates of the open field lines under the pfss
+            # Acquire an array of (r,lon,lat) coordinates of the open field lines under the pfss
             # based on the footpoint(s) of the sc
             if vary:
 
-                # Triplets contain 35 tuples of (r,lon,lat)
+                # Triplets contain 35 tuples of (r,lon,lat) 
                 fline_triplets, fline_objects, varyfline_triplets, varyfline_objects = vary_flines(alpha_body[-1], np.deg2rad(body_lat), pfss_solution, n_varies, rss)
 
                 # Collect field line objects to a list
@@ -783,7 +779,7 @@ class SolarMACH():
 
             else:
                 # If no varying, then just get one field line from get_field_line_coords()
-                # Note that even in the case of a singular fieldline object, this function returns a list
+                # Note that even in the case of a singular fieldline object, this function returns a list 
                 fline_triplets, fline_objects = get_field_line_coords(alpha_body[-1], np.deg2rad(body_lat), pfss_solution, rss)
 
                 # Collect field line objects to a list
@@ -801,6 +797,7 @@ class SolarMACH():
             photospheric_footpoints.append((fl_lon[0], fl_lat[0]))
             fieldline_polarities.append(int(fline_objects[0].polarity))
 
+
         # Reference longitude and corresponding parker spiral arm
         if self.reference_long:
             delta_ref = self.reference_long
@@ -814,21 +811,66 @@ class SolarMACH():
             # take into account solar differential rotation wrt. latitude
             omega_ref = self.solar_diff_rot(ref_lat)
 
-            # old eq. for alpha_ref contained redundant dist_e variable:
-            # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (1000*reference_vsw / sun_radius) * (r_scaler*self.target_solar_radius*aconst.R_sun.to(u.AU).value - reference_array) * np.cos(np.deg2rad(ref_lat))
-            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+            # Track up from the reference point a fluxtube
+            # Start tracking from the height of 0.1 solar radii
+            ref_triplets, ref_objects, varyref_triplets, varyref_objects = vary_flines(np.deg2rad(delta_ref), np.deg2rad(ref_lat), pfss_solution, n_varies, 1.1)
 
-            # old arrow style:
-            arrow_dist = rss-1
-            ref_arr = plt.arrow(np.deg2rad(delta_ref), 1, 0, arrow_dist, head_width=0.1, head_length=0.4, edgecolor='black',
-                                facecolor='black', lw=2.0, zorder=5, overhang=0.2)
+            # Plot the color coded field line
+            fieldline = multicolorline(np.deg2rad(ref_triplets[0][1]), np.cos(np.deg2rad(ref_triplets[0][2]))*ref_triplets[0][0], ax=ax, cvals=ref_triplets[0][2], vmin=-90, vmax=90)
+
+            # ... And also plot the color coded flux tube
+            for triplet in varyref_triplets:
+                v_fl_r   = triplet[0]
+                v_fl_lon = triplet[1]
+                v_fl_lat = triplet[2]
+
+                fieldline = multicolorline(np.deg2rad(v_fl_lon), np.cos(np.deg2rad(v_fl_lat))*v_fl_r, ax=ax, cvals=v_fl_lat, vmin=-90, vmax=90)
+
+            # Collect reference flux tube to their own list of fieldlines
+            self.reference_fieldlines = []
+            self.reference_fieldlines.append(ref_objects[0])
+
+            # Also init extreme values for the longitudinal span of the uptracked flux tube
+            reference_long_min, reference_long_max = 360, 0
+
+            # Loop the fieldlines, collect them to the list and find the extreme values of longitude at the ss
+            for ref_vary in varyref_objects:
+                self.reference_fieldlines.append(ref_vary)
+
+                # Check the orientation of the field line; is the first index at the photosphere or the last?
+                idx = 0 if ref_vary.coords.radius.value[0] > ref_vary.coords.radius.value[-1] else -1
+
+                # Collect the longitudinal extreme values from the uptracked fluxtube at the source surface height
+                if ref_vary.coords.lon.value[idx] < reference_long_min:
+                    reference_long_min = ref_vary.coords.lon.value[idx]
+                if ref_vary.coords.lon.value[idx] > reference_long_max:
+                    reference_long_max = ref_vary.coords.lon.value[idx]
+
+            arrow_dist = rss-0.80
+            ref_arr = plt.arrow(np.deg2rad(reference_long_min), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
+                               facecolor='black', lw=0, zorder=7, overhang=0.1)
+            ref_arr = plt.arrow(np.deg2rad(reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
+                               facecolor='black', lw=0, zorder=7, overhang=0.1)
 
             if plot_spirals:
-                ax.plot(alpha_ref, reference_array * np.cos(np.deg2rad(ref_lat)), ls='--', lw=1.8, color='k',
-                        label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)', zorder=1)
+
+                # Calculate spirals for the flux tube boundaries
+                alpha_ref_min = np.deg2rad(reference_long_min) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+                alpha_ref_max = np.deg2rad(reference_long_max) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+
+                # Plot the spirals
+                min_edge = plt.polar(alpha_ref_min, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
+                max_edge = plt.polar(alpha_ref_max, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
+
+                # Extract 'x' and 'y' values
+                x1 = min_edge.get_xdata()
+                y1 = min_edge.get_ydata()
+                x2 = max_edge.get_xdata()
+
+                plt.fill_betweenx(y1, x1, x2, lw=0, color="grey", alpha=0.35)
 
         if long_sector is not None:
-            if type(long_sector) == list and len(long_sector)==2:
+            if isinstance(long_sector, (list,tuple)) and len(long_sector)==2:
 
                 delta_ref1 = long_sector[0]
                 if delta_ref1 < 0.:
@@ -845,21 +887,68 @@ class SolarMACH():
                 omega_ref2 = self.solar_diff_rot(long_sector_lat[1])
 
                 if long_sector_vsw is not None:
-                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - reference_array) * np.cos(np.deg2rad(long_sector_lat[0]))
-                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - reference_array) * np.cos(np.deg2rad(long_sector_lat[1]))
+
+                    # Calculate the spirals' angles along r
+                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (1000*long_sector_vsw[0] / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(long_sector_lat[0]))
+                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (1000*long_sector_vsw[1] / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(long_sector_lat[1]))
+
+                    # Construct a second r_array for the second spiral for while loop to iterate forwards.
+                    # This copy of an array will be used to plot both spiral later.
+                    reference_array2 = np.copy(reference_array)
+
+                    # Check that reference angle of the first loop is ahead
+                    if alpha_ref1[-1] > alpha_ref2[-1]:
+                      alpha_ref1_comp = alpha_ref1[-1] - 2*np.pi
+                    else:
+                      alpha_ref1_comp = alpha_ref1[-1]
+
+                    # While the second spiral is behind the first spiral in angle, extend the second spiral
+                    while alpha_ref2[-1] > alpha_ref1_comp:
+                      reference_array2 = np.append(reference_array2, reference_array2[-1] + 1)
+                      alpha_ref2 = np.append(alpha_ref2, np.deg2rad(delta_ref2) + omega_ref2 / (1000*long_sector_vsw[1] / sun_radius) * (rss - reference_array2[-1]) * np.cos(np.deg2rad(long_sector_lat[1])))
+
+                    # Finally interpolate the first spiral's angles to the coarser second spiral's angles (outside the plot)
+                    alpha_ref1 = np.interp(reference_array2, reference_array, alpha_ref1)
+
+                    # Introduce r axis to plot that is common between these if and else blocks
+                    r_to_plot = reference_array2
+
                 else:
                     # if no solar wind speeds for Parker spirals are provided, use straight lines:
-                    alpha_ref1 = [np.deg2rad(delta_ref1)] * len(reference_array)
-                    alpha_ref2 = [np.deg2rad(delta_ref2)] * len(reference_array)
+                    #alpha_ref1 = [np.deg2rad(delta_ref1)] * len(reference_array)
+                    #alpha_ref2 = [np.deg2rad(delta_ref2)] * len(reference_array)
 
-                c1 = plt.polar(alpha_ref1, reference_array * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                    # Vectorize the previous implementation for added performance
+                    alpha_ref1 = np.ones(shape=len(reference_array)) * np.deg2rad(delta_ref1)
+                    alpha_ref2 = np.ones(shape=len(reference_array)) * np.deg2rad(delta_ref2)
+
+                    # Another reference to r_array to unify this if/else -block's output
+                    r_to_plot = reference_array
+
+
+                c1 = plt.polar(alpha_ref1, r_to_plot * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0)[0]
                 x1 = c1.get_xdata()
                 y1 = c1.get_ydata()
-                c2 = plt.polar(alpha_ref2, reference_array * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                c2 = plt.polar(alpha_ref2, r_to_plot * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0)[0]
                 x2 = c2.get_xdata()
                 y2 = c2.get_ydata()
 
-                plt.fill_betweenx(y1, x1, x2, lw=0, color=long_sector_color, alpha=0.5)
+                # Check that plotted are is between the two spirals, and do not fill after potential crossing
+                if long_sector_vsw:
+                    clause1 = x1 < x2 
+                    clause2 = alpha_ref1[clause1] < alpha_ref2[clause1]
+
+                    # Take as a selection only the points that fill the above clauses
+                    y1_fill = y1[clause1][clause2]
+                    x1_fill = x1[clause1][clause2]
+                    x2_fill = x2[clause1][clause2]
+                else:
+                    y1_fill = y1
+                    x1_fill = x1
+                    x2_fill = x2
+
+                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=long_sector_color, alpha=0.40)
+
             else:
                 print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
 
@@ -898,8 +987,8 @@ class SolarMACH():
         # Spin the angular coordinate so that earth is at 6 o'clock
         ax.set_theta_offset(np.deg2rad(long_offset - E_long))
 
-        # For some reason we need to specify 'ylim' here
-        ax.set_ylim(0, r_max)
+        # For some reason we need to specify 'ylim' here 
+        ax.set_ylim(0,r_max)
         ax.set_rscale('symlog', linthresh=rss)
         ax.set_rmax(r_max)
         ax.set_rticks([1.0, rss, 10.0, 100.0])
@@ -909,6 +998,19 @@ class SolarMACH():
         rlabels = ['1', str(rss), r'$10^1$', r'$10^2$']
         ax.set_yticklabels(rlabels)
 
+        # Drawing a circle around the plot, because sometimes for unkown reason the plot boundary is not drawn.
+        # Here circle_radius corresponds to the boundary of the plot, and it was empirically found.
+        circle_radius = 9.35
+
+        circle = plt.Circle((0., 0.),
+                            circle_radius,
+                            transform=ax.transData._b,
+                            edgecolor="k",
+                            facecolor=None,
+                            fill=False, lw=2)
+        ax.add_patch(circle)
+
+        # Cut off unnecessary margins from the plot
         plt.tight_layout()
 
         if not hide_logo:

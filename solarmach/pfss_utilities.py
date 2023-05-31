@@ -224,15 +224,15 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
     return coordlist, flinelist
 
 
-def vary_flines(lon, lat, hmimap, n_varies, rss):
+def vary_flines(lon, lat, hmimap, n_varies, seedheight):
     """
     Finds a set of sub-pfss fieldlines connected to or very near a single footpoint on the pfss.
-
+    
     lon: longitude of the footpoint [rad]
     lat: latitude of the footpoint [rad]
-
+    
     n_varies:   tuple that holds the amount of circles and the number of dummy flines per circle
-                if type(n_varies)=int, consider that as the amount of circles, and set the
+                if type(n_varies)=int, consider that as the amount of circles, and set the 
                 amount of dummy flines per circle to 16
 
     params
@@ -243,12 +243,12 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
             The latitude of the footpoint in radians
     hmimap: hmi_synoptic_map object
             The pfss-solution used to calculate the field lines
-    n_varies: list[int,int] or int
+    n_varies: list[int,int] or int 
             A list that holds the amount of circles and the number of dummy flines per circle
             if type(n_varies)=int, consider that as the amount of circles, and set the
             amount of dummy flines per circle to 16
-    rss: float
-            Heliocentric height of the source surface
+    seedheight: float
+            Heliocentric height of the tracing starting point
 
     returns
     -------
@@ -263,7 +263,8 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
     """
 
     # Field lines per n_circles (circle)
-    if isinstance(n_varies, list):
+    if isinstance(n_varies,(list,tuple)):
+        print(f"n_varies: {n_varies}")
         n_circles = n_varies[0]
         n_flines = n_varies[1]
     else:
@@ -275,13 +276,13 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
     increments = np.array([0.03, 0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29])
     for circle in range(n_circles):
 
-        newlons, newlats = circle_around(lon, lat, n_flines, r=increments[circle])
-        lons, lats = np.append(lons, newlons), np.append(lats, newlats)
+        newlons, newlats = circle_around(lon,lat,n_flines,r=increments[circle])
+        lons, lats = np.append(lons,newlons), np.append(lats,newlats)
 
     pointlist = np.array([lons, lats])
 
     # Trace fieldlines from all of these points
-    varycoords, varyflines = get_field_line_coords(pointlist[0], pointlist[1], hmimap, rss)
+    varycoords, varyflines = get_field_line_coords(pointlist[0],pointlist[1],hmimap, seedheight)
 
     # Because the original fieldlines and the varied ones are all in the same arrays,
     # Extract the varied ones to their own arrays
@@ -296,7 +297,7 @@ def vary_flines(lon, lat, hmimap, n_varies, rss):
             erased_indices.append(i)
             # pop(i) removes the ith element from the list and returns it
             # -> we append it to the list of original footpoint fieldlines
-            coordlist.append(varycoords[i])  # .pop(i)
+            coordlist.append(varycoords[i]) #.pop(i)
             flinelist.append(varyflines[i])
 
     # Really ugly quick fix to erase values from varycoords and varyflines
@@ -380,7 +381,7 @@ def spiral_out(lon, lat, sign_switch, corner_tracker, turn):
     """
 
     # In radians, 1 rad \approx 57.3 deg
-    step = 0.01
+    step = 0.005
 
     # Keeps track of how many steps until it's time to turn
     steps_until_corner, steps_moved = corner_tracker[0], corner_tracker[1]
