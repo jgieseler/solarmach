@@ -1230,7 +1230,7 @@ class SolarMACH():
         equator_line = go.Scatter3d(x=equator_cartesians[0], y=equator_cartesians[1], z=equator_cartesians[2],
                                     mode='lines',
                                     line=Line(color='black', width=5.5),
-                                    name="0 Latitude"
+                                    name="Solar equator"
                                     )
 
         traces.append(equator_line)
