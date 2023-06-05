@@ -728,6 +728,10 @@ class SolarMACH():
         ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.866, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(30deg) = 0.866(O)
         ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.500, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(60deg) = 0.5(0)
 
+        # Plot the gridlines for 10 and 100 solar radii, because this sometimes fails bythe .grid() -method for unkown reason
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*10, c="gray", lw=0.6, ls='-', zorder=1)
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*100, c="gray", lw=0.6, ls='-', zorder=1) 
+
         # Gather field line objects, photospheric footpoints and magnetic polarities in these lists
         # fieldlines is a class attribute, so that the field lines can be neasily 3D plotted with another method
         self.fieldlines = []
