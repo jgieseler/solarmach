@@ -854,6 +854,9 @@ class SolarMACH():
             # Also init extreme values for the longitudinal span of the uptracked flux tube
             self.reference_long_min, self.reference_long_max = 360, 0
 
+            # Boolean switch to keep track what kind of arrow/spiral to draw for reference point
+            open_mag_flux_near_ref_point = False
+
             # Loop the fieldlines, collect them to the list and find the extreme values of longitude at the ss
             for ref_vary in varyref_objects:
                 self.reference_fieldlines.append(ref_vary)
@@ -862,6 +865,8 @@ class SolarMACH():
                 # that they do not contribute to the max longitude reach at the ss:
                 if ref_vary.polarity == 0:
                     continue
+                else:
+                    open_mag_flux_near_ref_point = True
 
                 # Check the orientation of the field line; is the first index at the photosphere or the last?
                 idx = 0 if ref_vary.coords.radius.value[0] > ref_vary.coords.radius.value[-1] else -1
@@ -873,12 +878,22 @@ class SolarMACH():
                     self.reference_long_max = ref_vary.coords.lon.value[idx]
 
             arrow_dist = rss-0.80
-            ref_arr = plt.arrow(np.deg2rad(self.reference_long_min), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
-                               facecolor='black', lw=0, zorder=7, overhang=0.1)
-            ref_arr = plt.arrow(np.deg2rad(self.reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
-                               facecolor='black', lw=0, zorder=7, overhang=0.1)
+            if open_mag_flux_near_ref_point:
+                ref_arr = plt.arrow(np.deg2rad(self.reference_long_min), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
+                                facecolor='black', lw=0, zorder=7, overhang=0.1)
+                ref_arr = plt.arrow(np.deg2rad(self.reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
+                                facecolor='black', lw=0, zorder=7, overhang=0.1)
+                
+                reference_legend_label = f"reference long.\nsector:\n({np.round(self.reference_long_min,1)}, {np.round(self.reference_long_max,1)})"
 
-            if plot_spirals:
+            else:
+                ref_arr = plt.arrow(np.deg2rad(self.reference_long), 1, 0, arrow_dist, head_width=0.1, head_length=0.5, edgecolor='black',
+                                facecolor='black', lw=1., zorder=7, overhang=0.5)
+
+                reference_legend_label = f"reference long.\n{self.reference_long}" + r" ^{\circ}"
+
+            # These two spirals and the space between them gets drawn only if we plot spirals and open magnetic flux was found near the ref point
+            if plot_spirals and open_mag_flux_near_ref_point:
 
                 # Calculate spirals for the flux tube boundaries
                 alpha_ref_min = np.deg2rad(self.reference_long_min) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
@@ -894,6 +909,13 @@ class SolarMACH():
                 x2 = max_edge.get_xdata()
 
                 plt.fill_betweenx(y1, x1, x2, lw=0, color="grey", alpha=0.35)
+
+            # Here we plot spirals but open magnetic flux was not found -> draw only one spiral
+            if plot_spirals:
+
+                alpha_ref_single = np.deg2rad(self.reference_long) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+                ax.plot(alpha_ref_single, reference_array * np.cos(np.deg2rad(ref_lat)), color="grey")
+
 
         if long_sector is not None:
             if isinstance(long_sector, (list,tuple)) and len(long_sector)==2:
@@ -994,7 +1016,7 @@ class SolarMACH():
                 return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
                                            head_width=0.75 * height)
 
-            leg2 = ax.legend([ref_arr], [f"reference long.\nsector:\n({np.round(self.reference_long_min,1)}, {np.round(self.reference_long_max,1)})"], loc=(1.05, 0.6),
+            leg2 = ax.legend([ref_arr], [reference_legend_label], loc=(1.05, 0.6),
                              handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
                              fontsize=15)
             ax.add_artist(leg1)
