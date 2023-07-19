@@ -434,35 +434,34 @@ class SolarMACH():
                             mode = 'lines',
                             name = f'{body_id} direct line',
                             showlegend=False,
-                            line=dict(color=body_dict[body_id][2], dash='dash'),
+                            line=dict(color=body_dict[body_id][2], dash='dot'),
                             thetaunit = "radians"
                         ))
+                
+                if numbered_markers:
+                    str_number = f'<b>{i+1}</b>'
+                else:
+                    str_number = None
 
                 pfig.add_trace(go.Scatterpolar(
                         r = [dist_body*np.cos(np.deg2rad(body_lat))],
                         theta = [np.deg2rad(body_long)],
                         mode = 'markers+text',
                         name = body_id,
-                        marker=dict(size=20, color=body_dict[body_id][2]),
-                        text=[f'<b>{body_id}</b>'],
-                        textposition="top center",
-                        # text=[f'<b>{i}</b>'],
-                        # textfont=dict(color="white", size=18),
-                        # textposition="middle center",
+                        marker=dict(size=16, color=body_dict[body_id][2]),
+                        # text=[f'<b>{body_id}</b>'],
+                        # textposition="top center",
+                        text=[str_number],
+                        textfont=dict(color="white", size=14),
+                        textposition="middle center",
                         thetaunit = "radians"
                     ))
 
         if test_plotly:    
             if numbered_markers:
-                # offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
                 for i, body_id in enumerate(self.body_dict):
-                    # yoffset = i*18.7  # 18.5 19.5
-                    # ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
-                    #             fontsize="small", weight='heavy', textcoords=offset,
-                    #             horizontalalignment='center',
-                    #             verticalalignment='center', zorder=100)
-                    pfig.add_annotation(text=f'<b>{i}</b>', xref="paper", yref="paper", x=0.85, y=1.0-0.05*i, 
-                                        showarrow=False, font=dict(color="black", size=14))
+                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", x=0.8219, y=0.9935-0.0475*i, 
+                                        showarrow=False, font=dict(color="white", size=14))
 
             # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
             if not test_plotly_template:
