@@ -457,31 +457,6 @@ class SolarMACH():
                         thetaunit = "radians"
                     ))
 
-        if test_plotly:    
-            if numbered_markers:
-                for i, body_id in enumerate(self.body_dict):
-                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", x=0.8219, y=0.9935-0.0475*i, 
-                                        showarrow=False, font=dict(color="white", size=14))
-
-            # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
-            if not test_plotly_template:
-                test_plotly_template = "plotly"
-            polar_rotation = (long_offset - E_long)
-            pfig.update_layout(template=test_plotly_template, 
-                               polar=dict(radialaxis_range= [0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation), 
-                               modebar_add=["v1hovermode"],
-                               modebar_remove=["select2d", "lasso2d"],
-                               margin=dict(l=0, r=0, b=0, t=50), 
-                               legend=dict(yanchor="top", y=1.0, xanchor="right", x=1.0))
-            # fig.show()
-            # if using streamlit, send plot to streamlit output, else call plt.show()
-            if _isstreamlit():
-                import streamlit as st
-                # st.plotly_chart(pfig, theme="streamlit")
-                st.components.v1.html(pfig.to_html(include_mathjax='cdn'), height=500)
-            else:
-                pfig.show()
-
         if self.reference_long is not None:
             delta_ref = self.reference_long
             if delta_ref < 0.:
@@ -507,9 +482,62 @@ class SolarMACH():
             #                     facecolor='black', lw=1.8, zorder=5, overhang=0.2)
             ref_arr = plt.arrow(np.deg2rad(delta_ref), 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
                                 facecolor='black', lw=1.8, zorder=5, overhang=0.2)
-
+            if test_plotly: 
+                if test_plotly_template=="plotly_dark":
+                    reference_color = "white"
+                else:
+                    reference_color = "black"
+                pfig.add_trace(go.Scatterpolar(
+                        r = [0.0, arrow_dist],
+                        theta = [np.deg2rad(delta_ref), np.deg2rad(delta_ref)],
+                        mode = 'lines+markers',
+                        marker=dict(symbol="arrow", size=15, angleref="previous", color=reference_color),
+                        name = 'reference long.',
+                        showlegend=True,
+                        line=dict(color=reference_color),
+                        thetaunit = "radians"
+                    ))
             if plot_spirals:
                 ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
+                if test_plotly: 
+                    pfig.add_trace(go.Scatterpolar(
+                            r = r_array * np.cos(np.deg2rad(ref_lat)),
+                            theta = alpha_ref,
+                            mode = 'lines',
+                            name = f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
+                            showlegend=True,
+                            line=dict(color=reference_color, dash="dash"),
+                            thetaunit = "radians"
+                        ))
+
+        if test_plotly:    
+            if numbered_markers:
+                for i, body_id in enumerate(self.body_dict):
+                    if self.reference_long is not None:
+                        x_offset = 0.004
+                    else:
+                        x_offset = 0.0
+                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", x=1.05+x_offset, y=0.9935-0.0475*i, 
+                                        showarrow=False, font=dict(color="white", size=14))
+
+            # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
+            if not test_plotly_template:
+                test_plotly_template = "plotly"
+            polar_rotation = (long_offset - E_long)
+            pfig.update_layout(template=test_plotly_template, 
+                               polar=dict(radialaxis_range= [0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation), 
+                               modebar_add=["v1hovermode"],
+                               modebar_remove=["select2d", "lasso2d"],
+                               margin=dict(l=0, r=0, b=0, t=50), 
+                               legend=dict(yanchor="top", y=1.0, xanchor="left", x=1.0))
+            # fig.show()
+            # if using streamlit, send plot to streamlit output, else call plt.show()
+            if _isstreamlit():
+                import streamlit as st
+                # st.plotly_chart(pfig, theme="streamlit")
+                st.components.v1.html(pfig.to_html(include_mathjax='cdn'), height=500)
+            else:
+                pfig.show()
 
         if long_sector is not None:
             if type(long_sector) == list and np.array(long_sector).ndim==1:
