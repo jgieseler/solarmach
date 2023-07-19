@@ -313,7 +313,9 @@ class SolarMACH():
              long_sector=None,
              long_sector_vsw=None,
              long_sector_color='red',
-             background_spirals=None):
+             background_spirals=None,
+             test_plotly=False,
+             test_plotly_template='plotly'):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -365,6 +367,10 @@ class SolarMACH():
 
         E_long = self.pos_E.lon.value
 
+        if test_plotly:
+            import plotly.graph_objects as go
+            pfig = go.Figure()
+
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
             body_color = self.body_dict[body_id][2]
@@ -402,6 +408,62 @@ class SolarMACH():
                 # alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array)
                 alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
+            
+            if test_plotly:
+                if plot_spirals:
+                    pfig.add_trace(go.Scatterpolar(
+                            r = r_array * np.cos(np.deg2rad(body_lat)),
+                            theta = alpha_body,
+                            mode = 'lines',
+                            name = f'{body_id} magnetic field line',
+                            showlegend=False,
+                            line=dict(color=body_dict[body_id][2]),
+                            thetaunit = "radians"
+                        ))
+                
+                if plot_sun_body_line:
+                    pfig.add_trace(go.Scatterpolar(
+                            r = [0.01, dist_body*np.cos(np.deg2rad(body_lat))],
+                            theta = [np.deg2rad(body_long), np.deg2rad(body_long)],
+                            mode = 'lines',
+                            name = f'{body_id} direct line',
+                            showlegend=False,
+                            line=dict(color=body_dict[body_id][2], dash='dash'),
+                            thetaunit = "radians"
+                        ))
+
+                pfig.add_trace(go.Scatterpolar(
+                        r = [dist_body*np.cos(np.deg2rad(body_lat))],
+                        theta = [np.deg2rad(body_long)],
+                        mode = 'markers+text',
+                        name = body_id,
+                        marker=dict(size=20, color=body_dict[body_id][2]),
+                        text=[f'<b>{body_id}</b>'],
+                        textposition="top center",
+                        # text=[f'<b>{i}</b>'],
+                        # textfont=dict(color="white", size=18),
+                        # textposition="middle center",
+                        thetaunit = "radians"
+                    ))
+
+        if test_plotly:    
+            # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
+            if not test_plotly_template:
+                test_plotly_template = "plotly"
+            pfig.update_layout(template=test_plotly_template, 
+                               polar=dict(radialaxis_range= [0, self.max_dist + 0.3]), 
+                               modebar_add=["v1hovermode"],
+                               modebar_remove=["select2d", "lasso2d"],
+                               margin=dict(l=0, r=0, b=0, t=50), 
+                               legend=dict(yanchor="top", y=1.0, xanchor="right", x=1.0))
+            # fig.show()
+            # if using streamlit, send plot to streamlit output, else call plt.show()
+            if _isstreamlit():
+                import streamlit as st
+                # st.plotly_chart(pfig, theme="streamlit")
+                st.components.v1.html(pfig.to_html(include_mathjax='cdn'), height=500)
+            else:
+                pfig.show()
 
         if self.reference_long is not None:
             delta_ref = self.reference_long
