@@ -466,8 +466,9 @@ class SolarMACH():
             # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
             if not test_plotly_template:
                 test_plotly_template = "plotly"
+            polar_rotation = (long_offset - E_long)
             pfig.update_layout(template=test_plotly_template, 
-                               polar=dict(radialaxis_range= [0, self.max_dist + 0.3]), 
+                               polar=dict(radialaxis_range= [0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation), 
                                modebar_add=["v1hovermode"],
                                modebar_remove=["select2d", "lasso2d"],
                                margin=dict(l=0, r=0, b=0, t=50), 
