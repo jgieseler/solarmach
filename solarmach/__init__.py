@@ -313,6 +313,12 @@ class SolarMACH():
              long_sector=None,
              long_sector_vsw=None,
              long_sector_color='red',
+             long_sector2 = None,
+             long_sector_vsw2 = None,
+             long_sector_color2 = None,
+             long_sector3 = None,
+             long_sector_vsw3 = None,
+             long_sector_color3 = None,             
              background_spirals=None,
              test_plotly=False,
              test_plotly_template='plotly'):
@@ -447,6 +453,17 @@ class SolarMACH():
                     ))
 
         if test_plotly:    
+            if numbered_markers:
+                # offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
+                for i, body_id in enumerate(self.body_dict):
+                    # yoffset = i*18.7  # 18.5 19.5
+                    # ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
+                    #             fontsize="small", weight='heavy', textcoords=offset,
+                    #             horizontalalignment='center',
+                    #             verticalalignment='center', zorder=100)
+                    pfig.add_annotation(text=f'<b>{i}</b>', xref="paper", yref="paper", x=0.85, y=1.0-0.05*i, 
+                                        showarrow=False, font=dict(color="black", size=14))
+
             # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
             if not test_plotly_template:
                 test_plotly_template = "plotly"
@@ -495,11 +512,20 @@ class SolarMACH():
                 ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
 
         if long_sector is not None:
-            if type(long_sector) == list and len(long_sector)==2:
-                delta_ref1 = long_sector[0]
+            if type(long_sector) == list and np.array(long_sector).ndim==1:
+                long_sector = [long_sector]
+                long_sector_vsw = [long_sector_vsw]
+                long_sector_color = [long_sector_color]
+            else:
+                print("Non-standard 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
+            for i in range(len(long_sector)):
+                t_long_sector = long_sector[i]
+                t_long_sector_vsw = long_sector_vsw[i]
+                t_long_sector_color = long_sector_color[i]
+                delta_ref1 = t_long_sector[0]
                 if delta_ref1 < 0.:
                     delta_ref1 = delta_ref1 + 360.
-                delta_ref2 = long_sector[1]
+                delta_ref2 = t_long_sector[1]
                 if delta_ref2 < 0.:
                     delta_ref2 = delta_ref2 + 360.
 
@@ -515,10 +541,10 @@ class SolarMACH():
                 # Build an r_array for the second spiral for while loop to iterate forwards
                 r_array2 = np.copy(r_array)
 
-                if long_sector_vsw is not None:
+                if t_long_sector_vsw is not None:
                     # Calculate the first spiral's angles along r
-                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[0]))
-                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2) * np.cos(np.deg2rad(long_sector_lat[1]))
+                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (t_long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[0]))
+                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (t_long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2) * np.cos(np.deg2rad(long_sector_lat[1]))
 
                     # Save the last angle as a starting point for reference for the while loop
                     alpha_init = alpha_ref2[-1]
@@ -532,7 +558,7 @@ class SolarMACH():
                     # While the second spiral is behind the first spiral in angle, extend the second spiral
                     while alpha_ref2[-1] > alpha_ref1_comp:
                         r_array2 = np.append(r_array2, r_array2[-1] + 0.1)
-                        alpha_ref2 = np.append(alpha_ref2, np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2[-1]) * np.cos(np.deg2rad(long_sector_lat[1])))
+                        alpha_ref2 = np.append(alpha_ref2, np.deg2rad(delta_ref2) + omega_ref2 / (t_long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2[-1]) * np.cos(np.deg2rad(long_sector_lat[1])))
 
                     # Interpolate the first spiral's angles to the coarser second spiral's angles (outside the plot)
                     alpha_ref1 = np.interp(r_array2, r_array, alpha_ref1)
@@ -542,10 +568,10 @@ class SolarMACH():
                     alpha_ref1 = np.array([np.deg2rad(delta_ref1)] * len(r_array))
                     alpha_ref2 = np.array([np.deg2rad(delta_ref2)] * len(r_array))
 
-                c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=t_long_sector_color, alpha=0.5)[0]
                 x1 = c1.get_xdata()
                 y1 = c1.get_ydata()
-                c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=t_long_sector_color, alpha=0.5)[0]
                 x2 = c2.get_xdata()
                 y2 = c2.get_ydata()
 
@@ -558,9 +584,7 @@ class SolarMACH():
                 x1_fill = x1[clause1][clause2]
                 x2_fill = x2[clause1][clause2]
 
-                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=long_sector_color, alpha=0.5)
-            else:
-                print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
+                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=t_long_sector_color, alpha=0.5)
 
         if background_spirals is not None:
             if type(background_spirals) == list and len(background_spirals)>=2:
