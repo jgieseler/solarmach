@@ -321,7 +321,11 @@ class SolarMACH():
              long_sector_color3 = None,             
              background_spirals=None,
              test_plotly=False,
-             test_plotly_template='plotly'):
+             test_plotly_template='plotly',
+            #  x_offset=0.0,  # TODO: remove
+            #  y_offset=0.0, #TODO: remove
+             test_plotly_legend=(1.0, 1.0),
+             test_plotly_logo=(1.0, 0.0)):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -514,11 +518,25 @@ class SolarMACH():
             if numbered_markers:
                 for i, body_id in enumerate(self.body_dict):
                     if self.reference_long is not None:
-                        x_offset = 0.004
+                        x_offset_ref = -0.035  # 0.004
+                        y_offset_ref = 0.081
+                        y_offset_per_i = -0.051
                     else:
-                        x_offset = 0.0
-                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", x=1.05+x_offset, y=0.9935-0.0475*i, 
+                        x_offset_ref = 0.0
+                        y_offset_ref = 0.0
+                        y_offset_per_i = -0.0475
+                    x_offset = -0.11  # 0.05
+                    y_offset = 0.124  # -0.0064
+                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", xanchor="center", yanchor="top",
+                                        x=test_plotly_legend[0]+x_offset+x_offset_ref, y=test_plotly_legend[1]+y_offset+y_offset_ref+y_offset_per_i*i, 
                                         showarrow=False, font=dict(color="white", size=14))
+            
+            pfig.add_annotation(text='Solar-MACH', xref="paper", yref="paper",# xanchor="center", yanchor="middle",
+                                x=test_plotly_logo[0], y=test_plotly_logo[1]+0.05, 
+                                showarrow=False, font=dict(color="black", size=28, family='DejaVu Serif'), align="right")
+            pfig.add_annotation(text='https://solar-mach.github.io', xref="paper", yref="paper",# xanchor="center", yanchor="middle",
+                                x=test_plotly_logo[0], y=test_plotly_logo[1], 
+                                showarrow=False, font=dict(color="black", size=18, family='DejaVu Serif'), align="right")
 
             # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
             if not test_plotly_template:
@@ -528,8 +546,9 @@ class SolarMACH():
                                polar=dict(radialaxis_range= [0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation), 
                                modebar_add=["v1hovermode"],
                                modebar_remove=["select2d", "lasso2d"],
-                               margin=dict(l=0, r=0, b=0, t=50), 
-                               legend=dict(yanchor="top", y=1.0, xanchor="left", x=1.0))
+                               margin=dict(l=100, r=100, b=0, t=50), 
+                            #    paper_bgcolor="LightSteelBlue",
+                               legend=dict(yanchor="middle", y=test_plotly_legend[1], xanchor="center", x=test_plotly_legend[0]))
             # fig.show()
             # if using streamlit, send plot to streamlit output, else call plt.show()
             if _isstreamlit():
@@ -735,7 +754,11 @@ class SolarMACH():
             plt.show()
 
         if return_plot_object:
-            return fig, ax
+            # TODO: not really straightforward; change in future
+            if not test_plotly:
+                return fig, ax
+            else:
+                return pfig
 
     def _polar_twin(self, ax, E_long, position, long_offset):
         """
