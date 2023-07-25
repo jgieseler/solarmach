@@ -312,18 +312,12 @@ class SolarMACH():
              dpi=200,
              long_sector=None,
              long_sector_vsw=None,
-             long_sector_color='red',
-             long_sector2 = None,
-             long_sector_vsw2 = None,
-             long_sector_color2 = None,
-             long_sector3 = None,
-             long_sector_vsw3 = None,
-             long_sector_color3 = None,             
+             long_sector_color='red',   
              background_spirals=None,
              test_plotly=False,
              test_plotly_template='plotly',
-            #  x_offset=0.0,  # TODO: remove
-            #  y_offset=0.0, #TODO: remove
+             # x_offset=0.0,  # TODO: remove
+             # y_offset=0.0, #TODO: remove
              test_plotly_legend=(1.0, 1.0),
              test_plotly_logo=(1.0, 0.0)):
         """
@@ -418,48 +412,45 @@ class SolarMACH():
                 # alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array)
                 alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
-            
+
             if test_plotly:
                 if plot_spirals:
                     pfig.add_trace(go.Scatterpolar(
-                            r = r_array * np.cos(np.deg2rad(body_lat)),
-                            theta = alpha_body,
-                            mode = 'lines',
-                            name = f'{body_id} magnetic field line',
-                            showlegend=False,
-                            line=dict(color=body_dict[body_id][2]),
-                            thetaunit = "radians"
-                        ))
-                
+                        r=r_array * np.cos(np.deg2rad(body_lat)),
+                        theta=alpha_body,
+                        mode='lines',
+                        name=f'{body_id} magnetic field line',
+                        showlegend=False,
+                        line=dict(color=body_dict[body_id][2]),
+                        thetaunit="radians"))
+
                 if plot_sun_body_line:
                     pfig.add_trace(go.Scatterpolar(
-                            r = [0.01, dist_body*np.cos(np.deg2rad(body_lat))],
-                            theta = [np.deg2rad(body_long), np.deg2rad(body_long)],
-                            mode = 'lines',
-                            name = f'{body_id} direct line',
-                            showlegend=False,
-                            line=dict(color=body_dict[body_id][2], dash='dot'),
-                            thetaunit = "radians"
-                        ))
-                
+                        r=[0.01, dist_body*np.cos(np.deg2rad(body_lat))],
+                        theta=[np.deg2rad(body_long), np.deg2rad(body_long)],
+                        mode='lines',
+                        name=f'{body_id} direct line',
+                        showlegend=False,
+                        line=dict(color=body_dict[body_id][2], dash='dot'),
+                        thetaunit="radians"))
+
                 if numbered_markers:
                     str_number = f'<b>{i+1}</b>'
                 else:
                     str_number = None
 
                 pfig.add_trace(go.Scatterpolar(
-                        r = [dist_body*np.cos(np.deg2rad(body_lat))],
-                        theta = [np.deg2rad(body_long)],
-                        mode = 'markers+text',
-                        name = body_id,
-                        marker=dict(size=16, color=body_dict[body_id][2]),
-                        # text=[f'<b>{body_id}</b>'],
-                        # textposition="top center",
-                        text=[str_number],
-                        textfont=dict(color="white", size=14),
-                        textposition="middle center",
-                        thetaunit = "radians"
-                    ))
+                    r=[dist_body*np.cos(np.deg2rad(body_lat))],
+                    theta=[np.deg2rad(body_long)],
+                    mode='markers+text',
+                    name=body_id,
+                    marker=dict(size=16, color=body_dict[body_id][2]),
+                    # text=[f'<b>{body_id}</b>'],
+                    # textposition="top center",
+                    text=[str_number],
+                    textfont=dict(color="white", size=14),
+                    textposition="middle center",
+                    thetaunit="radians"))
 
         if self.reference_long is not None:
             delta_ref = self.reference_long
@@ -486,35 +477,33 @@ class SolarMACH():
             #                     facecolor='black', lw=1.8, zorder=5, overhang=0.2)
             ref_arr = plt.arrow(np.deg2rad(delta_ref), 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
                                 facecolor='black', lw=1.8, zorder=5, overhang=0.2)
-            if test_plotly: 
+            if test_plotly:
                 if test_plotly_template=="plotly_dark":
                     reference_color = "white"
                 else:
                     reference_color = "black"
                 pfig.add_trace(go.Scatterpolar(
-                        r = [0.0, arrow_dist],
-                        theta = [np.deg2rad(delta_ref), np.deg2rad(delta_ref)],
-                        mode = 'lines+markers',
-                        marker=dict(symbol="arrow", size=15, angleref="previous", color=reference_color),
-                        name = 'reference long.',
-                        showlegend=True,
-                        line=dict(color=reference_color),
-                        thetaunit = "radians"
-                    ))
+                    r=[0.0, arrow_dist],
+                    theta=[np.deg2rad(delta_ref), np.deg2rad(delta_ref)],
+                    mode='lines+markers',
+                    marker=dict(symbol="arrow", size=15, angleref="previous", color=reference_color),
+                    name='reference long.',
+                    showlegend=True,
+                    line=dict(color=reference_color),
+                    thetaunit="radians"))
             if plot_spirals:
                 ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
-                if test_plotly: 
+                if test_plotly:
                     pfig.add_trace(go.Scatterpolar(
-                            r = r_array * np.cos(np.deg2rad(ref_lat)),
-                            theta = alpha_ref,
-                            mode = 'lines',
-                            name = f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
-                            showlegend=True,
-                            line=dict(color=reference_color, dash="dash"),
-                            thetaunit = "radians"
-                        ))
+                        r=r_array * np.cos(np.deg2rad(ref_lat)),
+                        theta=alpha_ref,
+                        mode='lines',
+                        name=f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
+                        showlegend=True,
+                        line=dict(color=reference_color, dash="dash"),
+                        thetaunit="radians"))
 
-        if test_plotly:    
+        if test_plotly:
             if numbered_markers:
                 for i, body_id in enumerate(self.body_dict):
                     if self.reference_long is not None:
@@ -528,26 +517,26 @@ class SolarMACH():
                     x_offset = -0.11  # 0.05
                     y_offset = 0.124  # -0.0064
                     pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", xanchor="center", yanchor="top",
-                                        x=test_plotly_legend[0]+x_offset+x_offset_ref, y=test_plotly_legend[1]+y_offset+y_offset_ref+y_offset_per_i*i, 
+                                        x=test_plotly_legend[0]+x_offset+x_offset_ref, y=test_plotly_legend[1]+y_offset+y_offset_ref+y_offset_per_i*i,
                                         showarrow=False, font=dict(color="white", size=14))
-            
-            pfig.add_annotation(text='Solar-MACH', xref="paper", yref="paper",# xanchor="center", yanchor="middle",
-                                x=test_plotly_logo[0], y=test_plotly_logo[1]+0.05, 
+
+            pfig.add_annotation(text='Solar-MACH', xref="paper", yref="paper",  # xanchor="center", yanchor="middle",
+                                x=test_plotly_logo[0], y=test_plotly_logo[1]+0.05,
                                 showarrow=False, font=dict(color="black", size=28, family='DejaVu Serif'), align="right")
-            pfig.add_annotation(text='https://solar-mach.github.io', xref="paper", yref="paper",# xanchor="center", yanchor="middle",
-                                x=test_plotly_logo[0], y=test_plotly_logo[1], 
+            pfig.add_annotation(text='https://solar-mach.github.io', xref="paper", yref="paper",  # xanchor="center", yanchor="middle",
+                                x=test_plotly_logo[0], y=test_plotly_logo[1],
                                 showarrow=False, font=dict(color="black", size=18, family='DejaVu Serif'), align="right")
 
             # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
             if not test_plotly_template:
                 test_plotly_template = "plotly"
             polar_rotation = (long_offset - E_long)
-            pfig.update_layout(template=test_plotly_template, 
-                               polar=dict(radialaxis_range= [0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation), 
+            pfig.update_layout(template=test_plotly_template,
+                               polar=dict(radialaxis_range=[0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation),
                                modebar_add=["v1hovermode"],
                                modebar_remove=["select2d", "lasso2d"],
-                               margin=dict(l=100, r=100, b=0, t=50), 
-                            #    paper_bgcolor="LightSteelBlue",
+                               margin=dict(l=100, r=100, b=0, t=50),
+                               # paper_bgcolor="LightSteelBlue",
                                legend=dict(yanchor="middle", y=test_plotly_legend[1], xanchor="center", x=test_plotly_legend[0]))
             # fig.show()
             # if using streamlit, send plot to streamlit output, else call plt.show()
