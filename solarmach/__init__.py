@@ -312,7 +312,8 @@ class SolarMACH():
              dpi=200,
              long_sector=None,
              long_sector_vsw=None,
-             long_sector_color='red',   
+             long_sector_color='red',
+             long_sector_alpha=0.5,
              background_spirals=None,
              test_plotly=False,
              test_plotly_template='plotly',
@@ -349,6 +350,8 @@ class SolarMACH():
             Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by long_sector) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
         long_sector_color: string, optional
             String defining the matplotlib color used for the shading defined by long_sector. By default 'red'.
+        long_sector_alpha: float, optional
+            Float between 0.0 and 1.0, defining the matplotlib alpha used for the shading defined by long_sector. By default 0.5.W
         background_spirals: list of 2 numbers (and 3 optional strings), optional
             If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
         """
@@ -552,12 +555,14 @@ class SolarMACH():
                 long_sector = [long_sector]
                 long_sector_vsw = [long_sector_vsw]
                 long_sector_color = [long_sector_color]
+                long_sector_alpha = [long_sector_alpha]
             else:
-                print("Non-standard 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
+                print("Non-standard 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'. 'long_sector_XXX' options have to follow accordingly.")
             for i in range(len(long_sector)):
                 t_long_sector = long_sector[i]
                 t_long_sector_vsw = long_sector_vsw[i]
                 t_long_sector_color = long_sector_color[i]
+                t_long_sector_alpha = long_sector_alpha[i]
                 delta_ref1 = t_long_sector[0]
                 if delta_ref1 < 0.:
                     delta_ref1 = delta_ref1 + 360.
@@ -604,10 +609,10 @@ class SolarMACH():
                     alpha_ref1 = np.array([np.deg2rad(delta_ref1)] * len(r_array))
                     alpha_ref2 = np.array([np.deg2rad(delta_ref2)] * len(r_array))
 
-                c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=t_long_sector_color, alpha=0.5)[0]
+                c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)[0]
                 x1 = c1.get_xdata()
                 y1 = c1.get_ydata()
-                c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=t_long_sector_color, alpha=0.5)[0]
+                c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)[0]
                 x2 = c2.get_xdata()
                 y2 = c2.get_ydata()
 
@@ -620,7 +625,7 @@ class SolarMACH():
                 x1_fill = x1[clause1][clause2]
                 x2_fill = x2[clause1][clause2]
 
-                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=t_long_sector_color, alpha=0.5)
+                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)
 
         if background_spirals is not None:
             if type(background_spirals) == list and len(background_spirals)>=2:
