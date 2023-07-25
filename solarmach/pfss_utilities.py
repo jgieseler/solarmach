@@ -153,6 +153,7 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
     latitude: int/float
             Carrington latitude of the seeding point for the FieldLine tracing
     hmimap: hmi_synoptic_map object
+            hmimap
     seedheight: float
             Heliocentric height of the seeding point
 
@@ -309,7 +310,7 @@ def vary_flines(lon, lat, hmimap, n_varies, seedheight):
 
 
 def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
-    '''
+    """
     Traces a single open magnetic field line at coordinates (lon0,lat0) on the pfss down
     to the photosphere
 
@@ -318,7 +319,7 @@ def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
     lon0, lat0: float
             Longitude and latitude of the seedpoint
     hmimap: hmimap-object
-
+            hmimap
     seedheight: float
             The height at which field line tracing is started (in solar radii)
     rad: bool, (default True)
@@ -329,7 +330,7 @@ def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
     field_lines: FieldLine or list[FieldLine]
             A FieldLine object, or a list of them, if input coordinates were a list
 
-    '''
+    """
     from pfsspy import tracing
 
     # if lat0 and lon0 are given in deg for some reason, transform them to rad
