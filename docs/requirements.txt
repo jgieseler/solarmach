@@ -1,0 +1,4 @@
+sphinx
+sphinx-automodapi
+numpydoc
+sphinx_rtd_theme
