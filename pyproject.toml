@@ -5,10 +5,3 @@ requires = ["setuptools",
             "wheel"]
 
 build-backend = 'setuptools.build_meta'
-
-[project.optional-dependencies]
-docs =
-    sphinx
-    sphinx-automodapi
-    numpydoc
-    sphinx_rtd_theme
