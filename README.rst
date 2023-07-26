@@ -86,7 +86,11 @@ Usage
 .. image:: https://github.com/jgieseler/solarmach/raw/main/examples/solarmach.png
   :alt: Example output figure
   
-See example notebooks in next section for all options!
+
+Documentation
+-------------
+Full documentation for the package can be found at https://solarmach.readthedocs.io
+
   
 Example Notebooks
 -----------------
