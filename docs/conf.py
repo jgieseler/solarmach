@@ -18,6 +18,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx_automodapi.automodapi',
               # 'numpydoc',
               'sphinx.ext.napoleon',
+              'nbsphinx',
+              'nbsphinx_link',
               ]
 
 templates_path = ['_templates']
