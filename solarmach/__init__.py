@@ -6,8 +6,8 @@ try:
 except DistributionNotFound:
     pass  # package is not installed
 
+import copy
 import math
-from copy import deepcopy
 
 import astropy.constants as aconst
 import astropy.units as u
@@ -112,7 +112,7 @@ class SolarMACH():
         log.setLevel('WARNING')
 
         body_list = list(dict.fromkeys(body_list))
-        bodies = deepcopy(body_dict)
+        bodies = copy.deepcopy(body_dict)
 
         if coord_sys.lower().startswith('car'):
             coord_sys = 'Carrington'
