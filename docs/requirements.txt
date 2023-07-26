@@ -1,4 +1,5 @@
 nbsphinx
+nbsphinx_link
 # numpydoc
 sphinx
 sphinx-automodapi
