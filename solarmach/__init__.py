@@ -65,10 +65,10 @@ body_dict.update(dict.fromkeys(['Voyager2', -32], [-32, 'Voyager 2', 'midnightbl
 
 def print_body_list():
     """
-    prints a selection of body keys and the corresponding body names which may be provided to the
-    SolarMACH class
+    Prints a selection of body keys and the corresponding body names which may be provided to the SolarMACH class. 
+    
+    Visit https://ssd.jpl.nasa.gov/horizons/app.html for a complete list of available bodies.
     """
-    # print('Please visit https://ssd.jpl.nasa.gov/horizons.cgi?s_target=1#top for a complete list of available bodies')
     data = pd.DataFrame\
         .from_dict(body_dict, orient='index', columns=['ID', 'Body', 'Color'])\
         .drop(columns=['ID', 'Color'])\
@@ -79,7 +79,7 @@ def print_body_list():
 
 class SolarMACH():
     """
-    Class which handles the selected bodies
+    Class handling selected bodies
 
     Parameters
     ----------
@@ -230,7 +230,7 @@ class SolarMACH():
 
     def backmapping(self, body_pos, reference_long, target_solar_radius=1, vsw=400):
         """
-        Determine the longitudinal separation angle of a given spacecraft and a given reference longitude
+        Determine the longitudinal separation angle of a given body and a given reference longitude
 
         Parameters
         ----------
