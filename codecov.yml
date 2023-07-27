@@ -1,5 +1,4 @@
 comment: off
 
 ignore:
-  - "solarmach/version.py"
   - "solarmach/pfss_utilities.py"
