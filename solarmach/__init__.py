@@ -318,7 +318,7 @@ class SolarMACH():
              test_plotly=False,
              test_plotly_template='plotly',
              # x_offset=0.0,  # TODO: remove
-             # y_offset=0.0, #TODO: remove
+             # y_offset=0.0, # TODO: remove
              test_plotly_legend=(1.0, 1.0),
              test_plotly_logo=(1.0, 0.0)):
         """
