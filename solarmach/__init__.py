@@ -82,18 +82,23 @@ def print_body_list():
 
 def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     """
-    Obtain measured solar wind radial component.
+    Obtains measured solar wind radial component. Downloads solar wind speed
+    measurements for "body" from "trange" hours before "dtime" until "trange"
+    hours after "dtime", then calculates 1-hour mean values, and finally
+    returns that 1-hour mean measurements that is closest to "dtime".
 
     Parameters
     ----------
     body : str
         Name of body, e.g., planet or spacecraft
     dtime : datetime object or datetime-compatible str
-        date and time for measurement
+        Date and time of measurement
     trange : int of float
-        timedelta to obtain measurement around dtime, i.e. dtime +- trange in houors
+        Timedelta for which measurements are obtainted before and after "dtime",
+        i.e. dtime +- trange (in hours). Default value 2.
     default_vsw : float
-        default solar wind speed radial component in km/s that is returned if no measurement can be obtained
+        Default solar wind speed radial component in km/s that is returned if
+        no measurements can be obtained. Default value 400.0
 
     Returns
     -------
