@@ -7,16 +7,19 @@ except DistributionNotFound:
     pass  # package is not installed
 
 import copy
+import dateutil.parser
 import math
 
 import astropy.constants as aconst
 import astropy.units as u
+import datetime as dt
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.text
 import numpy as np
 import pandas as pd
 import scipy.constants as const
+import speasy as spz
 from astropy.coordinates import SkyCoord
 from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
@@ -77,6 +80,75 @@ def print_body_list():
     return data
 
 
+def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
+    """
+    Obtain measured solar wind radial component.
+
+    Parameters
+    ----------
+    body : str
+        Name of body, e.g., planet or spacecraft
+    dtime : datetime object or datetime-compatible str
+        date and time for measurement
+    trange : int of float
+        timedelta to obtain measurement around dtime, i.e. dtime +- trange in houors
+    default_vsw : float
+        default solar wind speed radial component in km/s that is returned if no measurement can be obtained
+
+    Returns
+    -------
+    float
+        solar wind speed radial component in km/s
+    """
+    if body.lower() in ['psp', 'parker', 'parker solar probe']:
+        body = 'PSP'
+    if body.lower() in ['soho', 'earth', 'l1']:
+        body = 'SOHO'
+    if body.lower() in ['solo', 'solar orbiter', 'solarorbiter', 'solar-orbiter']:
+        body = 'SOLO'
+    if body.lower() in ['sta', 'stereoa', 'stereo a', 'stereo-a', 'st-a', 'st a']:
+        body = 'STA'
+    if body.lower() in ['stb', 'stereob', 'stereo b', 'stereo-b', 'st-b', 'st b']:
+        body = 'STB'
+
+    amda_tree = spz.inventories.data_tree.amda
+    cda_tree = spz.inventories.data_tree.cda
+
+    dataset = dict(SOLO=amda_tree.Parameters.SolarOrbiter.PAS.L2.so_pas_momgr1.pas_momgr1_v_rtn)
+    dataset['PSP'] = amda_tree.Parameters.PSP.SWEAP_SPC.psp_spc_mom.psp_spc_vp_mom_nrm
+    dataset['STA'] = amda_tree.Parameters.STEREO.STEREO_A.PLASTIC.sta_l2_pla.vpbulk_sta
+    dataset['SOHO'] = cda_tree.SOHO.CELIAS_PM.SOHO_CELIAS_PM_5MIN.V_p
+
+    sw_key = dict(SOLO='pas_momgr1_v_rtn[0]')
+    sw_key['PSP'] = 'psp_spc_vp_mom_nrm'
+    sw_key['STA'] = 'vpbulk_sta'
+    sw_key['SOHO'] = 'Proton V'
+
+    if body not in dataset.keys():
+        print(f"Body '{body}' not supported, assuming default Vsw value of 400 km/s.")
+        return default_vsw
+
+    if type(dtime) == str:
+        try:
+            dtime = dateutil.parser.parse(dtime)
+        except dateutil.parser.ParserError:
+            print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of 400 km/s.")
+            return default_vsw
+
+    try:
+        df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
+        df = df[sw_key[body]].resample('1H').mean()
+        if len(df) > 0:
+            idx = df[df.index.get_indexer([dtime], method='nearest')]
+            return idx.values[0]
+        else:
+            print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of 400 km/s.")
+            return default_vsw
+    except AttributeError:
+        print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of 400 km/s.")
+        return default_vsw
+
+
 class SolarMACH():
     """
     Class handling selected bodies
@@ -87,8 +159,8 @@ class SolarMACH():
     body_list: list
         list of body keys to be used. Keys can be string of int.
     vsw_list: list, optional
-        list of solar wind speeds at the position of the different bodies. Must have the same length as body_list.
-        Default is an epmty list leading to vsw=400km/s used for every body.
+        list of solar wind speeds in km/s at the position of the different bodies. Must have the same length as body_list.
+        If empty list, obtaining actual measurements is tried. If this is not successful, a default value of 400 km/s is used.   
     coord_sys: string, optional
         Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     reference_long: float, optional
@@ -130,8 +202,14 @@ class SolarMACH():
         elif coord_sys=='Stonyhurst':
             self.pos_E = pos_E
 
-        if len(vsw_list) == 0:
-            vsw_list = np.zeros(len(body_list)) + 400
+        # make deep copy of vsw_list bc. otherwise it doesn't get reset in a new init:
+        vsw_list2 = copy.deepcopy(vsw_list)
+
+        if len(vsw_list2) == 0:
+            print('No solar wind speeds defined, trying to obtain measurements...')
+            for body in body_list:
+                vsw_list2.append(get_sw_speed(body, date))
+            # vsw_list = np.zeros(len(body_list)) + 400
 
         random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
                        'c', 'darkslategray', 'yellow', 'darkolivegreen']
@@ -163,7 +241,7 @@ class SolarMACH():
                 if coord_sys=='Carrington':
                     pos = pos.transform_to(frames.HeliographicCarrington(observer='Sun'))
                 bodies[body_id].append(pos)
-                bodies[body_id].append(vsw_list[i])
+                bodies[body_id].append(vsw_list2[i])
 
                 longsep_E = pos.lon.value - self.pos_E.lon.value
                 if longsep_E > 180:
@@ -176,9 +254,9 @@ class SolarMACH():
                 longsep_E_list.append(longsep_E)
                 latsep_E_list.append(latsep_E)
 
-                body_vsw_list.append(vsw_list[i])
+                body_vsw_list.append(vsw_list2[i])
 
-                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list[i])
+                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list2[i])
                 bodies[body_id].append(sep)
 
                 body_footp_long = pos.lon.value + alpha
@@ -243,7 +321,8 @@ class SolarMACH():
         vsw: float
              solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
 
-        out:
+        Returns
+        -------
             sep: float
                 longitudinal separation of body magnetic footpoint and reference longitude in degrees
             alpha: float
