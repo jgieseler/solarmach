@@ -10,5 +10,6 @@ pandas
 pfsspy
 plotly
 scipy
+speasy
 sunpy
 zeep
