@@ -55,7 +55,7 @@ body_dict.update(dict.fromkeys(['Pioneer11', 'Pioneer 11', -24], [-24, 'Pioneer 
 body_dict.update(dict.fromkeys(['Rosetta', -226], [-226, 'Rosetta', 'blueviolet']))
 body_dict.update(dict.fromkeys(['SOHO', 'soho', 'SoHO', -21], [-21, 'SOHO', 'darkgreen']))
 body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solo', 'SOLO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
-body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'b']))
+body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'blue']))
 body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
 body_dict.update(dict.fromkeys(['Ulysses', -55], [-55, 'Ulysses', 'dimgray']))
 body_dict.update(dict.fromkeys(['Venus', 299], [299, 'Venus', 'darkorchid']))
@@ -178,7 +178,7 @@ class SolarMACH():
         Latitude of referene position at the Sun
     """
 
-    def __init__(self, date, body_list, vsw_list=[], default_vsw=400.0, reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', default_vsw=400.0, **kwargs):
         if 'diff_rot' in kwargs.keys():
             self.diff_rot = kwargs['diff_rot']
         else:

@@ -13,7 +13,7 @@ def test_solarmach_initialize():
     reference_long = 273
     reference_lat = 9
 
-    sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat)
+    sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
 
     assert sm.date == date
     assert sm.reference_lat == reference_lat
@@ -43,7 +43,7 @@ def test_solarmach_plot():
     reference_vsw = 400
     filename = 'test.png'
 
-    sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat)
+    sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
     sm.plot(plot_spirals=True, plot_sun_body_line=True,
             reference_vsw=reference_vsw, transparent=False,
             show_earth_centered_coord=False, numbered_markers=True,
