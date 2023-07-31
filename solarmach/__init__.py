@@ -166,8 +166,10 @@ class SolarMACH():
     body_list: list
         list of body keys to be used. Keys can be string of int.
     vsw_list: list, optional
-        list of solar wind speeds in km/s at the position of the different bodies. Must have the same length as body_list.
-        If empty list, obtaining actual measurements is tried. If this is not successful, a default value of 400 km/s is used.   
+        list of solar wind bulk speeds in km/s at the position of the different bodies. Must have the same length as body_list.
+        If empty list, obtaining actual measurements is tried. If this is not successful, a default value defined by default_vsw is used.
+    default_vsw: int or float, optional
+        Solar wind bulk speed in km/s to be used if vsw_list is not defined and no vsw measurements could be obtained. By default 400.0.
     coord_sys: string, optional
         Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     reference_long: float, optional
@@ -176,7 +178,7 @@ class SolarMACH():
         Latitude of referene position at the Sun
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
+    def __init__(self, date, body_list, vsw_list=[], default_vsw=400.0, reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
         if 'diff_rot' in kwargs.keys():
             self.diff_rot = kwargs['diff_rot']
         else:
@@ -215,7 +217,7 @@ class SolarMACH():
         if len(vsw_list2) == 0:
             print('No solar wind speeds defined, trying to obtain measurements...')
             for body in body_list:
-                vsw_list2.append(get_sw_speed(body, date))
+                vsw_list2.append(get_sw_speed(body, date, default_vsw))
             # vsw_list = np.zeros(len(body_list)) + 400
 
         random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
