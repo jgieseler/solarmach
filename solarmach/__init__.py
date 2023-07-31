@@ -44,7 +44,8 @@ body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
 body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
 
 body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
-body_dict.update(dict.fromkeys(['ACE', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
+body_dict.update(dict.fromkeys(['ACE', 'ace', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
+body_dict.update(dict.fromkeys(['WIND', 'Wind', 'wind', -8], [-8, 'Wind', 'slategray']))
 
 body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'b']))
 body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
@@ -82,7 +83,7 @@ def print_body_list():
 
 def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     """
-    Obtains measured solar wind radial component. Downloads solar wind speed
+    Obtains measured solar wind bulk speed. Downloads solar wind speed
     measurements for "body" from "trange" hours before "dtime" until "trange"
     hours after "dtime", then calculates 1-hour mean values, and finally
     returns that 1-hour mean measurements that is closest to "dtime".
@@ -97,39 +98,43 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
         Timedelta for which measurements are obtainted before and after "dtime",
         i.e. dtime +- trange (in hours). Default value 2.
     default_vsw : float
-        Default solar wind speed radial component in km/s that is returned if
-        no measurements can be obtained. Default value 400.0
+        Default solar wind bulk speed in km/s that is returned if no
+        measurements can be obtained. Default value 400.0
 
     Returns
     -------
     float
-        solar wind speed radial component in km/s
+        solar wind bulk speed in km/s
     """
-    if body.lower() in ['psp', 'parker', 'parker solar probe']:
-        body = 'PSP'
-    if body.lower() in ['soho', 'earth', 'l1']:
-        body = 'SOHO'
-    if body.lower() in ['solo', 'solar orbiter', 'solarorbiter', 'solar-orbiter']:
-        body = 'SOLO'
-    if body.lower() in ['sta', 'stereoa', 'stereo a', 'stereo-a', 'st-a', 'st a']:
-        body = 'STA'
-    if body.lower() in ['stb', 'stereob', 'stereo b', 'stereo-b', 'st-b', 'st b']:
-        body = 'STB'
+    try:
+        # standardize body name (e.g. 'PSP' => 'Parker Solar Probe')
+        body = body_dict[body][1]
+    except KeyError:
+        pass
 
     amda_tree = spz.inventories.data_tree.amda
     cda_tree = spz.inventories.data_tree.cda
 
-    dataset = dict(SOLO=amda_tree.Parameters.SolarOrbiter.PAS.L2.so_pas_momgr1.pas_momgr1_v_rtn)
-    dataset['PSP'] = amda_tree.Parameters.PSP.SWEAP_SPC.psp_spc_mom.psp_spc_vp_mom_nrm
-    dataset['STA'] = amda_tree.Parameters.STEREO.STEREO_A.PLASTIC.sta_l2_pla.vpbulk_sta
+    dataset = dict(ACE=cda_tree.ACE.SWE.AC_K1_SWE.Vp)  # https://cdaweb.gsfc.nasa.gov/misc/NotesA.html#AC_K1_SWE
     dataset['SOHO'] = cda_tree.SOHO.CELIAS_PM.SOHO_CELIAS_PM_5MIN.V_p
+    dataset['Parker Solar Probe'] = amda_tree.Parameters.PSP.SWEAP_SPC.psp_spc_mom.psp_spc_vp_mom_nrm
+    dataset['Solar Orbiter'] = amda_tree.Parameters.SolarOrbiter.PAS.L2.so_pas_momgr1.pas_momgr1_v_rtn_tot
+    dataset['STEREO A'] = amda_tree.Parameters.STEREO.STEREO_A.PLASTIC.sta_l2_pla.vpbulk_sta
+    dataset['STEREO B'] = amda_tree.Parameters.STEREO.STEREO_B.PLASTIC.stb_l2_pla.vpbulk_stb
+    dataset['Wind'] = amda_tree.Parameters.Wind.SWE.wnd_swe_kp.wnd_swe_vmag
 
-    sw_key = dict(SOLO='pas_momgr1_v_rtn[0]')
-    sw_key['PSP'] = 'psp_spc_vp_mom_nrm'
-    sw_key['STA'] = 'vpbulk_sta'
-    sw_key['SOHO'] = 'Proton V'
+    sw_key = dict(ACE='SW Bulk Speed')  # Solar Wind Bulk Speed [Vp]
+    sw_key['Parker Solar Probe'] = 'psp_spc_vp_mom_nrm'  # Velocity vector magnitude
+    sw_key['SOHO'] = 'Proton V' # Proton speed, scalar
+    sw_key['Solar Orbiter'] = 'pas_momgr1_v_rtn_tot'  # Velocity magnitude in RTN frame
+    sw_key['STEREO A'] = 'vpbulk_sta'  # Scalar magnitude of the velocity in km/s
+    sw_key['STEREO B'] = 'vpbulk_stb'  # Scalar magnitude of the velocity in km/s
+    sw_key['Wind'] = 'wnd_swe_vmag'  # |v|
 
-    if body not in dataset.keys():
+    if body in ['L1', 'l1', 'SEMB-L1']:
+        print(f"Using 'ACE' measurements for '{body}'.")
+        body = 'ACE'
+    elif body not in dataset.keys():
         print(f"Body '{body}' not supported, assuming default Vsw value of 400 km/s.")
         return default_vsw
 
