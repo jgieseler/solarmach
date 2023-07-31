@@ -40,27 +40,27 @@ body_dict = dict.fromkeys(['Earth', 'EARTH', 'earth', 399], [399, 'Earth', 'gree
 body_dict.update(dict.fromkeys(['ACE', 'ace', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
 body_dict.update(dict.fromkeys(['BepiColombo', 'Bepi Colombo', 'Bepi', 'MPO', -121], [-121, 'BepiColombo', 'orange']))
 body_dict.update(dict.fromkeys(['Cassini', -82], [-82, 'Cassini', 'mediumvioletred']))
-body_dict.update(dict.fromkeys(['JUICE', -28], [-28, 'JUICE', 'violet']))
-body_dict.update(dict.fromkeys(['Juno', -61], [-61, 'Juno', 'orangered']))
+body_dict.update(dict.fromkeys(['JUICE', 'Juice', -28], [-28, 'JUICE', 'violet']))
+body_dict.update(dict.fromkeys(['Juno', 'JUNO', -61], [-61, 'Juno', 'orangered']))
 body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
 body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
 body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
 body_dict.update(dict.fromkeys(['Mars Express', -41], [-41, 'Mars Express', 'darkorange']))
-body_dict.update(dict.fromkeys(['MAVEN', -202], [-202, 'MAVEN', 'brown']))
+body_dict.update(dict.fromkeys(['MAVEN', 'Maven', -202], [-202, 'MAVEN', 'brown']))
 body_dict.update(dict.fromkeys(['Mercury', 199], [199, 'Mercury', 'darkturquoise']))
-body_dict.update(dict.fromkeys(['MESSENGER', -236], [-236, 'MESSENGER', 'olivedrab']))
+body_dict.update(dict.fromkeys(['MESSENGER', 'Messenger', -236], [-236, 'MESSENGER', 'olivedrab']))
 body_dict.update(dict.fromkeys(['PSP', 'Parker Solar Probe', 'parkersolarprobe', 'ParkerSolarProbe', -96], [-96, 'Parker Solar Probe', 'purple']))
-body_dict.update(dict.fromkeys(['Pioneer10', -23], [-23, 'Pioneer 10', 'teal']))
-body_dict.update(dict.fromkeys(['Pioneer11', -24], [-24, 'Pioneer 11', 'darkblue']))
+body_dict.update(dict.fromkeys(['Pioneer10', 'Pioneer 10', -23], [-23, 'Pioneer 10', 'teal']))
+body_dict.update(dict.fromkeys(['Pioneer11', 'Pioneer 11', -24], [-24, 'Pioneer 11', 'darkblue']))
 body_dict.update(dict.fromkeys(['Rosetta', -226], [-226, 'Rosetta', 'blueviolet']))
-body_dict.update(dict.fromkeys(['SOHO', 'soho', -21], [-21, 'SOHO', 'darkgreen']))
-body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
+body_dict.update(dict.fromkeys(['SOHO', 'soho', 'SoHO', -21], [-21, 'SOHO', 'darkgreen']))
+body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solo', 'SOLO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
 body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'b']))
 body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
 body_dict.update(dict.fromkeys(['Ulysses', -55], [-55, 'Ulysses', 'dimgray']))
 body_dict.update(dict.fromkeys(['Venus', 299], [299, 'Venus', 'darkorchid']))
-body_dict.update(dict.fromkeys(['Voyager1', -31], [-31, 'Voyager 1', 'darkred']))
-body_dict.update(dict.fromkeys(['Voyager2', -32], [-32, 'Voyager 2', 'midnightblue']))
+body_dict.update(dict.fromkeys(['Voyager1', 'Voyager 1', -31], [-31, 'Voyager 1', 'darkred']))
+body_dict.update(dict.fromkeys(['Voyager2', 'Voyager 2', -32], [-32, 'Voyager 2', 'midnightblue']))
 body_dict.update(dict.fromkeys(['WIND', 'Wind', 'wind', -8], [-8, 'Wind', 'slategray']))
 
 
@@ -128,7 +128,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     sw_key['STEREO B'] = 'vpbulk_stb'  # Scalar magnitude of the velocity in km/s
     sw_key['Wind'] = 'wnd_swe_vmag'  # |v|
 
-    if body in ['L1', 'l1', 'SEMB-L1']:
+    if body in ['Earth', 'SEMB-L1']:
         print(f"Using 'ACE' measurements for '{body}'.")
         body = 'ACE'
     elif body not in dataset.keys():
