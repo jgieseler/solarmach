@@ -2,6 +2,7 @@ astropy
 astroquery
 cmasher
 drms
+imageio
 Jinja2
 lxml
 matplotlib==3.5.3
