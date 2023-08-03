@@ -3,7 +3,7 @@ API reference
 
 .. automodule:: solarmach
    :noindex:
-   :members: print_body_list
+   :members: get_sw_speed, print_body_list
 
 .. autoclass:: solarmach.SolarMACH
    :noindex:
