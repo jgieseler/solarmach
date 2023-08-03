@@ -6,13 +6,11 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-# from importlib.metadata import version
 from importlib import metadata
 project = 'solarmach'
 copyright = '2023, Jan Gieseler'
 author = 'Jan Gieseler'
-# release = '0.2.2'
-release = metadata.version(project)  # '0.2.2'
+release = metadata.version(project)
 version = release
 
 # -- General configuration ---------------------------------------------------
