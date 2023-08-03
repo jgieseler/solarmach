@@ -66,8 +66,8 @@ body_dict.update(dict.fromkeys(['WIND', 'Wind', 'wind', -8], [-8, 'Wind', 'slate
 
 def print_body_list():
     """
-    Prints a selection of body keys and the corresponding body names which may be provided to the SolarMACH class. 
-    
+    Prints a selection of body keys and the corresponding body names which may be provided to the SolarMACH class.
+
     Visit https://ssd.jpl.nasa.gov/horizons/app.html for a complete list of available bodies.
     """
     data = pd.DataFrame\
