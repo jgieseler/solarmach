@@ -13,6 +13,7 @@ copyright = '2023, Jan Gieseler'
 author = 'Jan Gieseler'
 # release = '0.2.2'
 release = metadata.version(project)  # '0.2.2'
+version = release
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
