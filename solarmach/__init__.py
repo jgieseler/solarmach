@@ -1,13 +1,13 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import get_distribution, DistributionNotFound  # type: ignore
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     pass  # package is not installed
 
 import copy
-import dateutil.parser
+import dateutil.parser  # type: ignore
 import math
 
 import astropy.constants as aconst
@@ -123,7 +123,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
 
     sw_key = dict(ACE='SW Bulk Speed')  # Solar Wind Bulk Speed [Vp]
     sw_key['Parker Solar Probe'] = 'psp_spc_vp_mom_nrm'  # Velocity vector magnitude
-    sw_key['SOHO'] = 'Proton V' # Proton speed, scalar
+    sw_key['SOHO'] = 'Proton V'  # Proton speed, scalar
     sw_key['Solar Orbiter'] = 'pas_momgr1_v_rtn_tot'  # Velocity magnitude in RTN frame
     sw_key['STEREO A'] = 'vpbulk_sta'  # Scalar magnitude of the velocity in km/s
     sw_key['STEREO B'] = 'vpbulk_stb'  # Scalar magnitude of the velocity in km/s
