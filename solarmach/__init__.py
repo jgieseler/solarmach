@@ -133,14 +133,14 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
         print(f"Using 'ACE' measurements for '{body}'.")
         body = 'ACE'
     elif body not in dataset.keys():
-        print(f"Body '{body}' not supported, assuming default Vsw value of 400 km/s.")
+        print(f"Body '{body}' not supported, assuming default Vsw value of {default_vsw} km/s.")
         return default_vsw
 
     if type(dtime) == str:
         try:
             dtime = dateutil.parser.parse(dtime)
         except dateutil.parser.ParserError:
-            print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of 400 km/s.")
+            print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of {default_vsw} km/s.")
             return default_vsw
 
     try:
@@ -150,10 +150,10 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
             idx = df[df.index.get_indexer([dtime], method='nearest')]
             return idx.values[0]
         else:
-            print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of 400 km/s.")
+            print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
             return default_vsw
     except AttributeError:
-        print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of 400 km/s.")
+        print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
         return default_vsw
 
 
@@ -218,7 +218,7 @@ class SolarMACH():
         if len(vsw_list2) == 0:
             print('No solar wind speeds defined, trying to obtain measurements...')
             for body in body_list:
-                vsw_list2.append(get_sw_speed(body, date, trange, default_vsw))
+                vsw_list2.append(get_sw_speed(body=body, dtime=date, default_vsw=default_vsw))
             # vsw_list = np.zeros(len(body_list)) + 400
 
         random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
