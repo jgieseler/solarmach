@@ -218,7 +218,7 @@ class SolarMACH():
         if len(vsw_list2) == 0:
             print('No solar wind speeds defined, trying to obtain measurements...')
             for body in body_list:
-                vsw_list2.append(get_sw_speed(body, date, default_vsw))
+                vsw_list2.append(get_sw_speed(body, date, trange, default_vsw))
             # vsw_list = np.zeros(len(body_list)) + 400
 
         random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
