@@ -16,12 +16,12 @@ version = release
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.autodoc',
-              'sphinx_automodapi.automodapi',
-              # 'numpydoc',
-              'sphinx.ext.napoleon',
-              'nbsphinx',
+extensions = ['nbsphinx',
               'nbsphinx_link',
+              'sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
+              'sphinx_automodapi.automodapi',
+              'sphinx_copybutton',
               ]
 
 templates_path = ['_templates']

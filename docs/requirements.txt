@@ -4,4 +4,5 @@ nbsphinx_link
 solarmach
 sphinx
 sphinx-automodapi
+sphinx-copybutton
 sphinx_rtd_theme
