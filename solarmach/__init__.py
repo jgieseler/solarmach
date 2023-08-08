@@ -19,7 +19,6 @@ import matplotlib.text
 import numpy as np
 import pandas as pd
 import scipy.constants as const
-import speasy as spz
 from astropy.coordinates import SkyCoord
 from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
@@ -104,6 +103,12 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     float
         solar wind bulk speed in km/s
     """
+    try:
+        import speasy as spz
+    except ModuleNotFoundError:
+        print(f"Couldn't load required module speasy, using default_vsw={default_vsw}. Install it with 'pip install speasy' to use this functionality." )
+        return default_vsw
+
     try:
         # standardize body name (e.g. 'PSP' => 'Parker Solar Probe')
         body = body_dict[body][1]
