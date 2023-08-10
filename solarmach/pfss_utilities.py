@@ -660,10 +660,6 @@ def construct_gongmap_filename(timestr, directory):
     filepath = f"{directory}{os.sep}{filename}"
     filepaths = glob.glob(filepath)
 
-    print(filename)
-    print(filepath)
-    print(filepaths)
-
     # If exactly one match, then that most probably is the right file
     if len(filepaths) == 1:
         print(f"Automatic file search based on given time found {filepaths[0]}")

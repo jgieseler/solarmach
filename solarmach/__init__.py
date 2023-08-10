@@ -312,8 +312,6 @@ class SolarMACH():
              f"{coord_sys} longitude (°)" : body_lon_list,
              f"{coord_sys} latitude (°)" : body_lat_list, 
              "Heliocentric_distance (R_Sun)" : np.array(body_dist_list) * u.au.to(u.solRad), # Quick conversion of AU -> Solar radii
-             "Longitudinal separation to Earth's longitude": longsep_E_list,
-             "Latitudinal separation to Earth's latitude": latsep_E_list,
              "Vsw": body_vsw_list
             }
         )
@@ -332,7 +330,7 @@ class SolarMACH():
             self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference_point", "Latitudinal separation to Earth's latitude"] = lat_sep_to_E
 
         # Does this still have a use?
-        pass
+        print("DEVELOPER VERSION") #pass
         self.coord_table.style.set_properties(**{'text-align': 'left'})
 
         # reset sunpy log level to initial state
@@ -958,13 +956,17 @@ class SolarMACH():
         ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*100, c="gray", lw=0.6, ls='-', zorder=1) 
 
         # Gather field line objects, photospheric footpoints and magnetic polarities in these lists
-        # fieldlines is a class attribute, so that the field lines can be neasily 3D plotted with another method
+        # fieldlines is a class attribute, so that the field lines can be easily 3D plotted with another method
         self.fieldlines = []
         photospheric_footpoints = []
         fieldline_polarities = []
 
         # The radial coordinates for reference parker spiral (plot even outside the figure boundaries to avert visual bugs)
         reference_array = np.linspace(rss, r_max+200, int(1e3))
+
+        # Longitudinal and latitudinal separation angles to Earth's magnetic footpoint
+        lon_sep_angles = np.array([])
+        lat_sep_angles = np.array([])
 
         for i, body_id in enumerate(self.body_dict):
 
@@ -1043,6 +1045,23 @@ class SolarMACH():
             photospheric_footpoints.append((fl_lon[0], fl_lat[0]))
             fieldline_polarities.append(int(fline_objects[0].polarity))
 
+            # Save Earth's magnetic footpoint for later comparison:
+            if body_lab == "Earth":
+                earth_footpoint = (fl_lon[0], fl_lat[0])
+
+
+        # Calculate footpoint separation angles to Earth's footpoint
+        if "Earth" in self.body_dict:
+            for footpoint in photospheric_footpoints:
+                lon_sep = earth_footpoint[0] - footpoint[0]
+                lon_sep = lon_sep if lon_sep < 180 else lon_sep - 360 # Here check that the separation isn't over half a circle
+                lat_sep = earth_footpoint[1] - footpoint[1]
+
+                lon_sep_angles = np.append(lon_sep_angles, lon_sep)
+                lat_sep_angles = np.append(lat_sep_angles, lat_sep)
+            
+            self.pfss_table["Footpoint lon separation to Earth's footpoint lon"] = lon_sep_angles
+            self.pfss_table["Footpoint lat separation to Earth's footpoint lat"] = lat_sep_angles
 
         # Reference longitude and corresponding parker spiral arm
         if self.reference_long:
@@ -1308,7 +1327,7 @@ class SolarMACH():
             fieldline_polarities.append(ref_objects[0].polarity)
             self.pfss_table["Reference flux tube lon range"] = [np.NaN if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)] 
 
-        self.pfss_table["PFSS_Footpoint"] = photospheric_footpoints 
+        self.pfss_table["Magnetic footpoint (PFSS)"] = photospheric_footpoints 
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
     
 
