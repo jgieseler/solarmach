@@ -330,7 +330,7 @@ class SolarMACH():
             self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference_point", "Latitudinal separation to Earth's latitude"] = lat_sep_to_E
 
         # Does this still have a use?
-        print("DEVELOPER VERSION") #pass
+        pass
         self.coord_table.style.set_properties(**{'text-align': 'left'})
 
         # reset sunpy log level to initial state
