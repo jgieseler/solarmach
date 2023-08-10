@@ -636,19 +636,33 @@ def construct_gongmap_filename(timestr, directory):
     Constructs a default filepath
     """
 
-    yy = timestr[2:4]
-    mm = timestr[5:7]
-    dd = timestr[8:10]
-    hh = timestr[11:13]
+    # Check that timestr is of correct format. it should be <YYYY-MM-DD HH:mm:ss>
+    date_components = timestr.split('-')
+
+    yy = date_components[0][2:4]
+    mm = date_components[1]
+    dd_time = date_components[2].split(' ')
+    dd = dd_time[0]
+    hh = dd_time[1][:2]
+
+    if len(mm) < 2:
+        mm = f"0{mm}"
+    if len(dd) < 2:
+        dd = f"0{dd}"
+    
 
     # If directory is None, (equivalent to not directory in logic), then use the current directory as a base
     if not directory:
         directory = os.getcwd()
 
     carrington_rot = sunpy.coordinates.sun.carrington_rotation_number(t=timestr).astype(int)  # dynamic CR from date
-    filename = f"mrzqs{yy}{mm}{dd}*{hh}*{carrington_rot}*.fits.gz"
+    filename = f"mrzqs{yy}{mm}{dd}t{hh}*c{carrington_rot}_*.fits.gz"
     filepath = f"{directory}{os.sep}{filename}"
     filepaths = glob.glob(filepath)
+
+    print(filename)
+    print(filepath)
+    print(filepaths)
 
     # If exactly one match, then that most probably is the right file
     if len(filepaths) == 1:
