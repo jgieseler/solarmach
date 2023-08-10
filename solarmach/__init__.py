@@ -320,14 +320,10 @@ class SolarMACH():
             self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
             self.coord_table[
                 "Longitudinal separation between body's mangetic footpoint and reference_long"] = footp_longsep_list
-            lon_sep_to_E = self.pos_E.lon.value - self.reference_long if self.pos_E.lon.value - self.reference_long < 180 else self.pos_E.lon.value - self.reference_long - 360
-            self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1,
-                                                               lon_sep_to_E, np.NaN, np.NaN]
+            self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1, np.NaN]
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
             self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference Point", f"{coord_sys} latitude (°)"] = self.reference_lat
-            lat_sep_to_E = self.pos_E.lat.value - self.reference_lat
-            self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference_point", "Latitudinal separation to Earth's latitude"] = lat_sep_to_E
 
         # Does this still have a use?
         pass
