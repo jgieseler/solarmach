@@ -1,16 +1,20 @@
 solarmach
 =========
 
-|pypi Version| |conda version| |license| |python version| |pytest| |zenodo|
+|pypi Version| |conda version| |python version| |pytest| |codecov| |docs| |license| |zenodo|
 
 .. |pypi Version| image:: https://img.shields.io/pypi/v/solarmach?style=flat&logo=pypi
    :target: https://pypi.org/project/solarmach/
 .. |conda version| image:: https://img.shields.io/conda/vn/conda-forge/solarmach?style=flat&logo=anaconda
    :target: https://anaconda.org/conda-forge/solarmach/
-.. |license| image:: https://img.shields.io/conda/l/conda-forge/solarmach?style=flat
-   :target: https://github.com/jgieseler/solarmach/blob/main/LICENSE.rst
 .. |python version| image:: https://img.shields.io/pypi/pyversions/solarmach?style=flat&logo=python
 .. |pytest| image:: https://github.com/jgieseler/solarmach/workflows/pytest/badge.svg
+.. |codecov| image:: https://codecov.io/gh/jgieseler/solarmach/branch/main/graph/badge.svg?token=CT2P8AQU3B
+   :target: https://codecov.io/gh/jgieseler/solarmach
+.. |docs| image:: https://readthedocs.org/projects/solarmach/badge/?version=latest
+   :target: https://solarmach.readthedocs.io/en/latest/?badge=latest
+.. |license| image:: https://img.shields.io/conda/l/conda-forge/solarmach?style=flat
+   :target: https://github.com/jgieseler/solarmach/blob/main/LICENSE.rst
 .. |zenodo| image:: https://zenodo.org/badge/469735286.svg
    :target: https://zenodo.org/badge/latestdoi/469735286
 
@@ -84,7 +88,11 @@ Usage
 .. image:: https://github.com/jgieseler/solarmach/raw/main/examples/solarmach.png
   :alt: Example output figure
   
-See example notebooks in next section for all options!
+
+Documentation
+-------------
+Full documentation for the package can be found at https://solarmach.readthedocs.io
+
   
 Example Notebooks
 -----------------

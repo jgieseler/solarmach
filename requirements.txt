@@ -2,6 +2,7 @@ astropy
 astroquery
 cmasher
 drms
+imageio
 Jinja2
 lxml
 matplotlib==3.5.3
@@ -10,5 +11,6 @@ pandas
 pfsspy
 plotly
 scipy
+speasy
 sunpy
 zeep

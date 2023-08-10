@@ -1,16 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import get_distribution, DistributionNotFound  # type: ignore
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     pass  # package is not installed
 
+import copy
+import dateutil.parser  # type: ignore
 import math
-from copy import deepcopy
 
 import astropy.constants as aconst
 import astropy.units as u
+import datetime as dt
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.text
@@ -32,43 +34,42 @@ with pd.option_context('display.float_format', '{:0.2f}'.format):
     display(df)
 """
 
-
 # initialize the body dictionary
-body_dict = dict.fromkeys(['Mercury', 199], [199, 'Mercury', 'darkturquoise'])
-body_dict.update(dict.fromkeys(['Venus', 299], [299, 'Venus', 'darkorchid']))
-body_dict.update(dict.fromkeys(['Earth', 'EARTH', 'earth', 399], [399, 'Earth', 'green']))
-body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
-body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
-
-body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
-body_dict.update(dict.fromkeys(['ACE', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
-
-body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'b']))
-body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
-body_dict.update(dict.fromkeys(['SOHO', 'soho', -21], [-21, 'SOHO', 'darkgreen']))
-body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
-body_dict.update(dict.fromkeys(['PSP', 'Parker Solar Probe', 'parkersolarprobe', 'ParkerSolarProbe', -96], [-96, 'Parker Solar Probe', 'purple']))
+body_dict = dict.fromkeys(['Earth', 'EARTH', 'earth', 399], [399, 'Earth', 'green'])
+body_dict.update(dict.fromkeys(['ACE', 'ace', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
 body_dict.update(dict.fromkeys(['BepiColombo', 'Bepi Colombo', 'Bepi', 'MPO', -121], [-121, 'BepiColombo', 'orange']))
-body_dict.update(dict.fromkeys(['MAVEN', -202], [-202, 'MAVEN', 'brown']))
-body_dict.update(dict.fromkeys(['Mars Express', -41], [-41, 'Mars Express', 'darkorange']))
-body_dict.update(dict.fromkeys(['MESSENGER', -236], [-236, 'MESSENGER', 'olivedrab']))
-body_dict.update(dict.fromkeys(['JUICE', -28], [-28, 'JUICE', 'violet']))
-body_dict.update(dict.fromkeys(['Juno', -61], [-61, 'Juno', 'orangered']))
 body_dict.update(dict.fromkeys(['Cassini', -82], [-82, 'Cassini', 'mediumvioletred']))
+body_dict.update(dict.fromkeys(['JUICE', 'Juice', -28], [-28, 'JUICE', 'violet']))
+body_dict.update(dict.fromkeys(['Juno', 'JUNO', -61], [-61, 'Juno', 'orangered']))
+body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
+body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
+body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
+body_dict.update(dict.fromkeys(['Mars Express', -41], [-41, 'Mars Express', 'darkorange']))
+body_dict.update(dict.fromkeys(['MAVEN', 'Maven', -202], [-202, 'MAVEN', 'brown']))
+body_dict.update(dict.fromkeys(['Mercury', 199], [199, 'Mercury', 'darkturquoise']))
+body_dict.update(dict.fromkeys(['MESSENGER', 'Messenger', -236], [-236, 'MESSENGER', 'olivedrab']))
+body_dict.update(dict.fromkeys(['PSP', 'Parker Solar Probe', 'parkersolarprobe', 'ParkerSolarProbe', -96], [-96, 'Parker Solar Probe', 'purple']))
+body_dict.update(dict.fromkeys(['Pioneer10', 'Pioneer 10', -23], [-23, 'Pioneer 10', 'teal']))
+body_dict.update(dict.fromkeys(['Pioneer11', 'Pioneer 11', -24], [-24, 'Pioneer 11', 'darkblue']))
 body_dict.update(dict.fromkeys(['Rosetta', -226], [-226, 'Rosetta', 'blueviolet']))
-body_dict.update(dict.fromkeys(['Pioneer10', -23], [-23, 'Pioneer 10', 'teal']))
-body_dict.update(dict.fromkeys(['Pioneer11', -24], [-24, 'Pioneer 11', 'darkblue']))
+body_dict.update(dict.fromkeys(['SOHO', 'soho', 'SoHO', -21], [-21, 'SOHO', 'darkgreen']))
+body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solo', 'SOLO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
+body_dict.update(dict.fromkeys(['STEREO B', 'STEREO-B', 'STB', 'stb', -235], [-235, 'STEREO B', 'blue']))
+body_dict.update(dict.fromkeys(['STEREO A', 'STEREO-A', 'STA', 'sta', -234], [-234, 'STEREO A', 'red']))
 body_dict.update(dict.fromkeys(['Ulysses', -55], [-55, 'Ulysses', 'dimgray']))
-body_dict.update(dict.fromkeys(['Voyager1', -31], [-31, 'Voyager 1', 'darkred']))
-body_dict.update(dict.fromkeys(['Voyager2', -32], [-32, 'Voyager 2', 'midnightblue']))
+body_dict.update(dict.fromkeys(['Venus', 299], [299, 'Venus', 'darkorchid']))
+body_dict.update(dict.fromkeys(['Voyager1', 'Voyager 1', -31], [-31, 'Voyager 1', 'darkred']))
+body_dict.update(dict.fromkeys(['Voyager2', 'Voyager 2', -32], [-32, 'Voyager 2', 'midnightblue']))
+body_dict.update(dict.fromkeys(['WIND', 'Wind', 'wind', -8], [-8, 'Wind', 'slategray']))
 
 
 def print_body_list():
     """
-    prints a selection of body keys and the corresponding body names which may be provided to the
-    SolarMACH class
+    Prints a selection of body keys and the corresponding body names which may
+    be provided to the SolarMACH class.
+    Visit https://ssd.jpl.nasa.gov/horizons/app.html for a complete list of
+    available bodies.
     """
-    # print('Please visit https://ssd.jpl.nasa.gov/horizons.cgi?s_target=1#top for a complete list of available bodies')
     data = pd.DataFrame\
         .from_dict(body_dict, orient='index', columns=['ID', 'Body', 'Color'])\
         .drop(columns=['ID', 'Color'])\
@@ -77,9 +78,93 @@ def print_body_list():
     return data
 
 
+def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
+    """
+    Obtains measured solar wind bulk speed. Downloads solar wind speed
+    measurements for "body" from "trange" hours before "dtime" until "trange"
+    hours after "dtime", then calculates 1-hour mean values, and finally
+    returns that 1-hour mean measurements that is closest to "dtime".
+
+    Parameters
+    ----------
+    body : str
+        Name of body, e.g., planet or spacecraft
+    dtime : datetime object or datetime-compatible str
+        Date and time of measurement
+    trange : int of float
+        Timedelta for which measurements are obtainted before and after "dtime",
+        i.e. dtime +- trange (in hours). Default value 2.
+    default_vsw : float
+        Default solar wind bulk speed in km/s that is returned if no
+        measurements can be obtained. Default value 400.0
+
+    Returns
+    -------
+    float
+        solar wind bulk speed in km/s
+    """
+    try:
+        import speasy as spz
+    except ModuleNotFoundError:
+        print(f"Couldn't load required module speasy, using default_vsw={default_vsw}. Install it with 'pip install speasy' to use this functionality." )
+        return default_vsw
+
+    try:
+        # standardize body name (e.g. 'PSP' => 'Parker Solar Probe')
+        body = body_dict[body][1]
+    except KeyError:
+        pass
+
+    amda_tree = spz.inventories.data_tree.amda
+    cda_tree = spz.inventories.data_tree.cda
+
+    dataset = dict(ACE=cda_tree.ACE.SWE.AC_K1_SWE.Vp)  # https://cdaweb.gsfc.nasa.gov/misc/NotesA.html#AC_K1_SWE
+    dataset['SOHO'] = cda_tree.SOHO.CELIAS_PM.SOHO_CELIAS_PM_5MIN.V_p
+    dataset['Parker Solar Probe'] = amda_tree.Parameters.PSP.SWEAP_SPC.psp_spc_mom.psp_spc_vp_mom_nrm
+    dataset['Solar Orbiter'] = amda_tree.Parameters.SolarOrbiter.PAS.L2.so_pas_momgr1.pas_momgr1_v_rtn_tot
+    dataset['STEREO A'] = amda_tree.Parameters.STEREO.STEREO_A.PLASTIC.sta_l2_pla.vpbulk_sta
+    dataset['STEREO B'] = amda_tree.Parameters.STEREO.STEREO_B.PLASTIC.stb_l2_pla.vpbulk_stb
+    dataset['Wind'] = amda_tree.Parameters.Wind.SWE.wnd_swe_kp.wnd_swe_vmag
+
+    sw_key = dict(ACE='SW Bulk Speed')  # Solar Wind Bulk Speed [Vp]
+    sw_key['Parker Solar Probe'] = 'psp_spc_vp_mom_nrm'  # Velocity vector magnitude
+    sw_key['SOHO'] = 'Proton V'  # Proton speed, scalar
+    sw_key['Solar Orbiter'] = 'pas_momgr1_v_rtn_tot'  # Velocity magnitude in RTN frame
+    sw_key['STEREO A'] = 'vpbulk_sta'  # Scalar magnitude of the velocity in km/s
+    sw_key['STEREO B'] = 'vpbulk_stb'  # Scalar magnitude of the velocity in km/s
+    sw_key['Wind'] = 'wnd_swe_vmag'  # |v|
+
+    if body in ['Earth', 'SEMB-L1']:
+        print(f"Using 'ACE' measurements for '{body}'.")
+        body = 'ACE'
+    elif body not in dataset.keys():
+        print(f"Body '{body}' not supported, assuming default Vsw value of {default_vsw} km/s.")
+        return default_vsw
+
+    if type(dtime) == str:
+        try:
+            dtime = dateutil.parser.parse(dtime)
+        except dateutil.parser.ParserError:
+            print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of {default_vsw} km/s.")
+            return default_vsw
+
+    try:
+        df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
+        df = df[sw_key[body]].resample('1H').mean()
+        if len(df) > 0:
+            idx = df[df.index.get_indexer([dtime], method='nearest')]
+            return idx.values[0]
+        else:
+            print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
+            return default_vsw
+    except AttributeError:
+        print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
+        return default_vsw
+
+
 class SolarMACH():
     """
-    Class which handles the selected bodies
+    Class handling selected bodies
 
     Parameters
     ----------
@@ -87,8 +172,10 @@ class SolarMACH():
     body_list: list
         list of body keys to be used. Keys can be string of int.
     vsw_list: list, optional
-        list of solar wind speeds at the position of the different bodies. Must have the same length as body_list.
-        Default is an epmty list leading to vsw=400km/s used for every body.
+        list of solar wind bulk speeds in km/s at the position of the different bodies. Must have the same length as body_list.
+        If empty list, obtaining actual measurements is tried. If this is not successful, a default value defined by default_vsw is used.
+    default_vsw: int or float, optional
+        Solar wind bulk speed in km/s to be used if vsw_list is not defined and no vsw measurements could be obtained. By default 400.0.
     coord_sys: string, optional
         Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
     reference_long: float, optional
@@ -97,7 +184,7 @@ class SolarMACH():
         Latitude of referene position at the Sun
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', **kwargs):
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', default_vsw=400.0, **kwargs):
         if 'diff_rot' in kwargs.keys():
             self.diff_rot = kwargs['diff_rot']
         else:
@@ -112,7 +199,7 @@ class SolarMACH():
         log.setLevel('WARNING')
 
         body_list = list(dict.fromkeys(body_list))
-        bodies = deepcopy(body_dict)
+        bodies = copy.deepcopy(body_dict)
 
         if coord_sys.lower().startswith('car'):
             coord_sys = 'Carrington'
@@ -130,8 +217,14 @@ class SolarMACH():
         elif coord_sys=='Stonyhurst':
             self.pos_E = pos_E
 
-        if len(vsw_list) == 0:
-            vsw_list = np.zeros(len(body_list)) + 400
+        # make deep copy of vsw_list bc. otherwise it doesn't get reset in a new init:
+        vsw_list2 = copy.deepcopy(vsw_list)
+
+        if len(vsw_list2) == 0:
+            print('No solar wind speeds defined, trying to obtain measurements...')
+            for body in body_list:
+                vsw_list2.append(get_sw_speed(body=body, dtime=date, default_vsw=default_vsw))
+            # vsw_list = np.zeros(len(body_list)) + 400
 
         random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
                        'c', 'darkslategray', 'yellow', 'darkolivegreen']
@@ -163,7 +256,7 @@ class SolarMACH():
                 if coord_sys=='Carrington':
                     pos = pos.transform_to(frames.HeliographicCarrington(observer='Sun'))
                 bodies[body_id].append(pos)
-                bodies[body_id].append(vsw_list[i])
+                bodies[body_id].append(vsw_list2[i])
 
                 longsep_E = pos.lon.value - self.pos_E.lon.value
                 if longsep_E > 180:
@@ -176,9 +269,9 @@ class SolarMACH():
                 longsep_E_list.append(longsep_E)
                 latsep_E_list.append(latsep_E)
 
-                body_vsw_list.append(vsw_list[i])
+                body_vsw_list.append(vsw_list2[i])
 
-                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list[i])
+                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list2[i])
                 bodies[body_id].append(sep)
 
                 body_footp_long = pos.lon.value + alpha
@@ -247,7 +340,7 @@ class SolarMACH():
 
     def backmapping(self, body_pos, reference_long, target_solar_radius=1, vsw=400):
         """
-        Determine the longitudinal separation angle of a given spacecraft and a given reference longitude
+        Determine the longitudinal separation angle of a given body and a given reference longitude
 
         Parameters
         ----------
@@ -260,7 +353,8 @@ class SolarMACH():
         vsw: float
              solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
 
-        out:
+        Returns
+        -------
             sep: float
                 longitudinal separation of body magnetic footpoint and reference longitude in degrees
             alpha: float
@@ -330,7 +424,14 @@ class SolarMACH():
              long_sector=None,
              long_sector_vsw=None,
              long_sector_color='red',
-             background_spirals=None):
+             long_sector_alpha=0.5,
+             background_spirals=None,
+             test_plotly=False,
+             test_plotly_template='plotly',
+             # x_offset=0.0,  # TODO: remove this option.
+             # y_offset=0.0, # TODO: remove this option.
+             test_plotly_legend=(1.0, 1.0),
+             test_plotly_logo=(1.0, 0.0)):
         """
         Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
 
@@ -360,6 +461,8 @@ class SolarMACH():
             Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by long_sector) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
         long_sector_color: string, optional
             String defining the matplotlib color used for the shading defined by long_sector. By default 'red'.
+        long_sector_alpha: float, optional
+            Float between 0.0 and 1.0, defining the matplotlib alpha used for the shading defined by long_sector. By default 0.5.W
         background_spirals: list of 2 numbers (and 3 optional strings), optional
             If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
         """
@@ -381,6 +484,10 @@ class SolarMACH():
         # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
         E_long = self.pos_E.lon.value
+
+        if test_plotly:
+            import plotly.graph_objects as go
+            pfig = go.Figure()
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -420,6 +527,45 @@ class SolarMACH():
                 alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
 
+            if test_plotly:
+                if plot_spirals:
+                    pfig.add_trace(go.Scatterpolar(
+                        r=r_array * np.cos(np.deg2rad(body_lat)),
+                        theta=alpha_body,
+                        mode='lines',
+                        name=f'{body_id} magnetic field line',
+                        showlegend=False,
+                        line=dict(color=body_dict[body_id][2]),
+                        thetaunit="radians"))
+
+                if plot_sun_body_line:
+                    pfig.add_trace(go.Scatterpolar(
+                        r=[0.01, dist_body*np.cos(np.deg2rad(body_lat))],
+                        theta=[np.deg2rad(body_long), np.deg2rad(body_long)],
+                        mode='lines',
+                        name=f'{body_id} direct line',
+                        showlegend=False,
+                        line=dict(color=body_dict[body_id][2], dash='dot'),
+                        thetaunit="radians"))
+
+                if numbered_markers:
+                    str_number = f'<b>{i+1}</b>'
+                else:
+                    str_number = None
+
+                pfig.add_trace(go.Scatterpolar(
+                    r=[dist_body*np.cos(np.deg2rad(body_lat))],
+                    theta=[np.deg2rad(body_long)],
+                    mode='markers+text',
+                    name=body_id,
+                    marker=dict(size=16, color=body_dict[body_id][2]),
+                    # text=[f'<b>{body_id}</b>'],
+                    # textposition="top center",
+                    text=[str_number],
+                    textfont=dict(color="white", size=14),
+                    textposition="middle center",
+                    thetaunit="radians"))
+
         if self.reference_long is not None:
             delta_ref = self.reference_long
             if delta_ref < 0.:
@@ -445,16 +591,93 @@ class SolarMACH():
             #                     facecolor='black', lw=1.8, zorder=5, overhang=0.2)
             ref_arr = plt.arrow(np.deg2rad(delta_ref), 0.01, 0, arrow_dist, head_width=0.2, head_length=0.07, edgecolor='black',
                                 facecolor='black', lw=1.8, zorder=5, overhang=0.2)
-
+            if test_plotly:
+                if test_plotly_template=="plotly_dark":
+                    reference_color = "white"
+                else:
+                    reference_color = "black"
+                pfig.add_trace(go.Scatterpolar(
+                    r=[0.0, arrow_dist],
+                    theta=[np.deg2rad(delta_ref), np.deg2rad(delta_ref)],
+                    mode='lines+markers',
+                    marker=dict(symbol="arrow", size=15, angleref="previous", color=reference_color),
+                    name='reference long.',
+                    showlegend=True,
+                    line=dict(color=reference_color),
+                    thetaunit="radians"))
             if plot_spirals:
                 ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
+                if test_plotly:
+                    pfig.add_trace(go.Scatterpolar(
+                        r=r_array * np.cos(np.deg2rad(ref_lat)),
+                        theta=alpha_ref,
+                        mode='lines',
+                        name=f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
+                        showlegend=True,
+                        line=dict(color=reference_color, dash="dash"),
+                        thetaunit="radians"))
+
+        if test_plotly:
+            if numbered_markers:
+                for i, body_id in enumerate(self.body_dict):
+                    if self.reference_long is not None:
+                        x_offset_ref = -0.035  # 0.004
+                        y_offset_ref = 0.081
+                        y_offset_per_i = -0.051
+                    else:
+                        x_offset_ref = 0.0
+                        y_offset_ref = 0.0
+                        y_offset_per_i = -0.0475
+                    x_offset = -0.11  # 0.05
+                    y_offset = 0.124  # -0.0064
+                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", xanchor="center", yanchor="top",
+                                        x=test_plotly_legend[0]+x_offset+x_offset_ref, y=test_plotly_legend[1]+y_offset+y_offset_ref+y_offset_per_i*i,
+                                        showarrow=False, font=dict(color="white", size=14))
+
+            pfig.add_annotation(text='Solar-MACH', xref="paper", yref="paper",  # xanchor="center", yanchor="middle",
+                                x=test_plotly_logo[0], y=test_plotly_logo[1]+0.05,
+                                showarrow=False, font=dict(color="black", size=28, family='DejaVu Serif'), align="right")
+            pfig.add_annotation(text='https://solar-mach.github.io', xref="paper", yref="paper",  # xanchor="center", yanchor="middle",
+                                x=test_plotly_logo[0], y=test_plotly_logo[1],
+                                showarrow=False, font=dict(color="black", size=18, family='DejaVu Serif'), align="right")
+
+            # for template in ["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"]:
+            if not test_plotly_template:
+                test_plotly_template = "plotly"
+            polar_rotation = (long_offset - E_long)
+            pfig.update_layout(template=test_plotly_template,
+                               polar=dict(radialaxis_range=[0, self.max_dist + 0.3], angularaxis_rotation=polar_rotation),
+                               modebar_add=["v1hovermode"],
+                               modebar_remove=["select2d", "lasso2d"],
+                               margin=dict(l=100, r=100, b=0, t=50),
+                               # paper_bgcolor="LightSteelBlue",
+                               legend=dict(yanchor="middle", y=test_plotly_legend[1], xanchor="center", x=test_plotly_legend[0]))
+            # fig.show()
+            # if using streamlit, send plot to streamlit output, else call plt.show()
+            if _isstreamlit():
+                import streamlit as st
+                # st.plotly_chart(pfig, theme="streamlit")
+                st.components.v1.html(pfig.to_html(include_mathjax='cdn'), height=500)
+            else:
+                pfig.show()
 
         if long_sector is not None:
-            if type(long_sector) == list and len(long_sector)==2:
-                delta_ref1 = long_sector[0]
+            if type(long_sector) == list and np.array(long_sector).ndim==1:
+                long_sector = [long_sector]
+                long_sector_vsw = [long_sector_vsw]
+                long_sector_color = [long_sector_color]
+                long_sector_alpha = [long_sector_alpha]
+            else:
+                print("Non-standard 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'. 'long_sector_XXX' options have to follow accordingly.")
+            for i in range(len(long_sector)):
+                t_long_sector = long_sector[i]
+                t_long_sector_vsw = long_sector_vsw[i]
+                t_long_sector_color = long_sector_color[i]
+                t_long_sector_alpha = long_sector_alpha[i]
+                delta_ref1 = t_long_sector[0]
                 if delta_ref1 < 0.:
                     delta_ref1 = delta_ref1 + 360.
-                delta_ref2 = long_sector[1]
+                delta_ref2 = t_long_sector[1]
                 if delta_ref2 < 0.:
                     delta_ref2 = delta_ref2 + 360.
 
@@ -470,10 +693,10 @@ class SolarMACH():
                 # Build an r_array for the second spiral for while loop to iterate forwards
                 r_array2 = np.copy(r_array)
 
-                if long_sector_vsw is not None:
+                if t_long_sector_vsw is not None:
                     # Calculate the first spiral's angles along r
-                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[0]))
-                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2) * np.cos(np.deg2rad(long_sector_lat[1]))
+                    alpha_ref1 = np.deg2rad(delta_ref1) + omega_ref1 / (t_long_sector_vsw[0] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(long_sector_lat[0]))
+                    alpha_ref2 = np.deg2rad(delta_ref2) + omega_ref2 / (t_long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2) * np.cos(np.deg2rad(long_sector_lat[1]))
 
                     # Save the last angle as a starting point for reference for the while loop
                     alpha_init = alpha_ref2[-1]
@@ -487,7 +710,7 @@ class SolarMACH():
                     # While the second spiral is behind the first spiral in angle, extend the second spiral
                     while alpha_ref2[-1] > alpha_ref1_comp:
                         r_array2 = np.append(r_array2, r_array2[-1] + 0.1)
-                        alpha_ref2 = np.append(alpha_ref2, np.deg2rad(delta_ref2) + omega_ref2 / (long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2[-1]) * np.cos(np.deg2rad(long_sector_lat[1])))
+                        alpha_ref2 = np.append(alpha_ref2, np.deg2rad(delta_ref2) + omega_ref2 / (t_long_sector_vsw[1] / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array2[-1]) * np.cos(np.deg2rad(long_sector_lat[1])))
 
                     # Interpolate the first spiral's angles to the coarser second spiral's angles (outside the plot)
                     alpha_ref1 = np.interp(r_array2, r_array, alpha_ref1)
@@ -497,10 +720,10 @@ class SolarMACH():
                     alpha_ref1 = np.array([np.deg2rad(delta_ref1)] * len(r_array))
                     alpha_ref2 = np.array([np.deg2rad(delta_ref2)] * len(r_array))
 
-                c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                c1 = plt.polar(alpha_ref1, r_array2 * np.cos(np.deg2rad(long_sector_lat[0])), lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)[0]
                 x1 = c1.get_xdata()
                 y1 = c1.get_ydata()
-                c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0.5)[0]
+                c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)[0]
                 x2 = c2.get_xdata()
                 y2 = c2.get_ydata()
 
@@ -513,9 +736,7 @@ class SolarMACH():
                 x1_fill = x1[clause1][clause2]
                 x2_fill = x2[clause1][clause2]
 
-                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=long_sector_color, alpha=0.5)
-            else:
-                print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
+                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)
 
         if background_spirals is not None:
             if type(background_spirals) == list and len(background_spirals)>=2:
@@ -638,7 +859,11 @@ class SolarMACH():
             plt.show()
 
         if return_plot_object:
-            return fig, ax
+            # TODO: not really straightforward; change in future
+            if not test_plotly:
+                return fig, ax
+            else:
+                return pfig
 
     def _polar_twin(self, ax, E_long, position, long_offset):
         """
