@@ -10,6 +10,7 @@ numpy
 pandas
 pfsspy
 plotly
+python-dateutil
 scipy
 speasy
 sunpy
