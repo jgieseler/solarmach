@@ -106,7 +106,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     try:
         import speasy as spz
     except ModuleNotFoundError:
-        print(f"Couldn't load required module speasy, using default_vsw={default_vsw}. Install it with 'pip install speasy' to use this functionality." )
+        print(f"Couldn't load required module speasy, using default_vsw={default_vsw}. Install it with 'pip install speasy' to use this functionality.")
         return default_vsw
 
     try:
@@ -308,12 +308,12 @@ class SolarMACH():
              f'Magnetic footpoint longitude ({coord_sys})': footp_long_list})
 
         self.pfss_table = pd.DataFrame(
-            {"Spacecraft/Body" : list(self.body_dict.keys()), 
-             f"{coord_sys} longitude (°)" : body_lon_list,
-             f"{coord_sys} latitude (°)" : body_lat_list, 
-             "Heliocentric_distance (R_Sun)" : np.array(body_dist_list) * u.au.to(u.solRad), # Quick conversion of AU -> Solar radii
+            {"Spacecraft/Body": list(self.body_dict.keys()),
+             f"{coord_sys} longitude (°)": body_lon_list,
+             f"{coord_sys} latitude (°)": body_lat_list,
+             "Heliocentric_distance (R_Sun)": np.array(body_dist_list) * u.au.to(u.solRad),  # Quick conversion of AU -> Solar radii
              "Vsw": body_vsw_list
-            }
+             }
         )
 
         if self.reference_long is not None:
