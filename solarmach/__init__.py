@@ -859,28 +859,28 @@ class SolarMACH():
             else:
                 return pfig
 
-    def _polar_twin(self, ax, E_long, position, long_offset):
-        """
-        add an additional axes which is needed to plot additional longitudinal tickmarks with Earth at longitude 0
-        not used any more!
-        """
-        ax2 = ax.figure.add_axes(position, projection='polar',
-                                 label='twin', frameon=False,
-                                 theta_direction=ax.get_theta_direction(),
-                                 theta_offset=E_long)
+    # def _polar_twin(self, ax, E_long, position, long_offset):
+    #     """
+    #     add an additional axes which is needed to plot additional longitudinal tickmarks with Earth at longitude 0
+    #     not used any more!
+    #     """
+    #     ax2 = ax.figure.add_axes(position, projection='polar',
+    #                              label='twin', frameon=False,
+    #                              theta_direction=ax.get_theta_direction(),
+    #                              theta_offset=E_long)
 
-        ax2.set_rmax(self.max_dist + 0.3)
-        ax2.yaxis.set_visible(False)
-        ax2.set_theta_zero_location("S")
-        ax2.tick_params(axis='x', colors='darkgreen', pad=10)
-        ax2.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
-        ax2.set_thetalim(-np.pi, np.pi)
-        ax2.set_theta_offset(np.deg2rad(long_offset - E_long))
-        gridlines = ax2.xaxis.get_gridlines()
-        for xax in gridlines:
-            xax.set_color('darkgreen')
+    #     ax2.set_rmax(self.max_dist + 0.3)
+    #     ax2.yaxis.set_visible(False)
+    #     ax2.set_theta_zero_location("S")
+    #     ax2.tick_params(axis='x', colors='darkgreen', pad=10)
+    #     ax2.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
+    #     ax2.set_thetalim(-np.pi, np.pi)
+    #     ax2.set_theta_offset(np.deg2rad(long_offset - E_long))
+    #     gridlines = ax2.xaxis.get_gridlines()
+    #     for xax in gridlines:
+    #         xax.set_color('darkgreen')
 
-        return ax2
+    #     return ax2
 
     def plot_pfss(self, 
                   rss=2.5,
