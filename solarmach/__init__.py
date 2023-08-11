@@ -203,7 +203,7 @@ class SolarMACH():
 
         if coord_sys.lower().startswith('car'):
             coord_sys = 'Carrington'
-        if coord_sys.lower().startswith('sto') or coord_sys.lower() == 'Earth':
+        if coord_sys.lower().startswith('sto') or coord_sys.lower() == "earth":
             coord_sys = 'Stonyhurst'
 
         self.date = date
@@ -307,12 +307,23 @@ class SolarMACH():
              "Latitudinal separation to Earth's latitude": latsep_E_list, 'Vsw': body_vsw_list,
              f'Magnetic footpoint longitude ({coord_sys})': footp_long_list})
 
+        self.pfss_table = pd.DataFrame(
+            {"Spacecraft/Body" : list(self.body_dict.keys()), 
+             f"{coord_sys} longitude (°)" : body_lon_list,
+             f"{coord_sys} latitude (°)" : body_lat_list, 
+             "Heliocentric_distance (R_Sun)" : np.array(body_dist_list) * u.au.to(u.solRad), # Quick conversion of AU -> Solar radii
+             "Vsw": body_vsw_list
+            }
+        )
+
         if self.reference_long is not None:
             self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
             self.coord_table[
                 "Longitudinal separation between body's mangetic footpoint and reference_long"] = footp_longsep_list
+            self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1, np.NaN]
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
+            self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference Point", f"{coord_sys} latitude (°)"] = self.reference_lat
 
         # Does this still have a use?
         pass
@@ -936,14 +947,22 @@ class SolarMACH():
         ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.866, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(30deg) = 0.866(O)
         ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*0.500, c='darkgray', lw=1.5, ls=":", zorder=3) #cos(60deg) = 0.5(0)
 
+        # Plot the gridlines for 10 and 100 solar radii, because this sometimes fails bythe .grid() -method for unkown reason
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*10, c="gray", lw=0.6, ls='-', zorder=1)
+        ax.plot(full_circle_radians, np.ones(len(full_circle_radians))*100, c="gray", lw=0.6, ls='-', zorder=1) 
+
         # Gather field line objects, photospheric footpoints and magnetic polarities in these lists
-        # fieldlines is a class attribute, so that the field lines can be neasily 3D plotted with another method
+        # fieldlines is a class attribute, so that the field lines can be easily 3D plotted with another method
         self.fieldlines = []
         photospheric_footpoints = []
         fieldline_polarities = []
 
         # The radial coordinates for reference parker spiral (plot even outside the figure boundaries to avert visual bugs)
         reference_array = np.linspace(rss, r_max+200, int(1e3))
+
+        # Longitudinal and latitudinal separation angles to Earth's magnetic footpoint
+        lon_sep_angles = np.array([])
+        lat_sep_angles = np.array([])
 
         for i, body_id in enumerate(self.body_dict):
 
@@ -1022,6 +1041,23 @@ class SolarMACH():
             photospheric_footpoints.append((fl_lon[0], fl_lat[0]))
             fieldline_polarities.append(int(fline_objects[0].polarity))
 
+            # Save Earth's magnetic footpoint for later comparison:
+            if body_lab == "Earth":
+                earth_footpoint = (fl_lon[0], fl_lat[0])
+
+
+        # Calculate footpoint separation angles to Earth's footpoint
+        if "Earth" in self.body_dict:
+            for footpoint in photospheric_footpoints:
+                lon_sep = earth_footpoint[0] - footpoint[0]
+                lon_sep = lon_sep if lon_sep < 180 else lon_sep - 360 # Here check that the separation isn't over half a circle
+                lat_sep = earth_footpoint[1] - footpoint[1]
+
+                lon_sep_angles = np.append(lon_sep_angles, lon_sep)
+                lat_sep_angles = np.append(lat_sep_angles, lat_sep)
+            
+            self.pfss_table["Footpoint lon separation to Earth's footpoint lon"] = lon_sep_angles
+            self.pfss_table["Footpoint lat separation to Earth's footpoint lat"] = lat_sep_angles
 
         # Reference longitude and corresponding parker spiral arm
         if self.reference_long:
@@ -1056,32 +1092,52 @@ class SolarMACH():
             self.reference_fieldlines.append(ref_objects[0])
 
             # Also init extreme values for the longitudinal span of the uptracked flux tube
-            reference_long_min, reference_long_max = 360, 0
+            self.reference_long_min, self.reference_long_max = 360, 0
+
+            # Boolean switch to keep track what kind of arrow/spiral to draw for reference point
+            open_mag_flux_near_ref_point = False
 
             # Loop the fieldlines, collect them to the list and find the extreme values of longitude at the ss
             for ref_vary in varyref_objects:
                 self.reference_fieldlines.append(ref_vary)
 
+                # There still may be closed field lines here, despite trying to avert them in vary_flines() -function. Check here
+                # that they do not contribute to the max longitude reach at the ss:
+                if ref_vary.polarity == 0:
+                    continue
+                else:
+                    open_mag_flux_near_ref_point = True
+
                 # Check the orientation of the field line; is the first index at the photosphere or the last?
                 idx = 0 if ref_vary.coords.radius.value[0] > ref_vary.coords.radius.value[-1] else -1
 
                 # Collect the longitudinal extreme values from the uptracked fluxtube at the source surface height
-                if ref_vary.coords.lon.value[idx] < reference_long_min:
-                    reference_long_min = ref_vary.coords.lon.value[idx]
-                if ref_vary.coords.lon.value[idx] > reference_long_max:
-                    reference_long_max = ref_vary.coords.lon.value[idx]
+                if ref_vary.coords.lon.value[idx] < self.reference_long_min:
+                    self.reference_long_min = ref_vary.coords.lon.value[idx]
+                if ref_vary.coords.lon.value[idx] > self.reference_long_max:
+                    self.reference_long_max = ref_vary.coords.lon.value[idx]
 
             arrow_dist = rss-0.80
-            ref_arr = plt.arrow(np.deg2rad(reference_long_min), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
-                               facecolor='black', lw=0, zorder=7, overhang=0.1)
-            ref_arr = plt.arrow(np.deg2rad(reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
-                               facecolor='black', lw=0, zorder=7, overhang=0.1)
+            if open_mag_flux_near_ref_point:
+                ref_arr = plt.arrow(np.deg2rad(self.reference_long_min), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
+                                facecolor='black', lw=0, zorder=7, overhang=0.1)
+                ref_arr = plt.arrow(np.deg2rad(self.reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
+                                facecolor='black', lw=0, zorder=7, overhang=0.1)
+                
+                reference_legend_label = f"reference long.\nsector:\n({np.round(self.reference_long_min,1)}, {np.round(self.reference_long_max,1)})"
 
-            if plot_spirals:
+            else:
+                ref_arr = plt.arrow(np.deg2rad(self.reference_long), 1, 0, arrow_dist, head_width=0.1, head_length=0.5, edgecolor='black',
+                                facecolor='black', lw=1., zorder=7, overhang=0.5)
+
+                reference_legend_label = f"reference long.\n{self.reference_long}" + r" ^{\circ}"
+
+            # These two spirals and the space between them gets drawn only if we plot spirals and open magnetic flux was found near the ref point
+            if plot_spirals and open_mag_flux_near_ref_point:
 
                 # Calculate spirals for the flux tube boundaries
-                alpha_ref_min = np.deg2rad(reference_long_min) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
-                alpha_ref_max = np.deg2rad(reference_long_max) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+                alpha_ref_min = np.deg2rad(self.reference_long_min) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+                alpha_ref_max = np.deg2rad(self.reference_long_max) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
 
                 # Plot the spirals
                 min_edge = plt.polar(alpha_ref_min, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
@@ -1093,6 +1149,13 @@ class SolarMACH():
                 x2 = max_edge.get_xdata()
 
                 plt.fill_betweenx(y1, x1, x2, lw=0, color="grey", alpha=0.35)
+
+            # Here we plot spirals but open magnetic flux was not found -> draw only one spiral
+            if plot_spirals:
+
+                alpha_ref_single = np.deg2rad(self.reference_long) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
+                ax.plot(alpha_ref_single, reference_array * np.cos(np.deg2rad(ref_lat)), color="grey")
+
 
         if long_sector is not None:
             if isinstance(long_sector, (list,tuple)) and len(long_sector)==2:
@@ -1193,7 +1256,7 @@ class SolarMACH():
                 return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
                                            head_width=0.75 * height)
 
-            leg2 = ax.legend([ref_arr], ['reference long.'], loc=(1.05, 0.6),
+            leg2 = ax.legend([ref_arr], [reference_legend_label], loc=(1.05, 0.6),
                              handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
                              fontsize=15)
             ax.add_artist(leg1)
@@ -1254,9 +1317,19 @@ class SolarMACH():
         cb_ax = fig.axes[-1]
         cb_ax.set_ylabel('Heliographic latitude [deg]', fontsize=20)
 
-        # Add footpoints and magnetic polarities to coord_table
-        self.coord_table["PFSS_Footpoint"] = photospheric_footpoints
-        self.coord_table["Magnetic polarity"] = fieldline_polarities
+        # Add footpoints, magnetic polarities and the reach of reference_long flux tube to PFSS_table
+        if self.reference_long:
+            photospheric_footpoints.append(self.reference_long)
+            fieldline_polarities.append(ref_objects[0].polarity)
+            self.pfss_table["Reference flux tube lon range"] = [np.NaN if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)] 
+
+        self.pfss_table["Magnetic footpoint (PFSS)"] = photospheric_footpoints 
+        self.pfss_table["Magnetic polarity"] = fieldline_polarities
+    
+
+        # Update solar wind speed to the reference point
+        if reference_vsw:
+            self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference_point", "Vsw"] = reference_vsw
 
         # if using streamlit, send plot to streamlit output, else call plt.show()
         if _isstreamlit():
@@ -1351,6 +1424,39 @@ class SolarMACH():
 
             traces.append(fieldline_trace)
 
+        # If there is a reference_longitude that was plotted, add it to the list of names
+        if self.reference_long:
+
+         for i, field_line in enumerate(self.reference_fieldlines):
+
+            coords = field_line.coords
+            coords.representation_type = "cartesian"
+
+            if color_code=="polarity":
+                color = colors.get(field_line.polarity)
+            if color_code=='object':
+                color = "black"
+
+            # New object's lines being plotted
+            if i==0:
+                if self.reference_lat is None:
+                    ref_lat = 0
+                else:
+                    ref_lat = self.reference_lat
+                line_label = f"Reference_point: {self.reference_long, ref_lat}"
+                show_in_legend = True
+            else:
+                show_in_legend = False
+
+            fieldline_trace = go.Scatter3d(x=coords.x/R_sun, y=coords.y/R_sun, z=coords.z/R_sun, 
+                                        mode='lines', 
+                                        line = Line(color = color, width = 3.5),
+                                        name = line_label,
+                                        showlegend = show_in_legend
+                                        )
+
+            traces.append(fieldline_trace)
+
         if active_area[0]:
 
             # the flare area is bound by the extreme values of longitude and latitude
@@ -1386,7 +1492,7 @@ class SolarMACH():
         equator_line = go.Scatter3d(x=equator_cartesians[0], y=equator_cartesians[1], z=equator_cartesians[2],
                                     mode='lines',
                                     line=Line(color='black', width=5.5),
-                                    name="0 Latitude"
+                                    name="Solar equator"
                                     )
 
         traces.append(equator_line)
