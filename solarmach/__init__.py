@@ -1055,7 +1055,13 @@ class SolarMACH():
 
                 lon_sep_angles = np.append(lon_sep_angles, lon_sep)
                 lat_sep_angles = np.append(lat_sep_angles, lat_sep)
-            
+
+            if self.reference_long:
+                ref_earth_sep_lon = earth_footpoint[0] - self.reference_long if earth_footpoint[0] - self.reference_long < 180 else earth_footpoint[0] - self.reference_long - 360
+                ref_earth_sep_lat = earth_footpoint[1] - self.reference_lat if self.reference_lat else earth_footpoint[1]
+                lon_sep_angles = np.append(lon_sep_angles, ref_earth_sep_lon)
+                lat_sep_angles = np.append(lat_sep_angles, ref_earth_sep_lat)
+
             self.pfss_table["Footpoint lon separation to Earth's footpoint lon"] = lon_sep_angles
             self.pfss_table["Footpoint lat separation to Earth's footpoint lat"] = lat_sep_angles
 
@@ -1127,10 +1133,13 @@ class SolarMACH():
                 reference_legend_label = f"reference long.\nsector:\n({np.round(self.reference_long_min,1)}, {np.round(self.reference_long_max,1)})"
 
             else:
+                # Set the reach of the flux tube to nan, since it doesn't even reach up to the source surface
+                self.reference_long_min, self.reference_long_max = np.NaN, np.NaN
+
                 ref_arr = plt.arrow(np.deg2rad(self.reference_long), 1, 0, arrow_dist, head_width=0.1, head_length=0.5, edgecolor='black',
                                 facecolor='black', lw=1., zorder=7, overhang=0.5)
 
-                reference_legend_label = f"reference long.\n{self.reference_long}" + r" ^{\circ}"
+                reference_legend_label = f"reference long.\n{self.reference_long} deg"
 
             # These two spirals and the space between them gets drawn only if we plot spirals and open magnetic flux was found near the ref point
             if plot_spirals and open_mag_flux_near_ref_point:
