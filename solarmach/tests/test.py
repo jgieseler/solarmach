@@ -76,14 +76,14 @@ def test_solarmach_plot():
 
 def test_solarmach_pfss():
     date = '2021-4-1 1:00:00'
-    body_list = ['STEREO-A']
-    vsw_list = [400]   # position-sensitive solar wind speed per body in body_list
-    sm = SolarMACH(date, body_list, vsw_list)
+    body_list = ['Earth', 'STEREO-A']
+    vsw_list = [400, 400]   # position-sensitive solar wind speed per body in body_list
+    sm = SolarMACH(date, body_list, vsw_list, reference_long=100, reference_lat=10)
     gong_map = get_gong_map(time=date, filepath=None)
     assert isinstance(gong_map, pfsspy.map.GongSynopticMap)
     pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5)
     assert isinstance(pfss_solution, pfsspy.output.Output)
     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
                            numbered_markers=True, long_sector=[290, 328], long_sector_vsw=[400, 600],
-                           long_sector_color='red')
+                           long_sector_color='red', reference_vsw=400.0)
     assert isinstance(fig, matplotlib.figure.Figure)
