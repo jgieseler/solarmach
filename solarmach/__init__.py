@@ -896,7 +896,8 @@ class SolarMACH():
                   long_sector = None,
                   long_sector_vsw = None,
                   long_sector_color = None,
-                  hide_logo = False):
+                  hide_logo = False,
+                  outfile=''):
         """
         Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
         Also tracks an open field line down to photosphere given a point on the pfss.
@@ -1339,6 +1340,9 @@ class SolarMACH():
         # Update solar wind speed to the reference point
         if reference_vsw:
             self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference_point", "Vsw"] = reference_vsw
+        
+        if outfile != '':
+            plt.savefig(outfile, bbox_inches="tight")
 
         # if using streamlit, send plot to streamlit output, else call plt.show()
         if _isstreamlit():
@@ -1518,9 +1522,15 @@ class SolarMACH():
                           width=1280, height=720,
                           margin=dict(r=20, l=10, b=10, t=10))
 
-        fig.show()
+        if _isstreamlit():
+            fig.update_layout(width=700, height=700)
+            import streamlit as st
+            # st.plotly_chart(pfig, theme="streamlit")
+            st.components.v1.html(fig.to_html(include_mathjax='cdn'), height=700)
+        else:
+            fig.show()
 
-        return 0
+        return
 
 
 def _isstreamlit():
