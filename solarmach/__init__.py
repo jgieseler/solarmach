@@ -1377,7 +1377,7 @@ class SolarMACH():
         import plotly.express as px
         import plotly.graph_objects as go
         from astropy.constants import R_sun
-        from plotly.graph_objects import Line
+        from plotly.graph_objs.scatter3d import Line
 
         # Flare site (or whatever area of interest) is plotted at this height
         FLARE_HEIGHT = 1.005
