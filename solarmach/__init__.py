@@ -151,6 +151,8 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     try:
         df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
         df = df[sw_key[body]].resample('1H').mean()
+        # drop NaN entries:
+        df.dropna(inplace=True)
         if len(df) > 0:
             idx = df[df.index.get_indexer([dtime], method='nearest')]
             return idx.values[0]
