@@ -229,12 +229,12 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
 def vary_flines(lon, lat, hmimap, n_varies, seedheight):
     """
     Finds a set of sub-pfss fieldlines connected to or very near a single footpoint on the pfss.
-    
+
     lon: longitude of the footpoint [rad]
     lat: latitude of the footpoint [rad]
-    
+
     n_varies:   tuple that holds the amount of circles and the number of dummy flines per circle
-                if type(n_varies)=int, consider that as the amount of circles, and set the 
+                if type(n_varies)=int, consider that as the amount of circles, and set the
                 amount of dummy flines per circle to 16
 
     params
@@ -245,7 +245,7 @@ def vary_flines(lon, lat, hmimap, n_varies, seedheight):
             The latitude of the footpoint in radians
     hmimap: hmi_synoptic_map object
             The pfss-solution used to calculate the field lines
-    n_varies: list[int,int] or int 
+    n_varies: list[int,int] or int
             A list that holds the amount of circles and the number of dummy flines per circle
             if type(n_varies)=int, consider that as the amount of circles, and set the
             amount of dummy flines per circle to 16
@@ -265,7 +265,7 @@ def vary_flines(lon, lat, hmimap, n_varies, seedheight):
     """
 
     # Field lines per n_circles (circle)
-    if isinstance(n_varies,(list,tuple)):
+    if isinstance(n_varies, (list, tuple)):
         print(f"n_varies: {n_varies}")
         n_circles = n_varies[0]
         n_flines = n_varies[1]
@@ -278,13 +278,13 @@ def vary_flines(lon, lat, hmimap, n_varies, seedheight):
     increments = np.array([0.03, 0.05, 0.07, 0.09, 0.11, 0.13, 0.15, 0.17, 0.19, 0.21, 0.23, 0.25, 0.27, 0.29])
     for circle in range(n_circles):
 
-        newlons, newlats = circle_around(lon,lat,n_flines,r=increments[circle])
-        lons, lats = np.append(lons,newlons), np.append(lats,newlats)
+        newlons, newlats = circle_around(lon, lat, n_flines, r=increments[circle])
+        lons, lats = np.append(lons, newlons), np.append(lats, newlats)
 
     pointlist = np.array([lons, lats])
 
     # Trace fieldlines from all of these points
-    varycoords, varyflines = get_field_line_coords(pointlist[0],pointlist[1],hmimap, seedheight)
+    varycoords, varyflines = get_field_line_coords(pointlist[0], pointlist[1], hmimap, seedheight)
 
     # Because the original fieldlines and the varied ones are all in the same arrays,
     # Extract the varied ones to their own arrays
@@ -299,7 +299,7 @@ def vary_flines(lon, lat, hmimap, n_varies, seedheight):
             erased_indices.append(i)
             # pop(i) removes the ith element from the list and returns it
             # -> we append it to the list of original footpoint fieldlines
-            coordlist.append(varycoords[i]) #.pop(i)
+            coordlist.append(varycoords[i])  # .pop(i)
             flinelist.append(varyflines[i])
 
     # Really ugly quick fix to erase values from varycoords and varyflines
@@ -638,7 +638,7 @@ def construct_gongmap_filename(timestr, directory):
     """
 
     dtime = dateutil.parser.parse(timestr)
-    
+
     # If directory is None, (equivalent to not directory in logic), then use the current directory as a base
     if not directory:
         directory = os.getcwd()
@@ -657,7 +657,7 @@ def construct_gongmap_filename(timestr, directory):
         return directory
 
 
-def get_gong_map(time:str, filepath:str=None, autodownload=True):
+def get_gong_map(time: str, filepath: str=None, autodownload=True):
     """
     A wrapper for functions load_gong_map() and download_gong_map().
     Returns a gong map if one is found or autodownload is True. If no map found and
