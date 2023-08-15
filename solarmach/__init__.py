@@ -967,7 +967,7 @@ class SolarMACH():
         lon_sep_angles = np.array([])
         lat_sep_angles = np.array([])
 
-        for i, body_id in enumerate(self.body_dict):
+        for i, body_id in enumerate(tqdm(self.body_dict)):
 
             body_lab = self.body_dict[body_id][1]
             body_color = self.body_dict[body_id][2]
@@ -1554,3 +1554,9 @@ def _isstreamlit():
     except ModuleNotFoundError:
         use_streamlit = False
     return use_streamlit
+
+
+if _isstreamlit():
+    from stqdm import stqdm as tqdm
+else:
+    from tqdm.auto import tqdm
