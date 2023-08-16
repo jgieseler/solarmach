@@ -47,8 +47,14 @@ def test_solarmach_get_sw_speed():
     body_list = ['Earth', 'STEREO-A', 'BepiColombo']
     date = '2021-10-28 15:15:00'
     sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
-    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='STEREO-A']['Vsw'].values[0]) == 365.0
+    try:
+        import speasy as spz
+        vsw_stereoa = 365.0
+    except ModuleNotFoundError:
+        vsw_stereoa = 400.0
+    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='STEREO-A']['Vsw'].values[0]) == vsw_stereoa
     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
+
 
 
 def test_solarmach_plot():
