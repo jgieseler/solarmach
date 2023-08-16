@@ -6,7 +6,7 @@ import matplotlib
 import numpy as np
 import pandas
 import pfsspy
-from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution
+from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance
 
 
 def test_print_body_list():
@@ -87,3 +87,13 @@ def test_solarmach_pfss():
                            numbered_markers=True, long_sector=[290, 328], long_sector_vsw=[400, 600],
                            long_sector_color='red', reference_vsw=400.0)
     assert isinstance(fig, matplotlib.figure.Figure)
+
+
+def test_sc_distance():
+    distance = sc_distance('SolO', 'PSP', "2020/12/12")
+    assert np.round(distance.value, 8) == 1.45237361
+    assert distance.unit == u.AU
+    #
+    distance = sc_distance('SolO', 'PSP', "2000/12/12")
+    assert np.isnan(distance.value)
+    assert distance.unit == u.AU

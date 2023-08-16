@@ -23,6 +23,7 @@ from astropy.coordinates import SkyCoord
 from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
+from sunpy.time import parse_time
 
 from solarmach.pfss_utilities import calculate_pfss_solution, get_field_line_coords, get_gong_map, multicolorline, sphere, spheric2cartesian, vary_flines
 
@@ -1529,6 +1530,58 @@ class SolarMACH():
             fig.show()
 
         return
+
+
+def sc_distance(sc1, sc2, dtime):
+    """
+    Obtain absolute distance between two bodies in 3d for a given datetime.
+
+    Parameters
+    ----------
+    sc1 : str
+        Name of body 1, e.g., planet or spacecraft
+    sc2 : str
+        Name of body 2, e.g., planet or spacecraft
+    dtime : datetime object or datetime-compatible str
+        Date (and time) of distance determination
+
+    Returns
+    -------
+    astropy units
+        Absolute distance between body 1 and 2 in AU.
+    """
+    # parse datetime:
+    if type(dtime) == str:
+        try:
+            obstime = parse_time(dtime)
+        except ValueError:
+            print(f"Unable to extract datetime from '{dtime}'. Please try a different format.")
+            return np.nan*u.AU
+
+    # standardize body names (e.g. 'PSP' => 'Parker Solar Probe')
+    try:
+        sc1 = body_dict[sc1][1]
+    except KeyError:
+        pass
+    #
+    try:
+        sc2 = body_dict[sc2][1]
+    except KeyError:
+        pass
+
+    try:
+        sc1_coord = get_horizons_coord(sc1, obstime, None)
+    except ValueError:
+        print(f"Unable to obtain position for '{sc1}' at {dtime}. Please try a different name or date.")
+        return np.nan*u.AU
+    #
+    try:
+        sc2_coord = get_horizons_coord(sc2, obstime, None)
+    except ValueError:
+        print(f"Unable to obtain position for '{sc2}' at {dtime}. Please try a different name or date.")
+        return np.nan*u.AU
+
+    return sc1_coord.separation_3d(sc2_coord)
 
 
 def _isstreamlit():
