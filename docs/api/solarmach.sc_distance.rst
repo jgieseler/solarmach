@@ -1,5 +1,5 @@
-get_sw_speed
-============
+sc_distance
+===========
 
 .. currentmodule:: solarmach
 
