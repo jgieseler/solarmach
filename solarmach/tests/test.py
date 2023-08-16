@@ -56,7 +56,6 @@ def test_solarmach_get_sw_speed():
     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
 
 
-
 def test_solarmach_plot():
     body_list = ['STEREO-A']
     vsw_list = [400]
