@@ -2,6 +2,7 @@ import os
 
 import astropy
 import astropy.units as u
+import datetime as dt
 import matplotlib
 import numpy as np
 import pandas
@@ -96,6 +97,10 @@ def test_solarmach_pfss():
 
 def test_sc_distance():
     distance = sc_distance('SolO', 'PSP', "2020/12/12")
+    assert np.round(distance.value, 8) == 1.45237361
+    assert distance.unit == u.AU
+    #
+    distance = sc_distance('SolO', 'PSP', dt.date(2020, 12, 12))
     assert np.round(distance.value, 8) == 1.45237361
     assert distance.unit == u.AU
     #

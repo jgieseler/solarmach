@@ -1557,6 +1557,8 @@ def sc_distance(sc1, sc2, dtime):
         except ValueError:
             print(f"Unable to extract datetime from '{dtime}'. Please try a different format.")
             return np.nan*u.AU
+    else:
+        obstime = dtime
 
     # standardize body names (e.g. 'PSP' => 'Parker Solar Probe')
     try:
@@ -1572,13 +1574,13 @@ def sc_distance(sc1, sc2, dtime):
     try:
         sc1_coord = get_horizons_coord(sc1, obstime, None)
     except ValueError:
-        print(f"Unable to obtain position for '{sc1}' at {dtime}. Please try a different name or date.")
+        print(f"Unable to obtain position for '{sc1}' at {obstime}. Please try a different name or date.")
         return np.nan*u.AU
     #
     try:
         sc2_coord = get_horizons_coord(sc2, obstime, None)
     except ValueError:
-        print(f"Unable to obtain position for '{sc2}' at {dtime}. Please try a different name or date.")
+        print(f"Unable to obtain position for '{sc2}' at {obstime}. Please try a different name or date.")
         return np.nan*u.AU
 
     return sc1_coord.separation_3d(sc2_coord)
