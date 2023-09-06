@@ -1353,7 +1353,7 @@ class SolarMACH():
         if return_plot_object:
             return fig, ax
 
-    def pfss_3d(self, active_area=(None, None, None, None), color_code='object'):
+    def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5, zoom_out=False):
         """
         https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Scatter3d.html
         https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
@@ -1520,6 +1520,269 @@ class SolarMACH():
                           zaxis=dict(nticks=4, range=[-2.5, 2.5],),),
                           width=1280, height=720,
                           margin=dict(r=20, l=10, b=10, t=10))
+
+        # """START"""
+        # fig.update_layout(scene=dict(
+        #                   xaxis=dict(nticks=4, range=[-220, 220],),
+        #                   yaxis=dict(nticks=4, range=[-220, 220],),
+        #                   zaxis=dict(nticks=4, range=[-220, 220],),),
+        #                   width=1280, height=720,
+        #                   margin=dict(r=20, l=10, b=10, t=10))
+        # for i, body_id in enumerate(self.body_dict):
+        #     body_lab = self.body_dict[body_id][1]
+        #     body_color = self.body_dict[body_id][2]
+        #     body_vsw = self.body_dict[body_id][4]
+        #     body_pos = self.body_dict[body_id][3]
+
+        #     # print(body_pos.cartesian.x.to(u.solRad), body_pos.cartesian.y.to(u.solRad), body_pos.cartesian.z.to(u.solRad))
+
+        #     # pos = body_pos
+        #     # dist_body = pos.radius.value
+
+        #     # body_long = pos.lon.value
+        #     # body_lat = pos.lat.value
+
+        #     # take into account solar differential rotation wrt. latitude
+        #     # omega = self.solar_diff_rot(body_lat)
+
+        #     print(body_pos.cartesian.x.to(u.solRad).value, body_pos.cartesian.y.to(u.solRad).value, body_pos.cartesian.z.to(u.solRad).value)
+
+        #     str_number = None
+        #     # x, y, z = spheric2cartesian(dist_body*np.cos(np.deg2rad(body_lat)), np.deg2rad(body_long), np.deg2rad(body_lat))
+        #     # x, y, z = spheric2cartesian(dist_body*np.cos(np.deg2rad(body_lat)), np.deg2rad(body_lat), np.deg2rad(body_long))
+        #     # x, y, z = spheric2cartesian(dist_body, np.deg2rad(body_long), np.deg2rad(body_lat))
+        #     # x = r*np.cos(theta) *np.sin(phi)
+        #     # y = r*np.sin(theta)*np.sin(phi)
+        #     # z= r*np.cos(phi)
+        #     fig.add_trace(go.Scatter3d(
+        #         x=[body_pos.cartesian.x.to(u.solRad).value],
+        #         y=[body_pos.cartesian.y.to(u.solRad).value],
+        #         z=[body_pos.cartesian.z.to(u.solRad).value],
+        #         mode='markers+text',
+        #         name=body_id,
+        #         marker=dict(size=16, color=body_dict[body_id][2]),
+        #         # text=[f'<b>{body_id}</b>'],
+        #         # textposition="top center",
+        #         text=[str_number],
+        #         textfont=dict(color="white", size=14),
+        #         textposition="middle center",
+        #         # thetaunit="radians"
+        #         ))
+        # """STOP"""
+        numbered_markers = True
+        plot_spirals = True
+        plot_sun_body_line = True
+
+        AU = const.au / 1000  # km
+
+        # scale from AU/km to solar radii/km
+        # r_array = r_array * AU / R_sun.to(u.km).value
+        max_dist2 = self.max_dist * AU / R_sun.to(u.km).value
+
+        # TODO: is r_array falsly projected to the ecliptic here again???
+        # build array of values for radius (in spherical coordinates!) given in AU!
+        # r_array = np.arange(0.007, (self.max_dist+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.001)
+        # r_array = np.arange(0.007, (max_dist2+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.001)  # Define with lower "resolution"!
+        r_array = np.arange(0.007, (max_dist2+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.05)
+
+        for i, body_id in enumerate(self.body_dict):
+            body_lab = self.body_dict[body_id][1]
+            body_color = self.body_dict[body_id][2]
+            body_vsw = self.body_dict[body_id][4]
+            body_pos = self.body_dict[body_id][3]
+
+            pos = body_pos
+            # dist_body = pos.radius.value
+            dist_body = (pos.radius.to(u.m)/R_sun).value
+
+            body_long = pos.lon.value
+            body_lat = pos.lat.value
+
+            # take into account solar differential rotation wrt. latitude
+            omega = self.solar_diff_rot(body_lat)
+
+            # TODO: np.cos(np.deg2rad(body_lat) correct????
+            # alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
+            alpha_body = np.deg2rad(body_long) + omega / (body_vsw / R_sun.to(u.km).value) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
+
+            if plot_spirals:
+                phi = np.ones(len(r_array))*np.deg2rad(body_lat)
+                # x, y, z = spheric2cartesian(r_array * np.cos(np.deg2rad(body_lat)), phi, alpha_body)
+                x, y, z = spheric2cartesian(r_array[r_array>=rss], phi[r_array>=rss], alpha_body[r_array>=rss])
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} magnetic field line',
+                                           showlegend=False,
+                                           line=dict(color=body_dict[body_id][2]),
+                                           # thetaunit="radians"
+                                           ))
+
+            if plot_sun_body_line:
+                x, y, z = spheric2cartesian([0.01, dist_body], [0.01, np.deg2rad(body_lat)], [np.deg2rad(body_long), np.deg2rad(body_long)])
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} direct line',
+                                           showlegend=False,
+                                           line=dict(color=body_dict[body_id][2], dash='dot'),
+                                           # thetaunit="radians"
+                                           ))
+
+            if numbered_markers:
+                str_number = f'<b>{i+1}</b>'
+            else:
+                str_number = None
+
+            fig.add_trace(go.Scatter3d(x=[(body_pos.cartesian.x.to(u.m)/R_sun).value],
+                                       y=[(body_pos.cartesian.y.to(u.m)/R_sun).value],
+                                       z=[(body_pos.cartesian.z.to(u.m)/R_sun).value],
+                                       mode='markers+text',
+                                       name=body_id,
+                                       marker=dict(size=10, color=body_dict[body_id][2]),
+                                       # text=[f'<b>{body_id}</b>'],
+                                       text=[str_number],
+                                       textfont=dict(color="white", size=14),
+                                       textposition="middle center",
+                                       # thetaunit="radians"
+                                       ))
+
+            xyz_range = 2.5
+            if zoom_out:
+                xyz_range = max_dist2
+              
+            fig.update_layout(scene=dict(xaxis=dict(title="X / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
+                                         yaxis=dict(title="Y / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
+                                         zaxis=dict(title="Z / R_sun", nticks=4, range=[-xyz_range, xyz_range],)),
+                              width=1280, height=720,
+                              margin=dict(r=20, l=10, b=10, t=10),
+                              )
+
+        fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
+                                 y=np.linspace(-200, 200, 100),
+                                 z=np.zeros((100, 100)),
+                                 hoverinfo='skip',
+                                 colorscale='gray', showscale=False, opacity=0.2))
+
+        if _isstreamlit():
+            fig.update_layout(width=700, height=700)
+            import streamlit as st
+            # st.plotly_chart(pfig, theme="streamlit")
+            st.components.v1.html(fig.to_html(include_mathjax='cdn'), height=700)
+        else:
+            fig.show()
+
+        return
+
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, numbered_markers=True):
+        """
+        experimental 3d version of classic solarmach plot (no pfss)
+        """
+
+        import plotly.express as px
+        import plotly.graph_objects as go
+        from astropy.constants import R_sun
+        from plotly.graph_objs.scatter3d import Line
+
+        AU = const.au / 1000  # km
+        # sun_radius = aconst.R_sun.value  # meters
+
+        # build array of values for radius (in spherical coordinates!) given in AU!
+        r_array = np.arange(0.007, (self.max_dist+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.001)
+
+        # create the sun object, a sphere, for plotting
+        # use 10*R_sun to have it visilble!
+        sun = sphere(radius=(10*u.solRad).to(u.AU).value, clr='#ffff55')  # '#ffff00'
+
+        # create the figure
+        fig = go.Figure([sun])
+
+        # additional figure settings, like aspect mode, extreme values of axes etc...
+        fig.update_layout(scene_aspectmode='cube')
+
+        fig.update_layout(scene=dict(xaxis=dict(title="X / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
+                                     yaxis=dict(title="Y / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
+                                     zaxis=dict(title="Z / AU", nticks=4, range=[-self.max_dist, self.max_dist],)),
+                          width=1280, height=720,
+                          margin=dict(r=20, l=10, b=10, t=10),
+                          )
+
+        for i, body_id in enumerate(self.body_dict):
+            body_lab = self.body_dict[body_id][1]
+            body_color = self.body_dict[body_id][2]
+            body_vsw = self.body_dict[body_id][4]
+            body_pos = self.body_dict[body_id][3]
+
+            pos = body_pos
+            dist_body = pos.radius.value
+
+            body_long = pos.lon.value
+            body_lat = pos.lat.value
+
+            # take into account solar differential rotation wrt. latitude
+            omega = self.solar_diff_rot(body_lat)
+
+            # TODO: np.cos(np.deg2rad(body_lat) correct????
+            alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
+
+            if plot_spirals:
+                phi = np.ones(len(r_array))*np.deg2rad(body_lat)
+                # x, y, z = spheric2cartesian(r_array * np.cos(np.deg2rad(body_lat)), phi, alpha_body)
+                x, y, z = spheric2cartesian(r_array, phi, alpha_body)
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} magnetic field line',
+                                           showlegend=False,
+                                           line=dict(color=body_dict[body_id][2]),
+                                           # thetaunit="radians"
+                                           ))
+
+            if plot_sun_body_line:
+                x, y, z = spheric2cartesian([0.01, dist_body], [0.01, np.deg2rad(body_lat)], [np.deg2rad(body_long), np.deg2rad(body_long)])
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} direct line',
+                                           showlegend=False,
+                                           line=dict(color=body_dict[body_id][2], dash='dot'),
+                                           # thetaunit="radians"
+                                           ))
+
+            if numbered_markers:
+                str_number = f'<b>{i+1}</b>'
+            else:
+                str_number = None
+
+            # customdata=[[dist_body], [body_long], [body_lat]]
+            fig.add_trace(go.Scatter3d(x=[body_pos.cartesian.x.value],
+                                       y=[body_pos.cartesian.y.value],
+                                       z=[body_pos.cartesian.z.value],
+                                       mode='markers+text',
+                                       name=body_id,
+                                       marker=dict(size=10, color=body_dict[body_id][2]),
+                                       # text=[f'<b>{body_id}</b>'],
+                                       text=[str_number],
+                                       textfont=dict(color="white", size=14),
+                                       textposition="middle center",
+                                    #    customdata=[[dist_body], [body_long], [body_lat]],
+                                    #    hovertemplate='r:%{customdata[0]:.3f} <br>t: %{customdata[1]:.3f} <br>p: %{customdata[2]:.3f} ',
+                                       # thetaunit="radians"
+                                       ))
+
+        fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
+                                 y=np.linspace(-200, 200, 100),
+                                 z=np.zeros((100, 100)),
+                                 hoverinfo='skip',
+                                 colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
             fig.update_layout(width=700, height=700)
