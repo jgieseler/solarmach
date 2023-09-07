@@ -768,7 +768,7 @@ class SolarMACH():
                                        head_width=0.75 * height)
 
         # leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
-        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.2), loc="upper left", fontsize=13,
+        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13,
                          handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), })
 
         if numbered_markers:
@@ -832,7 +832,7 @@ class SolarMACH():
             if self.max_dist < 10:
                 ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
 
-        ax.set_title(self.date + '\n', pad=60)
+        ax.set_title(self.date + '\n', pad=30)
 
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.15)
@@ -945,7 +945,7 @@ class SolarMACH():
 
         # save inital rcParams and update some of them:
         initial_rcparams = plt.rcParams.copy()
-        plt.rcParams['axes.linewidth'] = 2.5
+        plt.rcParams['axes.linewidth'] = 1.5
         plt.rcParams['font.size'] = 15
         plt.rcParams['agg.path.chunksize'] = 20000
 
@@ -956,7 +956,7 @@ class SolarMACH():
         r_max = r_scaler * 5  # 5 AU = 1075 in units of solar radii
 
         # setting the title
-        ax.set_title(self.date + '\n', pad=30, fontsize=26)
+        ax.set_title(self.date + '\n', pad=30)  # , fontsize=26)
 
         # Plot the source_surface and solar surface
         full_circle_radians = 2*np.pi*np.linspace(0, 1, 200)
@@ -1178,11 +1178,14 @@ class SolarMACH():
 
                 plt.fill_betweenx(y1, x1, x2, lw=0, color="grey", alpha=0.35)
 
+            # TODO: doesn't this misses a "and not open_mag_flux_near_ref_point" or should it always be plotted?
             # Here we plot spirals but open magnetic flux was not found -> draw only one spiral
             if plot_spirals:
 
                 alpha_ref_single = np.deg2rad(self.reference_long) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
-                ax.plot(alpha_ref_single, reference_array * np.cos(np.deg2rad(ref_lat)), color="grey")
+                ax.plot(alpha_ref_single, reference_array * np.cos(np.deg2rad(ref_lat)), color="grey",
+                        # label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)'
+                        )
 
         if long_sector is not None:
             if isinstance(long_sector, (list, tuple)) and len(long_sector)==2:
@@ -1306,8 +1309,9 @@ class SolarMACH():
         ax.set_rscale('symlog', linthresh=rss)
         ax.set_rmax(r_max)
         ax.set_rticks([1.0, rss, 10.0, 100.0])
-        ax.set_rlabel_position(-22.5)  # Move radial labels away from plotted line
-        ax.tick_params(which='major', labelsize=22,)
+        rlabel_pos = E_long + 120  # -22.5
+        ax.set_rlabel_position(rlabel_pos)  # Move radial labels away from plotted line
+        # ax.tick_params(which='major', labelsize=22,)
 
         rlabels = ['1', str(rss), r'$10^1$', r'$10^2$']
         ax.set_yticklabels(rlabels)
@@ -1327,13 +1331,15 @@ class SolarMACH():
         # Cut off unnecessary margins from the plot
         plt.tight_layout()
 
+        ax.tick_params(axis='x', pad=10)
+
         if not hide_logo:
-            txt_x_begin, txt_y_begin = 0.98, 0.16
+            txt_x_begin, txt_y_begin = 0.94, 0.05
             ax.text(txt_x_begin, txt_y_begin, 'Solar-MACH',
-                    fontfamily='DejaVu Serif', fontsize=28,
+                    fontfamily='DejaVu Serif', fontsize=24,
                     ha='right', va='bottom', transform=fig.transFigure)
             ax.text(txt_x_begin, txt_y_begin-0.04, 'https://solar-mach.github.io',
-                    fontfamily='DejaVu Sans', fontsize=18,
+                    fontfamily='DejaVu Sans', fontsize=14,
                     ha='right', va='bottom', transform=fig.transFigure)
 
         # Create the colorbar displaying values of the last fieldline plotted
@@ -1341,7 +1347,7 @@ class SolarMACH():
 
         # Colorbar is the last object created -> it is the final index in the list of axes
         cb_ax = fig.axes[-1]
-        cb_ax.set_ylabel('Heliographic latitude [deg]', fontsize=20)
+        cb_ax.set_ylabel('Heliographic latitude [deg]', fontsize=16)  # 20
 
         # Add footpoints, magnetic polarities and the reach of reference_long flux tube to PFSS_table
         if self.reference_long:
@@ -1369,7 +1375,8 @@ class SolarMACH():
         if return_plot_object:
             return fig, ax
 
-    def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5, zoom_out=False):
+    def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5, 
+                plot_spirals=True, plot_sun_body_line=False, numbered_markers=False, zoom_out=False):
         """
         https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Scatter3d.html
         https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
@@ -1585,10 +1592,6 @@ class SolarMACH():
         #         # thetaunit="radians"
         #         ))
         # """STOP"""
-        numbered_markers = True
-        plot_spirals = True
-        plot_sun_body_line = True
-
         AU = const.au / 1000  # km
 
         # scale from AU/km to solar radii/km
@@ -1789,8 +1792,8 @@ class SolarMACH():
                                        text=[str_number],
                                        textfont=dict(color="white", size=14),
                                        textposition="middle center",
-                                    #    customdata=[[dist_body], [body_long], [body_lat]],
-                                    #    hovertemplate='r:%{customdata[0]:.3f} <br>t: %{customdata[1]:.3f} <br>p: %{customdata[2]:.3f} ',
+                                       # customdata=[[dist_body], [body_long], [body_lat]],
+                                       # hovertemplate='r:%{customdata[0]:.3f} <br>t: %{customdata[1]:.3f} <br>p: %{customdata[2]:.3f} ',
                                        # thetaunit="radians"
                                        ))
 
