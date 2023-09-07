@@ -763,7 +763,13 @@ class SolarMACH():
             else:
                 print("Ill-defined 'background_spirals'. It should be a list with at least 2 elements defining the number of field lines and the solar wind speed used for them in km/s; e.g. 'background_spirals=[10, 400]'")
 
-        leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
+        def legend_arrow(width, height, **_):
+            return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
+                                       head_width=0.75 * height)
+
+        # leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
+        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.2), loc="upper left", fontsize=13,
+                         handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), })
 
         if numbered_markers:
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
@@ -775,14 +781,24 @@ class SolarMACH():
                             verticalalignment='center', zorder=100)
 
         if self.reference_long is not None:
-            def legend_arrow(width, height, **_):
-                return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
-                                           head_width=0.75 * height)
+            # leg2 = ax.legend([ref_arr], ['reference long.'], loc=(1.2, 0.6),
+            #                  handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
+            #                  fontsize=13)
+            # ax.add_artist(leg1)
 
-            leg2 = ax.legend([ref_arr], ['reference long.'], loc=(1.2, 0.6),
-                             handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
-                             fontsize=13)
-            ax.add_artist(leg1)
+            def add_arrow_to_legend(legend):
+                ax = legend.axes
+
+                handles, labels = ax.get_legend_handles_labels()
+                handles.append(ref_arr)
+                labels.append('reference long.')
+
+                legend._legend_box = None
+                legend._init_legend_box(handles, labels)
+                legend._set_loc(legend._loc)
+                legend.set_title(legend.get_title().get_text())
+
+            add_arrow_to_legend(leg1)
 
         # replace 'SEMB-L1' in legend with 'L1' if present
         for text in leg1.get_texts():
@@ -831,11 +847,11 @@ class SolarMACH():
         ax.tick_params(axis='x', pad=10)
 
         if not hide_logo:
-            ax.text(0.94, 0.16, 'Solar-MACH',
-                    fontfamily='DejaVu Serif', fontsize=28,
+            ax.text(0.8, 0.16, 'Solar-MACH',
+                    fontfamily='DejaVu Serif', fontsize=23,
                     ha='right', va='bottom', transform=fig.transFigure)
-            ax.text(0.94, 0.12, 'https://solar-mach.github.io',
-                    fontfamily='DejaVu Sans', fontsize=18,
+            ax.text(0.8, 0.12, 'https://solar-mach.github.io',
+                    fontfamily='DejaVu Sans', fontsize=13,
                     ha='right', va='bottom', transform=fig.transFigure)
 
         if transparent:
