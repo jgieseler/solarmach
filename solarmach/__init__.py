@@ -1375,7 +1375,7 @@ class SolarMACH():
         if return_plot_object:
             return fig, ax
 
-    def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5, 
+    def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
                 plot_spirals=True, plot_sun_body_line=False, numbered_markers=False, zoom_out=False):
         """
         https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Scatter3d.html
@@ -1673,7 +1673,7 @@ class SolarMACH():
             xyz_range = 2.5
             if zoom_out:
                 xyz_range = max_dist2
-              
+
             fig.update_layout(scene=dict(xaxis=dict(title="X / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
                                          yaxis=dict(title="Y / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
                                          zaxis=dict(title="Z / R_sun", nticks=4, range=[-xyz_range, xyz_range],)),
@@ -1697,7 +1697,12 @@ class SolarMACH():
 
         return
 
-    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, numbered_markers=True):
+    def plot_3d(self,
+                plot_spirals=True,
+                plot_sun_body_line=True,
+                numbered_markers=True,
+                plot_equatorial_plane=True,
+                reference_vsw=400):
         """
         experimental 3d version of classic solarmach plot (no pfss)
         """
@@ -1797,11 +1802,71 @@ class SolarMACH():
                                        # thetaunit="radians"
                                        ))
 
-        fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
-                                 y=np.linspace(-200, 200, 100),
-                                 z=np.zeros((100, 100)),
-                                 hoverinfo='skip',
-                                 colorscale='gray', showscale=False, opacity=0.2))
+        if self.reference_long is not None:
+            delta_ref = self.reference_long
+            if delta_ref < 0.:
+                delta_ref = delta_ref + 360.
+            if self.reference_lat is None:
+                ref_lat = 0.
+            else:
+                ref_lat = self.reference_lat
+
+            omega_ref = self.solar_diff_rot(ref_lat)
+            alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(ref_lat))
+
+            arrow_dist = min([self.max_dist/3.2, 2.])
+            x, y, z = spheric2cartesian([0.0, arrow_dist], [np.deg2rad(ref_lat), np.deg2rad(ref_lat)], [np.deg2rad(delta_ref), np.deg2rad(delta_ref)])
+
+            # arrow plotting based on plotly hack provided through
+            # https://stackoverflow.com/a/66792953/2336056
+            arrow_tip_ratio = 0.4
+            arrow_starting_ratio = 0.95
+
+            # plot arrow line
+            fig.add_trace(go.Scatter3d(x=x,
+                                       y=y,
+                                       z=z,
+                                       mode='lines',
+                                       # marker=dict(symbol="arrow", size=15, angleref="previous", color="black"),  # only works in plotly 2d plots
+                                       name='reference long.',
+                                       showlegend=True,
+                                       line=dict(color="black", width=3),
+                                       # thetaunit="radians"
+                                       ))
+            # plot arrow head
+            fig.add_trace(go.Cone(x=[x[0] + arrow_starting_ratio*(x[1] - x[0])],
+                                  y=[y[0] + arrow_starting_ratio*(y[1] - y[0])],
+                                  z=[z[0] + arrow_starting_ratio*(z[1] - z[0])],
+                                  u=[arrow_tip_ratio*(x[1] - x[0])],
+                                  v=[arrow_tip_ratio*(y[1] - y[0])],
+                                  w=[arrow_tip_ratio*(z[1] - z[0])],
+                                  name='reference long.',
+                                  showlegend=False,
+                                  showscale=False,
+                                  colorscale=[[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']]
+                                  ))
+
+            if plot_spirals:
+                phi = np.ones(len(r_array))*np.deg2rad(ref_lat)
+                x, y, z = spheric2cartesian(r_array, phi, alpha_ref)
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
+                                           showlegend=True,
+                                           line=dict(color="black", dash="dot"),
+                                           # thetaunit="radians"
+                                           ))
+            #     ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
+
+        if plot_equatorial_plane:
+            fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
+                                     y=np.linspace(-200, 200, 100),
+                                     z=np.zeros((100, 100)),
+                                     hoverinfo='skip',
+                                     colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
             fig.update_layout(width=700, height=700)
