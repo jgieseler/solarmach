@@ -1743,10 +1743,10 @@ class SolarMACH():
 
         if plot_equatorial_plane:
             fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
-                                    y=np.linspace(-200, 200, 100),
-                                    z=np.zeros((100, 100)),
-                                    hoverinfo='skip',
-                                    colorscale='gray', showscale=False, opacity=0.2))
+                                     y=np.linspace(-200, 200, 100),
+                                     z=np.zeros((100, 100)),
+                                     hoverinfo='skip',
+                                     colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
             fig.update_layout(width=700, height=700)
