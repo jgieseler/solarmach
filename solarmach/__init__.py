@@ -171,7 +171,8 @@ class SolarMACH():
 
     Parameters
     ----------
-    date: str
+    date: string, datetime.datetime, datetime.date, numpy.datetime64, pandas.Timestamp, tuple
+        date (and optional time) of interest in a format understood by https://docs.sunpy.org/en/stable/how_to/parse_time.html
     body_list: list
         list of body keys to be used. Keys can be string of int.
     vsw_list: list, optional
@@ -296,7 +297,7 @@ class SolarMACH():
                     latsep_list.append(lat_sep)
             except ValueError:
                 print('')
-                print('!!! No ephemeris for target "' + str(body) + '" for date ' + self.date)
+                print('!!! No ephemeris for target "' + str(body) + '" for date ' + str(self.date))
                 body_list.remove(body)
 
         body_dict_short = {sel_key: bodies[sel_key] for sel_key in body_list}
@@ -832,7 +833,7 @@ class SolarMACH():
             if self.max_dist < 10:
                 ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
 
-        ax.set_title(self.date + '\n', pad=30)
+        ax.set_title(str(self.date) + ' (UTC)\n', pad=30)
 
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.15)
@@ -956,7 +957,7 @@ class SolarMACH():
         r_max = r_scaler * 5  # 5 AU = 1075 in units of solar radii
 
         # setting the title
-        ax.set_title(self.date + '\n', pad=30)  # , fontsize=26)
+        ax.set_title(str(self.date) + ' (UTC)\n', pad=30)  # , fontsize=26)
 
         # Plot the source_surface and solar surface
         full_circle_radians = 2*np.pi*np.linspace(0, 1, 200)
