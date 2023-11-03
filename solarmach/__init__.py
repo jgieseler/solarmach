@@ -420,7 +420,7 @@ class SolarMACH():
              show_earth_centered_coord=False,
              reference_vsw=400,
              transparent=False,
-             numbered_markers=False,
+             markers=False,
              return_plot_object=False,
              long_offset=270,
              outfile='',
@@ -431,6 +431,7 @@ class SolarMACH():
              long_sector_color='red',
              long_sector_alpha=0.5,
              background_spirals=None,
+             numbered_markers=False,
              test_plotly=False,
              test_plotly_template='plotly',
              # x_offset=0.0,  # TODO: remove this option.
@@ -442,23 +443,23 @@ class SolarMACH():
 
         Parameters
         ----------
-        plot_spirals: bool
+        plot_spirals: bool, optional
             if True, the magnetic field lines connecting the bodies with the Sun are plotted
-        plot_sun_body_line: bool
+        plot_sun_body_line: bool, optional
             if True, straight lines connecting the bodies with the Sun are plotted
-        show_earth_centered_coord: bool
+        show_earth_centered_coord: bool, optional
             Deprecated! With the introduction of coord_sys in class SolarMACH() this function is redundant and not functional any more!
-        reference_vsw: int
+        reference_vsw: int, optional
             if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
-        transparent: bool
+        transparent: bool, optional
             if True, output image has transparent background
-        numbered_markers: bool
-            if True, body markers contain numbers for better identification
-        return_plot_object: bool
+        markers: bool or string, optional
+            if defined, body markers contain 'numbers' or 'letters' for better identification. If False (default), only geometric markers are used.
+        return_plot_object: bool, optional
             if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
-        long_offset: int or float
+        long_offset: int or float, optional
             longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
-        outfile: string
+        outfile: string, optional
             if provided, the plot is saved with outfile as filename
         long_sector: list of 2 numbers, optional
             Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for long_sector_vsw=None).
@@ -470,6 +471,8 @@ class SolarMACH():
             Float between 0.0 and 1.0, defining the matplotlib alpha used for the shading defined by long_sector. By default 0.5.W
         background_spirals: list of 2 numbers (and 3 optional strings), optional
             If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
+        numbered_markers: bool, deprecated
+            Deprecated option, use markers='numbers' instead!
         """
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
@@ -489,6 +492,19 @@ class SolarMACH():
         # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
         E_long = self.pos_E.lon.value
+
+        # catch old syntax
+        if numbered_markers==True and not markers:
+            markers='numbers'
+            print('')
+            print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
+            print('')
+        
+        if markers in ['n', 'number']:
+            markers='numbers'
+
+        if markers in ['l', 'letter']:
+            markers='letters'
 
         if test_plotly:
             import plotly.graph_objects as go
@@ -512,16 +528,19 @@ class SolarMACH():
             # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
             # plot body positions
-            if numbered_markers:
+            if markers:
                 ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 'o', ms=15, color=body_color, label=body_lab)
-                # ax.annotate(i+1, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                #            fontsize="small", weight='heavy',
-                #            horizontalalignment='center',
-                #            verticalalignment='center')
-                ax.annotate(str(body_id[0]), xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            fontsize="small", weight='heavy',
-                            horizontalalignment='center',
-                            verticalalignment='center')
+                if markers.lower()=='letters':
+                    if body_id[:6] == 'STEREO':
+                        mark = str(body_id[-1])
+                    else:
+                        mark = str(body_id[0])
+                if markers.lower()=='numbers':
+                    mark = i+1
+                ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
+                           fontsize="small", weight='heavy',
+                           horizontalalignment='center',
+                           verticalalignment='center')
             else:
                 ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 's', color=body_color, label=body_lab)
 
@@ -783,15 +802,18 @@ class SolarMACH():
         leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13,
                          handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), })
 
-        if numbered_markers:
+        if markers:
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
             for i, body_id in enumerate(self.body_dict):
                 yoffset = i*18.7  # 18.5 19.5
-                # ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
-                #             fontsize="small", weight='heavy', textcoords=offset,
-                #             horizontalalignment='center',
-                #             verticalalignment='center', zorder=100)
-                ax.annotate(str(body_id[0]), xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
+                if markers.lower()=='letters':
+                    if body_id[:6] == 'STEREO':
+                        mark = str(body_id[-1])
+                    else:
+                        mark = str(body_id[0])
+                if markers.lower()=='numbers':
+                    mark = i+1
+                ax.annotate(mark, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
                             fontsize="small", weight='heavy', textcoords=offset,
                             horizontalalignment='center',
                             verticalalignment='center', zorder=100)
@@ -926,12 +948,13 @@ class SolarMACH():
                   vary=False, n_varies=1,
                   long_offset=270,
                   reference_vsw=400.,
-                  numbered_markers=False,
+                  markers=False,
                   plot_spirals=True,
                   long_sector=None,
                   long_sector_vsw=None,
                   long_sector_color=None,
                   hide_logo=False,
+                  numbered_markers=False,
                   outfile=''):
         """
         Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
@@ -958,6 +981,19 @@ class SolarMACH():
 
         # carrington longitude of the Earth
         E_long = self.pos_E.lon.value
+
+        # catch old syntax
+        if numbered_markers==True and not markers:
+            markers='numbers'
+            print('')
+            print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
+            print('')
+        
+        if markers.lower() in ['n', 'number']:
+            markers='numbers'
+
+        if markers.lower() in ['l', 'letter']:
+            markers='letters'
 
         # save inital rcParams and update some of them:
         initial_rcparams = plt.rcParams.copy()
@@ -1020,9 +1056,16 @@ class SolarMACH():
             r_array = np.linspace(r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), rss, 1000)
 
             # plot body positions
-            if numbered_markers:
+            if markers:
                 ax.plot(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), 'o', ms=15, color=body_color, label=body_lab)
-                ax.annotate(i+1, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
+                if markers.lower()=='letters':
+                    if body_id[:6] == 'STEREO':
+                        mark = str(body_id[-1])
+                    else:
+                        mark = str(body_id[0])
+                if markers.lower()=='numbers':
+                    mark = i+1                
+                ax.annotate(mark, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
                             fontsize="small", weight='heavy',
                             horizontalalignment='center',
                             verticalalignment='center')
@@ -1287,11 +1330,18 @@ class SolarMACH():
 
         leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13)
 
-        if numbered_markers:
+        if markers:
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
             for i, body_id in enumerate(self.body_dict):
                 yoffset = i*18.7  # 18.5 19.5
-                ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
+                if markers.lower()=='letters':
+                    if body_id[:6] == 'STEREO':
+                        mark = str(body_id[-1])
+                    else:
+                        mark = str(body_id[0])
+                if markers.lower()=='numbers':
+                    mark = i+1
+                ax.annotate(mark, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
                             fontsize="small", weight='heavy', textcoords=offset,
                             horizontalalignment='center',
                             verticalalignment='center', zorder=100)

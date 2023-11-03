@@ -73,7 +73,7 @@ def test_solarmach_plot():
     sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
     sm.plot(plot_spirals=True, plot_sun_body_line=True,
             reference_vsw=reference_vsw, transparent=False,
-            show_earth_centered_coord=False, numbered_markers=True,
+            show_earth_centered_coord=False, markers='numbers',
             long_sector=long_sector, long_sector_vsw=long_sector_vsw, long_sector_color=long_sector_color,
             background_spirals=background_spirals, outfile=filename)
 
@@ -90,7 +90,7 @@ def test_solarmach_pfss():
     pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5)
     assert isinstance(pfss_solution, pfsspy.output.Output)
     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
-                           numbered_markers=True, long_sector=[290, 328], long_sector_vsw=[400, 600],
+                           markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
                            long_sector_color='red', reference_vsw=400.0)
     assert isinstance(fig, matplotlib.figure.Figure)
 
