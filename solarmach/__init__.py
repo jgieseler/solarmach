@@ -224,6 +224,10 @@ class SolarMACH():
         elif coord_sys=='Stonyhurst':
             self.pos_E = pos_E
 
+        # standardize "undefined" vsw_list for further usage:
+        if type(vsw_list)==type(None) or vsw_list==False:
+            vsw_list=[]
+
         # make deep copy of vsw_list bc. otherwise it doesn't get reset in a new init:
         vsw_list2 = copy.deepcopy(vsw_list)
 
