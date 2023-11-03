@@ -39,8 +39,8 @@ or from `conda <https://anaconda.org/conda-forge/solarmach/>`_ using:
 
     conda install -c conda-forge solarmach
 
-Usage
------
+Basic usage
+-----------
 
 .. code:: python
 
@@ -51,8 +51,14 @@ Usage
 
    # necessary options
    body_list = ['STEREO-A', 'Earth', 'BepiColombo', 'PSP', 'Solar Orbiter', 'Mars']
-   vsw_list = [400, 400, 400, 400, 400, 400, 400]   # position-sensitive solar wind speed per body in body_list
    date = '2021-10-28 15:15:00'
+
+   # Previously you needed to define position-sensitive solar wind speed per
+   # body in body_list, e.g., vsw_list = [400, 400, 400, 400, 400, 400, 400]
+   # Now you can skip this parameter or provide an empty list. Then solarmach
+   # will try to automatically obtain measured solar wind speeds from each
+   # spacecraft
+   vsw_list = []
 
    # optional parameters
    coord_sys = 'Carrington'                         # 'Carrington' (default) or 'Stonyhurst'
