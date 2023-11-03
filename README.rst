@@ -68,9 +68,9 @@ Basic usage
    plot_sun_body_line = True                        # plot straight line between Sun and body
    long_offset = 270                                # longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
    reference_vsw = 400                              # define solar wind speed at reference
-   return_plot_object = False                        # figure and axis object of matplotib are returned, allowing further adjustments to the figure
+   return_plot_object = False                       # figure and axis object of matplotib are returned, allowing further adjustments to the figure
    transparent = False                              # make output figure background transparent
-   numbered_markers = True                          # plot each body with a numbered marker
+   markers = 'numbers'                              # use 'numbers' or 'letters' for the body markers (use False for colored squares)
    filename = 'Solar-MACH_'+date.replace(' ', '_')  # define filename of output figure
 
    # initialize
@@ -82,7 +82,7 @@ Basic usage
       plot_sun_body_line=plot_sun_body_line,
       reference_vsw=reference_vsw,
       transparent=transparent,
-      numbered_markers=numbered_markers,
+      markers=markers,
       long_offset=long_offset,
       return_plot_object=return_plot_object,
       outfile=filename+'.png'
