@@ -2,7 +2,7 @@ astropy
 astroquery
 cmasher
 drms
-imageio
+imageio>=2.31.6
 Jinja2
 lxml
 matplotlib==3.5.3
@@ -12,7 +12,7 @@ pfsspy
 plotly
 python-dateutil
 scipy
-speasy
+speasy>=1.2.0
 tqdm
 sunpy
 zeep
