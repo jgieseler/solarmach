@@ -128,12 +128,12 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     dataset['Wind'] = amda_tree.Parameters.Wind.SWE.wnd_swe_kp.wnd_swe_vmag
 
     sw_key = dict(ACE='SW Bulk Speed')  # Solar Wind Bulk Speed [Vp]
-    sw_key['Parker Solar Probe'] = 'psp_spc_vp_mom_nrm'  # Velocity vector magnitude
+    sw_key['Parker Solar Probe'] = '|vp_mom|'  # Velocity vector magnitude
     sw_key['SOHO'] = 'Proton V'  # Proton speed, scalar
-    sw_key['Solar Orbiter'] = 'pas_momgr1_v_rtn_tot'  # Velocity magnitude in RTN frame
-    sw_key['STEREO A'] = 'vpbulk_sta'  # Scalar magnitude of the velocity in km/s
-    sw_key['STEREO B'] = 'vpbulk_stb'  # Scalar magnitude of the velocity in km/s
-    sw_key['Wind'] = 'wnd_swe_vmag'  # |v|
+    sw_key['Solar Orbiter'] = '|v_rtn|'  # Velocity magnitude in RTN frame
+    sw_key['STEREO A'] = '|v|'  # Scalar magnitude of the velocity in km/s
+    sw_key['STEREO B'] = '|v|'  # Scalar magnitude of the velocity in km/s
+    sw_key['Wind'] = '|v|'  # |v|
 
     if body in ['Earth', 'SEMB-L1']:
         print(f"Using 'ACE' measurements for '{body}'.")
@@ -150,7 +150,10 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
             return default_vsw
 
     try:
-        df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
+        if dataset[body].spz_provider() == 'amda':
+            df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange), output_format="CDF_ISTP").to_dataframe()
+        elif dataset[body].spz_provider() == 'cda':
+            df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
         df = df[sw_key[body]].resample('1H').mean()
         # drop NaN entries:
         df.dropna(inplace=True)
@@ -507,7 +510,11 @@ class SolarMACH():
             # plot body positions
             if numbered_markers:
                 ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 'o', ms=15, color=body_color, label=body_lab)
-                ax.annotate(i+1, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
+                # ax.annotate(i+1, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
+                #            fontsize="small", weight='heavy',
+                #            horizontalalignment='center',
+                #            verticalalignment='center')
+                ax.annotate(str(body_id[0]), xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
                             fontsize="small", weight='heavy',
                             horizontalalignment='center',
                             verticalalignment='center')
@@ -776,7 +783,11 @@ class SolarMACH():
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
             for i, body_id in enumerate(self.body_dict):
                 yoffset = i*18.7  # 18.5 19.5
-                ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
+                # ax.annotate(i+1, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
+                #             fontsize="small", weight='heavy', textcoords=offset,
+                #             horizontalalignment='center',
+                #             verticalalignment='center', zorder=100)
+                ax.annotate(str(body_id[0]), xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
                             fontsize="small", weight='heavy', textcoords=offset,
                             horizontalalignment='center',
                             verticalalignment='center', zorder=100)
