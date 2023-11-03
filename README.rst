@@ -25,7 +25,7 @@ The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longi
 Installation
 ------------
 
-solarmach requires python >= 3.7.
+solarmach requires python >= 3.8.
 
 It can be installed either from `PyPI <https://pypi.org/project/solarmach/>`_ using:
 

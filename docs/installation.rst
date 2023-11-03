@@ -1,7 +1,7 @@
 Installation
 ------------
 
-solarmach requires python >= 3.7.
+solarmach requires python >= 3.8.
 
 It can be installed either from `PyPI <https://pypi.org/project/solarmach/>`_ using:
 
