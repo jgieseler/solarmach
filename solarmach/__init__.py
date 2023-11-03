@@ -94,7 +94,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
         Date and time of measurement
     trange : int of float
         Timedelta for which measurements are obtainted before and after "dtime",
-        i.e. dtime +- trange (in hours). Default value 2.
+        i.e. dtime +- trange (in hours). Default value 1.
     default_vsw : float
         Default solar wind bulk speed in km/s that is returned if no
         measurements can be obtained. Default value 400.0
@@ -500,11 +500,11 @@ class SolarMACH():
             print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
             print('')
         
-        if markers in ['n', 'number']:
-            markers='numbers'
-
-        if markers in ['l', 'letter']:
-            markers='letters'
+        if markers:
+            if markers.lower() in ['n', 'number']:
+                markers='numbers'
+            if markers.lower() in ['l', 'letter']:
+                markers='letters'
 
         if test_plotly:
             import plotly.graph_objects as go
@@ -989,11 +989,11 @@ class SolarMACH():
             print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
             print('')
         
-        if markers.lower() in ['n', 'number']:
-            markers='numbers'
-
-        if markers.lower() in ['l', 'letter']:
-            markers='letters'
+        if markers:
+            if markers.lower() in ['n', 'number']:
+                markers='numbers'
+            if markers.lower() in ['l', 'letter']:
+                markers='letters'
 
         # save inital rcParams and update some of them:
         initial_rcparams = plt.rcParams.copy()
