@@ -1,5 +1,6 @@
 {
     "description": "Python package of the multi-spacecraft longitudinal configuration plotter Solar-MACH",
+    "title": "solarmach",
     "upload_type": "software",
     "grants": [
         {
