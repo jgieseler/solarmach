@@ -158,7 +158,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
         # drop NaN entries:
         df.dropna(inplace=True)
         if len(df) > 0:
-            idx = df[df.index.get_indexer([dtime], method='nearest')]
+            idx = df.iloc[df.index.get_indexer([dtime], method='nearest')]
             return idx.values[0]
         else:
             print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
