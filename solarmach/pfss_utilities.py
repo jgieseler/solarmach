@@ -583,12 +583,12 @@ def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
     """
     if coord_sys.lower().startswith('sto') and gong_map.coordinate_system.axis1=='CRLN-CEA':
         # Convert GONG map from default Carrington to Stonyhurst coordinate system
-        new_map_header = sunpy.map.header_helper.make_heliographic_header(gong_map.date, gong_map.observer_coordinate, shape=gong_map.data.shape, frame='stonyhurst', projection_code='CEA')
+        new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='stonyhurst', projection_code='CEA')
         gong_map = gong_map.reproject_to(new_map_header)
     elif coord_sys.lower().startswith('car') and gong_map.coordinate_system.axis1=='HGLN-CEA':
         # Convert GONG map from Stonyhurst to Carrington coordinate system.
         # This shouldn't be necessary, as Carrington is the default for GONG maps, but better be sure.
-        new_map_header = sunpy.map.header_helper.make_heliographic_header(gong_map.date, gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')
+        new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')
         gong_map = gong_map.reproject_to(new_map_header)
 
     # The pfss input object, assembled from a gong map, resolution (nrho) and source surface height (rss)
