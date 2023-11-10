@@ -561,7 +561,7 @@ def sphere(radius, clr, dist=0):
     return trace
 
 
-def calculate_pfss_solution(gong_map, rss, nrho=35):
+def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
     """
     Calculates a Potential Field Source Surface solution based on a GONG map and
     parameters.
@@ -572,6 +572,8 @@ def calculate_pfss_solution(gong_map, rss, nrho=35):
             date of the map
     rss : {float}
             source surface height
+    coord_sys: {str}
+        Defines the coordinate system used: either 'car' or 'Carrington', or 'sto' or 'Stonyhurst'
     nrho : {float/int}
             rho = ln(r) -> nrho is the amount of points in this logarithmic range
 
@@ -580,6 +582,10 @@ def calculate_pfss_solution(gong_map, rss, nrho=35):
     pfss_solution : {pfsspy solution object}
             The pfss solution that can be used to plot magnetic field lines under the source surface
     """
+    if coord_sys.lower().startswith('sto'):
+        # convert gong map from default Carrington to Stonyhurst coordinate system
+        new_map_header = sunpy.map.header_helper.make_heliographic_header(gong_map.date, gong_map.observer_coordinate, shape=gong_map.data.shape, frame='stonyhurst', projection_code='CEA')
+        gong_map = gong_map.reproject_to(new_map_header)
 
     # The pfss input object, assembled from a gong map, resolution (nrho) and source surface height (rss)
     pfss_in = pfsspy.Input(gong_map, nrho, rss)
