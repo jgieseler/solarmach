@@ -638,7 +638,7 @@ def download_gong_map(timestr, filepath=None):
 
     file = Fido.fetch(result, path=filepath)
 
-    print(f"Downloaded file to:\n{file.data[0]}")
+    print(f"Downloaded GONG map to {file.data[0]}")
     return file.data[0]
 
 
@@ -676,12 +676,12 @@ def get_gong_map(time: str, filepath: str=None, autodownload=True):
     Parameters:
     -----------
     timestr : {str}
-                A pandas-compatible timestring, e.g., '2010-11-29 12:45'
+        A pandas-compatible timestring, e.g., '2010-11-29 12:45'
     filepath : {str}, optional, default=None
-                The path to the gong map file with the name of the file, e.g., 'use/xyz/gong_maps/mrzqs211009t0814c2249_105.fits.gz'
-                If no filepath provided, use the current directory.
+        The path to the gong map file with the name of the file, e.g., 'use/xyz/gong_maps/mrzqs211009t0814c2249_105.fits.gz'
+        If no filepath provided, use the current directory.
     autodownload : {bool}, optional, default=True
-                If file is not found, download it automatically.
+        If file is not found, download it automatically.
     """
 
     # Try to construct a filename from current working directory and given datetime
@@ -691,9 +691,8 @@ def get_gong_map(time: str, filepath: str=None, autodownload=True):
     try:
         gong_map = load_gong_map(filepath=filepath)
     except Exception as exception:
-        print(exception)
+        # print(exception)
         if autodownload:
-            print("Downloading...")
             new_filepath = download_gong_map(time, filepath=filepath)
             gong_map = load_gong_map(filepath=new_filepath)
         else:
