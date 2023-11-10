@@ -940,8 +940,8 @@ class SolarMACH():
     #     return ax2
 
     def plot_pfss(self,
+                  pfss_solution,
                   rss=2.5,
-                  pfss_solution=None,
                   figsize=(15, 10),
                   dpi=200,
                   return_plot_object=False,
@@ -960,17 +960,17 @@ class SolarMACH():
         Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
         Also tracks an open field line down to photosphere given a point on the pfss.
 
-        rss : float
-                source surface height of the potential field in solar radii. default 2.5
-        pfss_solution : .fits
-                the pfss model calculated from magnetographic maps
-        reference_longitude : int or floar
-                draws an arrow pointing radially outward, input in degrees
-
+        pfss_solution : {pfsspy.output}
+            PFSS model calculated by pfsspy from magnetographic maps
+        rss : {float}, optional
+            source surface height of the potential field in solar radii. default 2.5
+        reference_longitude : {int or float}, optional
+            draws an arrow pointing radially outward, input in degrees
         """
 
-        if not pfss_solution:
-            raise Exception("A PFSS solution is required for solar magnetic field extrapolation!")
+        # check that PFSS solution and SolarMACH object use the same coordinate system
+        if not pfss_solution.coordinate_frame.name==self.pos_E.name:
+            raise Exception("The provided PFSS solution and the SolarMACH object use different coordinate systems! Aborting.")
 
         # Constants
         AU = const.au / 1000  # km
