@@ -431,7 +431,7 @@ class SolarMACH():
              long_sector_color='red',
              long_sector_alpha=0.5,
              background_spirals=None,
-             numbered_markers=False,
+             numbered_markers=False,  # kept only for backward compatibility
              test_plotly=False,
              test_plotly_template='plotly',
              # x_offset=0.0,  # TODO: remove this option.
@@ -954,7 +954,7 @@ class SolarMACH():
                   long_sector_vsw=None,
                   long_sector_color=None,
                   hide_logo=False,
-                  numbered_markers=False,
+                  numbered_markers=False,  # kept only for backward compatibility
                   outfile=''):
         """
         Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
@@ -1072,12 +1072,12 @@ class SolarMACH():
             else:
                 ax.plot(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), 's', color=body_color, label=body_lab)
 
+            # The angular coordinates are calculated here
+            # alpha = longitude + (omega)*(distance-r)/sw
+            alpha_body = np.deg2rad(body_long) + omega / (1000*body_vsw / sun_radius) * (r_scaler*dist_body - r_array) * np.cos(np.deg2rad(body_lat))
+
             # Plotting the spirals
             if plot_spirals:
-
-                # The angular coordinates are calculated here
-                # alpha = longitude + (omega)*(distance-r)/sw
-                alpha_body = np.deg2rad(body_long) + omega / (1000*body_vsw / sun_radius) * (r_scaler*dist_body - r_array) * np.cos(np.deg2rad(body_lat))
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
 
             # Acquire an array of (r,lon,lat) coordinates of the open field lines under the pfss
