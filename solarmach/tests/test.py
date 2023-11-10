@@ -87,7 +87,7 @@ def test_solarmach_pfss():
     sm = SolarMACH(date, body_list, vsw_list, reference_long=100, reference_lat=10)
     gong_map = get_gong_map(time=date, filepath=None)
     assert isinstance(gong_map, pfsspy.map.GongSynopticMap)
-    pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5)
+    pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5, coord_sys='Carrington')
     assert isinstance(pfss_solution, pfsspy.output.Output)
     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
