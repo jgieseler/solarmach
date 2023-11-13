@@ -150,9 +150,9 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
     params
     -------
     longitude: int/float
-            Carrington longitude of the seeding point for the FieldLine tracing
+            longitude of the seeding point for the FieldLine tracing
     latitude: int/float
-            Carrington latitude of the seeding point for the FieldLine tracing
+            latitude of the seeding point for the FieldLine tracing
     hmimap: hmi_synoptic_map object
             hmimap
     seedheight: float
@@ -366,15 +366,14 @@ def spiral_out(lon, lat, sign_switch, corner_tracker, turn):
     Parameters
     ---------
     lon, lat: float
-            the carrington coordinates on a surface of a sphere (sun or pfss)
+        the carrington coordinates on a surface of a sphere (sun or pfss)
     sign_switch: int
-            -1 or 1, dictates the direction in which lon or lat is
-            incremented
+        -1 or 1, dictates the direction in which lon or lat is incremented
     corner_tracker: tuple
-            first entry is steps_unti_corner, int that tells how many steps to the next corner of a spiral
-            the second entry is steps taken on a given spiral turn
+        first entry is steps_unti_corner, int that tells how many steps to the next corner of a spiral
+        the second entry is steps taken on a given spiral turn
     turn: str
-            indicates which is to be incremented, lon or lat
+        indicates which is to be incremented, lon or lat
 
     returns
     -----------
@@ -430,11 +429,11 @@ def get_coord_values(field_line):
     returns
     -------
     fl_r: list[float]
-            The list of heliocentric distances of each segment of the field line
+        The list of heliocentric distances of each segment of the field line
     fl_lon: list[float]
-            The list of Carrington longitudes of each field line segment
+        The list of longitudes of each field line segment
     fl_lat: list[float]
-            The list of Carrington latitudes of each field line segment
+        The list of latitudes of each field line segment
     """
 
     # first check that the field_line object is oriented correctly (start on photosphere and end at pfss)
@@ -456,11 +455,11 @@ def circle_around(x, y, n, r=0.1):
     params
     -------
     x,y: int/float
-            Coordinates of the original point
+        Coordinates of the original point
     n: int
-            The amount of new points around the origin
+        The amount of new points around the origin
     r: int/float (default = 0.1)
-            The radius of the circle at which new points are placed
+        The radius of the circle at which new points are placed
 
     returns
     -------
