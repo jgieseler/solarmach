@@ -330,7 +330,7 @@ class SolarMACH():
         if self.reference_long is not None:
             self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
             self.coord_table[
-                "Longitudinal separation between body's mangetic footpoint and reference_long"] = footp_longsep_list
+                "Longitudinal separation between body's magnetic footpoint and reference_long"] = footp_longsep_list
             self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1, np.NaN]
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
