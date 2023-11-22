@@ -7,6 +7,7 @@ import matplotlib
 import numpy as np
 import pandas
 import pfsspy
+import sunpy
 from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance
 
 
