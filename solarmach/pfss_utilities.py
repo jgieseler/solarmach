@@ -580,15 +580,24 @@ def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
     pfss_solution : {pfsspy solution object}
         The PFSS solution that can be used to plot magnetic field lines under the source surface
     """
-    if coord_sys.lower().startswith('sto') and gong_map.coordinate_system.axis1=='CRLN-CEA':
-        # Convert GONG map from default Carrington to Stonyhurst coordinate system
-        new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='stonyhurst', projection_code='CEA')
+    # GONG map is in Carrington coordinates
+    if gong_map.coordinate_system.axis1=='CRLN-CEA':
+        if coord_sys.lower().startswith('sto'):
+            # Convert GONG map from default Carrington to Stonyhurst coordinate system
+            new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='stonyhurst', projection_code='CEA')
+        if coord_sys.lower().startswith('car'):
+            # Convert GONG map from default Carrington to Carrington coordinate system.
+            # This sounds useless, but is needed to rebuild the meta data of the GONG map when using sunpy>5.1.0
+            # cf. https://github.com/sunpy/sunpy/issues/7313
+            new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')        
         gong_map = gong_map.reproject_to(new_map_header)
-    elif coord_sys.lower().startswith('car') and gong_map.coordinate_system.axis1=='HGLN-CEA':
-        # Convert GONG map from Stonyhurst to Carrington coordinate system.
-        # This shouldn't be necessary, as Carrington is the default for GONG maps, but better be sure.
-        new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')
-        gong_map = gong_map.reproject_to(new_map_header)
+    # GONG map is in Stonyhurst coordinates
+    elif gong_map.coordinate_system.axis1=='HGLN-CEA':
+        if coord_sys.lower().startswith('car'):
+            # Convert GONG map from Stonyhurst to Carrington coordinate system.
+            # This shouldn't be necessary, as Carrington is the default for GONG maps, but better be sure.
+            new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')
+            gong_map = gong_map.reproject_to(new_map_header)
 
     # The pfss input object, assembled from a gong map, resolution (nrho) and source surface height (rss)
     pfss_in = pfsspy.Input(gong_map, nrho, rss)
