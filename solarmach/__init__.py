@@ -1409,7 +1409,7 @@ class SolarMACH():
                     ha='right', va='bottom', transform=fig.transFigure)
 
         # Create the colorbar displaying values of the last fieldline plotted
-        cb = fig.colorbar(fieldline, ax=ax, location="left", anchor=(1.4, 1.2), shrink=0.6)
+        cb = fig.colorbar(fieldline, ax=ax, location="left", anchor=(1.4, 1.2), pad=0.12, shrink=0.6)
 
         # Colorbar is the last object created -> it is the final index in the list of axes
         cb_ax = fig.axes[-1]
