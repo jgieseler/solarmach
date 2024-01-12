@@ -122,7 +122,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     dataset = dict(ACE=cda_tree.ACE.SWE.AC_K1_SWE.Vp)  # https://cdaweb.gsfc.nasa.gov/misc/NotesA.html#AC_K1_SWE
     dataset['SOHO'] = cda_tree.SOHO.CELIAS_PM.SOHO_CELIAS_PM_5MIN.V_p
     dataset['Parker Solar Probe'] = amda_tree.Parameters.PSP.SWEAP_SPC.psp_spc_mom.psp_spc_vp_mom_nrm
-    dataset['Solar Orbiter'] = amda_tree.Parameters.SolarOrbiter.PAS.L2.so_pas_momgr1.pas_momgr1_v_rtn_tot
+    dataset['Solar Orbiter'] = amda_tree.Parameters.SolarOrbiter.SWAPAS.L2.so_pas_momgr1.pas_momgr1_v_rtn_tot
     dataset['STEREO A'] = amda_tree.Parameters.STEREO.STEREO_A.PLASTIC.sta_l2_pla.vpbulk_sta
     dataset['STEREO B'] = amda_tree.Parameters.STEREO.STEREO_B.PLASTIC.stb_l2_pla.vpbulk_stb
     dataset['Wind'] = amda_tree.Parameters.Wind.SWE.wnd_swe_kp.wnd_swe_vmag
