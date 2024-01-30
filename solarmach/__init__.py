@@ -154,7 +154,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
             df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange), output_format="CDF_ISTP").to_dataframe()
         elif dataset[body].spz_provider() == 'cda':
             df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
-        df = df[sw_key[body]].resample('1H').mean()
+        df = df[sw_key[body]].resample('1h').mean()
         # drop NaN entries:
         df.dropna(inplace=True)
         if len(df) > 0:
