@@ -885,10 +885,10 @@ class SolarMACH():
         ax.tick_params(axis='x', pad=10)
 
         if not hide_logo:
-            ax.text(0.8, 0.16, 'Solar-MACH',
+            ax.text(0.83, 0.16, 'Solar-MACH',
                     fontfamily='DejaVu Serif', fontsize=23,
                     ha='right', va='bottom', transform=fig.transFigure)
-            ax.text(0.8, 0.12, 'https://solar-mach.github.io',
+            ax.text(0.83, 0.12, 'https://solar-mach.github.io',
                     fontfamily='DejaVu Sans', fontsize=13,
                     ha='right', va='bottom', transform=fig.transFigure)
 
