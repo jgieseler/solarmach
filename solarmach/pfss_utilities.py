@@ -19,7 +19,7 @@ import astropy.constants as aconst
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-import pfsspy
+import pfsspy  # TODO: replace with "import sunkit_magex.pfss as pfsspy"
 import sunpy.map
 from astropy.coordinates import SkyCoord
 from sunpy.net import Fido
@@ -72,7 +72,8 @@ def get_pfss_hmimap(filepath, email, carrington_rot, date, rss=2.5, nrho=35):
         result = Fido.search(time, series, crot, a.jsoc.Notify(email))
         files = Fido.fetch(result)
         hmi_map = sunpy.map.Map(files[0])
-        pfsspy.utils.fix_hmi_meta(hmi_map)
+        # pfsspy.utils.fix_hmi_meta(hmi_map)
+        
         print('Data shape: ', hmi_map.data.shape)
 
         hmi_map = hmi_map.resample([360, 180]*u.pix)
@@ -332,7 +333,7 @@ def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
             A FieldLine object, or a list of them, if input coordinates were a list
 
     """
-    from pfsspy import tracing
+    # from pfsspy import tracing
 
     # if lat0 and lon0 are given in deg for some reason, transform them to rad
     if not rad:
@@ -341,7 +342,7 @@ def trace_field_line(lon0, lat0, hmimap, seedheight, rad=True):
 
     # Start tracing from a given height
     height = seedheight*aconst.R_sun
-    tracer = tracing.PythonTracer()
+    tracer = pfsspy.tracing.PythonTracer()
 
     # Add unit to longitude and latitude, so that SkyCoord understands them
     lon, lat = lon0*u.rad, lat0*u.rad
