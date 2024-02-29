@@ -218,7 +218,11 @@ class SolarMACH():
         self.reference_lat = reference_lat
         self.coord_sys = coord_sys
 
-        pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
+        try:
+            pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
+        except ValueError:
+            print('')
+            print('!!! No ephemeris found for Earth for date {self.date} - there probably is a problem with JPL HORIZONS.')
         if coord_sys=='Carrington':
             self.pos_E = pos_E.transform_to(frames.HeliographicCarrington(observer='Sun'))
         elif coord_sys=='Stonyhurst':
