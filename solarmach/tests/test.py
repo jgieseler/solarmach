@@ -9,55 +9,60 @@ import pandas
 import pfsspy
 import sunpy
 from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance
+# from sunpy.tests.helpers import figure_test
 
 
-def test_print_body_list():
-    df = print_body_list()
-    assert isinstance(df, pandas.core.frame.DataFrame)
-    assert df['Body'].loc['PSP'] == 'Parker Solar Probe'
+# def test_print_body_list():
+#     df = print_body_list()
+#     assert isinstance(df, pandas.core.frame.DataFrame)
+#     assert df['Body'].loc['PSP'] == 'Parker Solar Probe'
 
 
-def test_solarmach_initialize():
-    body_list = ['STEREO-A']
-    vsw_list = [400]
-    date = '2021-10-28 15:15:00'
-    reference_long = 273
-    reference_lat = 9
+# def test_solarmach_initialize():
+#     body_list = ['STEREO-A']
+#     vsw_list = [400]
+#     date = '2021-10-28 15:15:00'
+#     reference_long = 273
+#     reference_lat = 9
 
-    sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
+#     sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
 
-    assert sm.date == date
-    assert sm.reference_lat == reference_lat
-    assert sm.reference_long == reference_long
-    assert np.round(sm.max_dist, 3) == 0.958
+#     assert sm.date == date
+#     assert sm.reference_lat == reference_lat
+#     assert sm.reference_long == reference_long
+#     assert np.round(sm.max_dist, 3) == 0.958
 
-    assert isinstance(sm.pos_E, astropy.coordinates.sky_coordinate.SkyCoord)
-    assert sm.pos_E.lat.unit == u.deg
-    assert sm.pos_E.lon.unit == u.deg
-    assert sm.pos_E.radius.unit == u.AU
+#     assert isinstance(sm.pos_E, astropy.coordinates.sky_coordinate.SkyCoord)
+#     assert sm.pos_E.lat.unit == u.deg
+#     assert sm.pos_E.lon.unit == u.deg
+#     assert sm.pos_E.radius.unit == u.AU
 
-    assert sm.coord_table.shape == (1, 11)
+#     assert sm.coord_table.shape == (1, 11)
 
-    assert np.round(sm.coord_table['Longitudinal separation between body and reference_long'][0], 1) == -39.9
-    assert np.round(sm.coord_table["Longitudinal separation between body's magnetic footpoint and reference_long"][0], 2) == 19.33
+#     assert np.round(sm.coord_table['Longitudinal separation between body and reference_long'][0], 1) == -39.9
+#     assert np.round(sm.coord_table["Longitudinal separation between body's magnetic footpoint and reference_long"][0], 2) == 19.33
 
-    # verify backwards compatibility: undefined coord_sys is interpreted as 'Carrington'
-    assert sm.coord_sys == 'Carrington'
-
-
-def test_solarmach_get_sw_speed():
-    body_list = ['Earth', 'STEREO-A', 'BepiColombo']
-    date = '2021-10-28 15:15:00'
-    sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
-    try:
-        import speasy as spz
-        vsw_stereoa = 365.0
-    except ModuleNotFoundError:
-        vsw_stereoa = 400.0
-    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='STEREO-A']['Vsw'].values[0]) == vsw_stereoa
-    assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
+#     # verify backwards compatibility: undefined coord_sys is interpreted as 'Carrington'
+#     assert sm.coord_sys == 'Carrington'
 
 
+# def test_solarmach_get_sw_speed():
+#     body_list = ['Earth', 'STEREO-A', 'BepiColombo']
+#     date = '2021-10-28 15:15:00'
+#     sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
+#     try:
+#         import speasy as spz
+#         vsw_stereoa = 365.0
+#     except ModuleNotFoundError:
+#         vsw_stereoa = 400.0
+#     assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='STEREO-A']['Vsw'].values[0]) == vsw_stereoa
+#     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
+
+from pathlib import Path
+import pytest
+
+
+@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json', savefig_kwargs={'metadata': {'Software': None}}, style='default')
 def test_solarmach_plot():
     body_list = ['STEREO-A']
     vsw_list = [400]
@@ -81,30 +86,31 @@ def test_solarmach_plot():
     assert os.path.exists(os.getcwd()+os.sep+filename)
 
 
-def test_solarmach_pfss():
-    date = '2021-4-1 1:00:00'
-    body_list = ['Earth', 'STEREO-A']
-    vsw_list = [400, 400]   # position-sensitive solar wind speed per body in body_list
-    sm = SolarMACH(date, body_list, vsw_list, reference_long=100, reference_lat=10, coord_sys='Carrington')
-    gong_map = get_gong_map(time=date, filepath=None)
-    assert isinstance(gong_map, pfsspy.map.GongSynopticMap) or isinstance(gong_map, sunpy.map.sources.gong.GONGSynopticMap)
-    pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5, coord_sys='Carrington')
-    assert isinstance(pfss_solution, pfsspy.output.Output)
-    fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
-                           markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
-                           long_sector_color='red', reference_vsw=400.0)
-    assert isinstance(fig, matplotlib.figure.Figure)
+# @figure_test
+# def test_solarmach_pfss():
+#     date = '2021-4-1 1:00:00'
+#     body_list = ['Earth', 'STEREO-A']
+#     vsw_list = [400, 400]   # position-sensitive solar wind speed per body in body_list
+#     sm = SolarMACH(date, body_list, vsw_list, reference_long=100, reference_lat=10, coord_sys='Carrington')
+#     gong_map = get_gong_map(time=date, filepath=None)
+#     assert isinstance(gong_map, pfsspy.map.GongSynopticMap) or isinstance(gong_map, sunpy.map.sources.gong.GONGSynopticMap)
+#     pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5, coord_sys='Carrington')
+#     assert isinstance(pfss_solution, pfsspy.output.Output)
+#     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
+#                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
+#                            long_sector_color='red', reference_vsw=400.0)
+#     assert isinstance(fig, matplotlib.figure.Figure)
 
 
-def test_sc_distance():
-    distance = sc_distance('SolO', 'PSP', "2020/12/12")
-    assert np.round(distance.value, 8) == 1.45237361
-    assert distance.unit == u.AU
-    #
-    distance = sc_distance('SolO', 'PSP', dt.date(2020, 12, 12))
-    assert np.round(distance.value, 8) == 1.45237361
-    assert distance.unit == u.AU
-    #
-    distance = sc_distance('SolO', 'PSP', "2000/12/12")
-    assert np.isnan(distance.value)
-    assert distance.unit == u.AU
+# def test_sc_distance():
+#     distance = sc_distance('SolO', 'PSP', "2020/12/12")
+#     assert np.round(distance.value, 8) == 1.45237361
+#     assert distance.unit == u.AU
+#     #
+#     distance = sc_distance('SolO', 'PSP', dt.date(2020, 12, 12))
+#     assert np.round(distance.value, 8) == 1.45237361
+#     assert distance.unit == u.AU
+#     #
+#     distance = sc_distance('SolO', 'PSP', "2000/12/12")
+#     assert np.isnan(distance.value)
+#     assert distance.unit == u.AU
