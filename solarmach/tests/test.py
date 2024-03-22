@@ -7,7 +7,9 @@ import matplotlib
 import numpy as np
 import pandas
 import pfsspy
+import pytest
 import sunpy
+from pathlib import Path
 from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance
 
 
@@ -58,6 +60,7 @@ def test_solarmach_get_sw_speed():
     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
 
 
+@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json')
 def test_solarmach_plot():
     body_list = ['STEREO-A']
     vsw_list = [400]
@@ -72,15 +75,16 @@ def test_solarmach_plot():
     background_spirals=[6, 600]
 
     sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
-    sm.plot(plot_spirals=True, plot_sun_body_line=True,
-            reference_vsw=reference_vsw, transparent=False,
-            show_earth_centered_coord=False, markers='numbers',
-            long_sector=long_sector, long_sector_vsw=long_sector_vsw, long_sector_color=long_sector_color,
-            background_spirals=background_spirals, outfile=filename)
-
+    fig, ax = sm.plot(plot_spirals=True, plot_sun_body_line=True,
+                      reference_vsw=reference_vsw, transparent=False,
+                      show_earth_centered_coord=False, markers='numbers',
+                      long_sector=long_sector, long_sector_vsw=long_sector_vsw, long_sector_color=long_sector_color,
+                      background_spirals=background_spirals, outfile=filename, return_plot_object=True)
     assert os.path.exists(os.getcwd()+os.sep+filename)
+    return fig
 
 
+@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json')
 def test_solarmach_pfss():
     date = '2021-4-1 1:00:00'
     body_list = ['Earth', 'STEREO-A']
@@ -94,6 +98,7 @@ def test_solarmach_pfss():
                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
                            long_sector_color='red', reference_vsw=400.0)
     assert isinstance(fig, matplotlib.figure.Figure)
+    return fig
 
 
 def test_sc_distance():
