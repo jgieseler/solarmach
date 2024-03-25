@@ -60,7 +60,13 @@ def test_solarmach_get_sw_speed():
     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
 
 
-@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json')
+"""
+Create/update hash library for the following matplotlib tests by running for example the following command from the base package dir:
+tox -e py310-test -- --mpl-generate-hash-library=solarmach/tests/figure_hashes_mpl_353.json --mpl-deterministic
+"""
+
+
+@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json', deterministic=True)
 def test_solarmach_plot():
     body_list = ['STEREO-A']
     vsw_list = [400]
@@ -84,7 +90,7 @@ def test_solarmach_plot():
     return fig
 
 
-@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json')
+@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_353.json', deterministic=True)
 def test_solarmach_pfss():
     date = '2021-4-1 1:00:00'
     body_list = ['Earth', 'STEREO-A']
