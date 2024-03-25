@@ -64,7 +64,7 @@ def test_solarmach_get_sw_speed():
 def test_solarmach_plot():
     body_list = ['STEREO-A']
     vsw_list = [400]
-    date = '2021-10-28 15:15:00'
+    date = '2020-10-28 15:15:00'
     reference_long = 273
     reference_lat = 9
     reference_vsw = 400
