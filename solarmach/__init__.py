@@ -580,8 +580,8 @@ class SolarMACH():
                         line=dict(color=body_dict[body_id][2], dash='dot'),
                         thetaunit="radians"))
 
-                if numbered_markers:
-                    str_number = f'<b>{i+1}</b>'
+                if markers.lower()=='letters' or markers.lower()=='numbers':
+                    str_number = f'<b>{mark}</b>'
                 else:
                     str_number = None
 
@@ -650,7 +650,7 @@ class SolarMACH():
                         thetaunit="radians"))
 
         if test_plotly:
-            if numbered_markers:
+            if markers.lower()=='letters' or markers.lower()=='numbers':
                 for i, body_id in enumerate(self.body_dict):
                     if self.reference_long is not None:
                         x_offset_ref = -0.035  # 0.004
@@ -660,11 +660,23 @@ class SolarMACH():
                         x_offset_ref = 0.0
                         y_offset_ref = 0.0
                         y_offset_per_i = -0.0475
+                    # These offset numbers probably need to be updated; it seems the markers are now too much in the upper left direction.
+                    # They're not visible anymore for test_plotly_legend=[1.0, 1.0], so test for test_plotly_legend=[0.5, 0.5]. 
+                    # Note that the offset effect changes with the size of the plotly figure (i.e., when resizing the browser window)!
                     x_offset = -0.11  # 0.05
                     y_offset = 0.124  # -0.0064
-                    pfig.add_annotation(text=f'<b>{i+1}</b>', xref="paper", yref="paper", xanchor="center", yanchor="top",
+
+                    if markers.lower()=='letters':
+                        if body_id[:6] == 'STEREO':
+                            mark = str(body_id[-1])
+                        else:
+                            mark = str(body_id[0])
+                    if markers.lower()=='numbers':
+                        mark = i+1
+
+                    pfig.add_annotation(text=f'<b>{mark}</b>', xref="paper", yref="paper", xanchor="center", yanchor="top",
                                         x=test_plotly_legend[0]+x_offset+x_offset_ref, y=test_plotly_legend[1]+y_offset+y_offset_ref+y_offset_per_i*i,
-                                        showarrow=False, font=dict(color="white", size=14))
+                                        showarrow=False, font=dict(color="black", size=14))
 
             pfig.add_annotation(text='Solar-MACH', xref="paper", yref="paper",  # xanchor="center", yanchor="middle",
                                 x=test_plotly_logo[0], y=test_plotly_logo[1]+0.05,
