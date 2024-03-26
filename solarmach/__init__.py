@@ -229,7 +229,7 @@ class SolarMACH():
             self.pos_E = pos_E
 
         # standardize "undefined" vsw_list for further usage:
-        if type(vsw_list)==type(None) or vsw_list==False:
+        if type(vsw_list)==type(None) or vsw_list is False:
             vsw_list=[]
 
         # make deep copy of vsw_list bc. otherwise it doesn't get reset in a new init:
@@ -498,12 +498,12 @@ class SolarMACH():
         E_long = self.pos_E.lon.value
 
         # catch old syntax
-        if numbered_markers==True and not markers:
+        if numbered_markers is True and not markers:
             markers='numbers'
             print('')
             print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
             print('')
-        
+
         if markers:
             if markers.lower() in ['n', 'number']:
                 markers='numbers'
@@ -542,9 +542,9 @@ class SolarMACH():
                 if markers.lower()=='numbers':
                     mark = i+1
                 ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                           fontsize="small", weight='heavy',
-                           horizontalalignment='center',
-                           verticalalignment='center')
+                            fontsize="small", weight='heavy',
+                            horizontalalignment='center',
+                            verticalalignment='center')
             else:
                 ax.plot(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat)), 's', color=body_color, label=body_lab)
 
@@ -987,12 +987,12 @@ class SolarMACH():
         E_long = self.pos_E.lon.value
 
         # catch old syntax
-        if numbered_markers==True and not markers:
+        if numbered_markers is True and not markers:
             markers='numbers'
             print('')
             print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
             print('')
-        
+
         if markers:
             if markers.lower() in ['n', 'number']:
                 markers='numbers'
@@ -1068,7 +1068,7 @@ class SolarMACH():
                     else:
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
-                    mark = i+1                
+                    mark = i+1
                 ax.annotate(mark, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
                             fontsize="small", weight='heavy',
                             horizontalalignment='center',
