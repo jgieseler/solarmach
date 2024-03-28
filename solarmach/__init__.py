@@ -144,7 +144,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
 
     if type(dtime) == str:
         try:
-            dtime = parse_time(dtime)  # dateutil.parser.parse(dtime)
+            dtime = parse_time(dtime).datetime  # dateutil.parser.parse(dtime)
         except ValueError:  # dateutil.parser.ParserError:
             print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of {default_vsw} km/s.")
             return default_vsw
