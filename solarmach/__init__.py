@@ -142,12 +142,11 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
         print(f"Body '{body}' not supported, assuming default Vsw value of {default_vsw} km/s.")
         return default_vsw
 
-    if type(dtime) == str:
-        try:
-            dtime = parse_time(dtime).datetime  # dateutil.parser.parse(dtime)
-        except ValueError:  # dateutil.parser.ParserError:
-            print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of {default_vsw} km/s.")
-            return default_vsw
+    try:
+        dtime = parse_time(dtime).datetime  # dateutil.parser.parse(dtime)
+    except ValueError:  # dateutil.parser.ParserError:
+        print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of {default_vsw} km/s.")
+        return default_vsw
 
     try:
         if dataset[body].spz_provider() == 'amda':
@@ -213,7 +212,9 @@ class SolarMACH():
         if coord_sys.lower().startswith('sto') or coord_sys.lower() == "earth":
             coord_sys = 'Stonyhurst'
 
-        self.date = date
+        # parse input date & time
+        self.date = parse_time(date)
+
         self.reference_long = reference_long
         self.reference_lat = reference_lat
         self.coord_sys = coord_sys
@@ -886,7 +887,7 @@ class SolarMACH():
             if self.max_dist < 10:
                 ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
 
-        ax.set_title(str(self.date) + ' (UTC)\n', pad=30)
+        ax.set_title(str(self.date.to_value('iso', subfmt='date_hm')) + ' (UTC)\n', pad=30)
 
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.15)
@@ -1024,7 +1025,7 @@ class SolarMACH():
         r_max = r_scaler * 5  # 5 AU = 1075 in units of solar radii
 
         # setting the title
-        ax.set_title(str(self.date) + ' (UTC)\n', pad=30)  # , fontsize=26)
+        ax.set_title(str(self.date.to_value('iso', subfmt='date_hm')) + ' (UTC)\n', pad=30)  # , fontsize=26)
 
         # Plot the source_surface and solar surface
         full_circle_radians = 2*np.pi*np.linspace(0, 1, 200)
