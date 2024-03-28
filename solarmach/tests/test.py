@@ -10,7 +10,7 @@ import pfsspy
 import pytest
 import sunpy
 from pathlib import Path
-from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance
+from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance, get_sw_speed
 
 
 def test_print_body_list():
@@ -20,7 +20,7 @@ def test_print_body_list():
 
 
 def test_solarmach_initialize():
-    body_list = ['STEREO-A']
+    body_list = ['STEREO-A', 'JUICE']
     vsw_list = [400]
     date = '2021-10-28 15:15:00'
     reference_long = 273
@@ -58,6 +58,25 @@ def test_solarmach_get_sw_speed():
         vsw_stereoa = 400.0
     assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='STEREO-A']['Vsw'].values[0]) == vsw_stereoa
     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
+
+
+def test_solarmach_wrong_datetime_format():
+    body_list = ['Earth', 'STEREO-A', 'BepiColombo']
+    date = '202110-28 15:15:00'
+    default_vsw = 999.9
+
+    # check only get_sw_speed
+    vsw_earth = get_sw_speed(body_list[0], date, trange=1, default_vsw=default_vsw)
+    assert vsw_earth == default_vsw
+
+    # check only sc_distance
+    distance = sc_distance(body_list[0], body_list[1], date)
+    assert np.isnan(distance.value)
+    assert distance.unit == u.AU
+
+    # check SolarMACH
+    with pytest.raises(ValueError):
+        sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
 
 
 """
