@@ -7,7 +7,7 @@ except DistributionNotFound:
     pass  # package is not installed
 
 import copy
-import dateutil.parser  # type: ignore
+# import dateutil.parser  # type: ignore
 import math
 
 import astropy.constants as aconst
@@ -144,8 +144,8 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
 
     if type(dtime) == str:
         try:
-            dtime = dateutil.parser.parse(dtime)
-        except dateutil.parser.ParserError:
+            dtime = parse_time(dtime)  # dateutil.parser.parse(dtime)
+        except ValueError:  # dateutil.parser.ParserError:
             print(f"Unable to extract datetime from '{dtime}'. Assuming default Vsw value of {default_vsw} km/s.")
             return default_vsw
 
@@ -661,7 +661,7 @@ class SolarMACH():
                         y_offset_ref = 0.0
                         y_offset_per_i = -0.0475
                     # These offset numbers probably need to be updated; it seems the markers are now too much in the upper left direction.
-                    # They're not visible anymore for test_plotly_legend=[1.0, 1.0], so test for test_plotly_legend=[0.5, 0.5]. 
+                    # They're not visible anymore for test_plotly_legend=[1.0, 1.0], so test for test_plotly_legend=[0.5, 0.5].
                     # Note that the offset effect changes with the size of the plotly figure (i.e., when resizing the browser window)!
                     x_offset = -0.11  # 0.05
                     y_offset = 0.124  # -0.0064
