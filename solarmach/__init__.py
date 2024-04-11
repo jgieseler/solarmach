@@ -581,8 +581,9 @@ class SolarMACH():
                         line=dict(color=body_dict[body_id][2], dash='dot'),
                         thetaunit="radians"))
 
-                if markers.lower()=='letters' or markers.lower()=='numbers':
-                    str_number = f'<b>{mark}</b>'
+                if markers:
+                    if markers.lower()=='letters' or markers.lower()=='numbers':
+                        str_number = f'<b>{mark}</b>'
                 else:
                     str_number = None
 
