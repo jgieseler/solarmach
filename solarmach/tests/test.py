@@ -48,15 +48,31 @@ def test_solarmach_initialize():
 
 
 def test_solarmach_get_sw_speed():
-    body_list = ['Earth', 'STEREO-A', 'BepiColombo']
+    body_list = ['STEREO-A', 'SOHO', 'Parker Solar Probe', 'Solar Orbiter', 'Wind', 'ACE', 'Earth', 'BepiColombo']
     date = '2021-10-28 15:15:00'
     sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
     try:
         import speasy as spz
-        vsw_stereoa = 365.0
+        vsw_stereoa = 636.0
+        vsw_soho = 655.0
+        vsw_psp = 476.0
+        vsw_solo = 496.0
+        vsw_wind = 597.0
+        vsw_ace = 616.0
     except ModuleNotFoundError:
         vsw_stereoa = 400.0
+        vsw_soho = 400.0
+        vsw_psp = 400.0
+        vsw_solo = 400.0
+        vsw_wind = 400.0
+        vsw_ace = 400.0
     assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='STEREO-A']['Vsw'].values[0]) == vsw_stereoa
+    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='SOHO']['Vsw'].values[0]) == vsw_soho
+    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='Parker Solar Probe']['Vsw'].values[0]) == vsw_psp
+    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='Solar Orbiter']['Vsw'].values[0]) == vsw_solo
+    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='Wind']['Vsw'].values[0]) == vsw_wind
+    assert np.round(sm.coord_table[sm.coord_table['Spacecraft/Body']=='ACE']['Vsw'].values[0]) == vsw_ace
+    assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='Earth']['Vsw'].values[0] == sm.coord_table[sm.coord_table['Spacecraft/Body']=='ACE']['Vsw'].values[0]
     assert sm.coord_table[sm.coord_table['Spacecraft/Body']=='BepiColombo']['Vsw'].values[0] == 400.0
 
 
