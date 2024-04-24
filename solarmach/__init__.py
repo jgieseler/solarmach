@@ -9,6 +9,7 @@ except DistributionNotFound:
 import copy
 # import dateutil.parser  # type: ignore
 import math
+import os
 
 import astropy.constants as aconst
 import astropy.units as u
@@ -104,6 +105,9 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     float
         solar wind bulk speed in km/s
     """
+    # disable unused speasy data provider before importing to speed it up
+    os.environ['SPEASY_CORE_DISABLED_PROVIDERS'] = "sscweb,archive,csa"
+
     try:
         import speasy as spz
     except ModuleNotFoundError:
