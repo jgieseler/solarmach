@@ -49,7 +49,7 @@ def test_solarmach_initialize():
 
 def test_solarmach_get_sw_speed():
     body_list = ['STEREO-A', 'SOHO', 'Parker Solar Probe', 'Solar Orbiter', 'Wind', 'ACE', 'Earth', 'BepiColombo']
-    date = '2021-10-28 15:15:00'
+    date = '2023-02-28 15:00:00'
     sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
     try:
         import speasy as spz
