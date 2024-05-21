@@ -707,8 +707,9 @@ class SolarMACH():
             # if using streamlit, send plot to streamlit output, else call plt.show()
             if _isstreamlit():
                 import streamlit as st
+                import streamlit.components.v1 as components
                 # st.plotly_chart(pfig, theme="streamlit")
-                st.components.v1.html(pfig.to_html(include_mathjax='cdn'), height=500)
+                components.html(pfig.to_html(include_mathjax='cdn'), height=500)
             else:
                 pfig.show()
 
@@ -1840,8 +1841,9 @@ class SolarMACH():
         if _isstreamlit():
             fig.update_layout(width=700, height=700)
             import streamlit as st
+            import streamlit.components.v1 as components
             # st.plotly_chart(pfig, theme="streamlit")
-            st.components.v1.html(fig.to_html(include_mathjax='cdn'), height=700)
+            components.html(fig.to_html(include_mathjax='cdn'), height=700)
         else:
             fig.show()
 
@@ -2021,8 +2023,9 @@ class SolarMACH():
         if _isstreamlit():
             fig.update_layout(width=700, height=700)
             import streamlit as st
+            import streamlit.components.v1 as components
             # st.plotly_chart(pfig, theme="streamlit")
-            st.components.v1.html(fig.to_html(include_mathjax='cdn'), height=700)
+            components.html(fig.to_html(include_mathjax='cdn'), height=700)
         else:
             fig.show()
 
