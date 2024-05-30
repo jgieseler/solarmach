@@ -11,8 +11,9 @@ pandas
 plotly
 python-dateutil
 scipy
+setuptools
 speasy>=1.2.7
-tqdm
 sunkit_magex
 sunpy
+tqdm
 zeep
