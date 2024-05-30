@@ -1,5 +1,4 @@
 astropy
-astroquery
 cmasher
 drms
 imageio>=2.31.6
