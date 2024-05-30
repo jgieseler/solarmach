@@ -5,14 +5,14 @@ drms
 imageio>=2.31.6
 Jinja2
 lxml
-matplotlib==3.5.3
+matplotlib
 numpy
 pandas
-pfsspy  # TODO: replace with sunkit_magex
 plotly
 python-dateutil
 scipy
-speasy>=1.2.0
+speasy>=1.2.7
 tqdm
+sunkit_magex
 sunpy
 zeep

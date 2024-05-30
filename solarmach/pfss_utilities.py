@@ -19,7 +19,7 @@ import astropy.constants as aconst
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-import pfsspy  # TODO: replace with "import sunkit_magex.pfss as pfsspy"
+import sunkit_magex.pfss as pfsspy
 import sunpy.map
 from astropy.coordinates import SkyCoord
 from sunpy.net import Fido

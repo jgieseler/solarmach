@@ -6,7 +6,7 @@ import datetime as dt
 import matplotlib
 import numpy as np
 import pandas
-import pfsspy
+import sunkit_magex.pfss as pfsspy
 import pytest
 import sunpy
 from pathlib import Path
