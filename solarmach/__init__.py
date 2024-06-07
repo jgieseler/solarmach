@@ -41,6 +41,7 @@ body_dict = dict.fromkeys(['Earth', 'EARTH', 'earth', 399], [399, 'Earth', 'gree
 body_dict.update(dict.fromkeys(['ACE', 'ace', 'Advanced Composition Explorer', -92], [-92, 'ACE', 'dimgrey']))
 body_dict.update(dict.fromkeys(['BepiColombo', 'Bepi Colombo', 'Bepi', 'MPO', -121], [-121, 'BepiColombo', 'orange']))
 body_dict.update(dict.fromkeys(['Cassini', -82], [-82, 'Cassini', 'mediumvioletred']))
+body_dict.update(dict.fromkeys(['Europa Clipper', 'Clipper', -159], [-159, 'Europa Clipper', 'dimgray']))
 body_dict.update(dict.fromkeys(['JUICE', 'Juice', -28], [-28, 'JUICE', 'violet']))
 body_dict.update(dict.fromkeys(['Juno', 'JUNO', -61], [-61, 'Juno', 'orangered']))
 body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
