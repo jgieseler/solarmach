@@ -132,13 +132,14 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     dataset['STEREO B'] = amda_tree.Parameters.STEREO.STEREO_B.PLASTIC.stb_l2_pla.vpbulk_stb
     dataset['Wind'] = amda_tree.Parameters.Wind.SWE.wnd_swe_kp.wnd_swe_vmag
 
-    sw_key = dict(ACE='SW Bulk Speed')  # Solar Wind Bulk Speed [Vp]
-    sw_key['Parker Solar Probe'] = '|vp_mom|'  # Velocity vector magnitude
-    sw_key['SOHO'] = 'Proton V'  # Proton speed, scalar
-    sw_key['Solar Orbiter'] = '|v_rtn|'  # Velocity magnitude in RTN frame
-    sw_key['STEREO A'] = '|v|'  # Scalar magnitude of the velocity in km/s
-    sw_key['STEREO B'] = '|v|'  # Scalar magnitude of the velocity in km/s
-    sw_key['Wind'] = '|v|'  # |v|
+    # obsolete with useage of "df = df.iloc[:,0].resample('1h').mean()" below
+    # sw_key = dict(ACE='component_0')  # Solar Wind Bulk Speed [Vp]
+    # sw_key['Parker Solar Probe'] = '|vp_mom|'  # Velocity vector magnitude
+    # sw_key['SOHO'] = 'Proton V'  # Proton speed, scalar
+    # sw_key['Solar Orbiter'] = '|v_rtn|'  # Velocity magnitude in RTN frame
+    # sw_key['STEREO A'] = '|v|'  # Scalar magnitude of the velocity in km/s
+    # sw_key['STEREO B'] = '|v|'  # Scalar magnitude of the velocity in km/s
+    # sw_key['Wind'] = '|v|'  # |v|
 
     if body in ['Earth', 'SEMB-L1']:
         print(f"Using 'ACE' measurements for '{body}'.")
@@ -158,7 +159,9 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
             df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange), output_format="CDF_ISTP").to_dataframe()
         elif dataset[body].spz_provider() == 'cda':
             df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
-        df = df[sw_key[body]].resample('1h').mean()
+        # OLD: df = df[sw_key[body]].resample('1h').mean()
+        # This approach only takes the left-most column. All dataframe contain only a single column as of now. Be careful if this changes or new datasets are added!
+        df = df.iloc[:, 0].resample('1h').mean()
         # drop NaN entries:
         df.dropna(inplace=True)
         if len(df) > 0:
