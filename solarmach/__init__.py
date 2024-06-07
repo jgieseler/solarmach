@@ -546,6 +546,8 @@ class SolarMACH():
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
+                    elif body_id == 'Europa Clipper':
+                        mark = 'C'
                     else:
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
@@ -680,6 +682,8 @@ class SolarMACH():
                         if markers.lower()=='letters':
                             if body_id[:6] == 'STEREO':
                                 mark = str(body_id[-1])
+                            elif body_id == 'Europa Clipper':
+                                mark = 'C'
                             else:
                                 mark = str(body_id[0])
                         if markers.lower()=='numbers':
@@ -837,6 +841,8 @@ class SolarMACH():
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
+                    elif body_id == 'Europa Clipper':
+                        mark = 'C'
                     else:
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
@@ -1089,6 +1095,8 @@ class SolarMACH():
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
+                    elif body_id == 'Europa Clipper':
+                        mark = 'C'
                     else:
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
@@ -1365,6 +1373,8 @@ class SolarMACH():
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
+                    elif body_id == 'Europa Clipper':
+                        mark = 'C'
                     else:
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
