@@ -229,7 +229,7 @@ class SolarMACH():
 
         try:
             pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
-        except ValueError:
+        except (ValueError, RuntimeError):
             print('')
             print('!!! No ephemeris found for Earth for date {self.date} - there probably is a problem with JPL HORIZONS.')
         if coord_sys=='Carrington':
@@ -315,7 +315,7 @@ class SolarMACH():
                 if self.reference_lat is not None:
                     lat_sep = pos.lat.value - self.reference_lat
                     latsep_list.append(lat_sep)
-            except ValueError:
+            except (ValueError, RuntimeError):
                 print('')
                 print('!!! No ephemeris for target "' + str(body) + '" for date ' + str(self.date))
                 body_list.remove(body)
@@ -344,7 +344,7 @@ class SolarMACH():
             self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
             self.coord_table[
                 "Longitudinal separation between body's magnetic footpoint and reference_long"] = footp_longsep_list
-            self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1, np.NaN]
+            self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1, np.nan]
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
             self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference Point", f"{coord_sys} latitude (°)"] = self.reference_lat
@@ -1248,7 +1248,7 @@ class SolarMACH():
 
             else:
                 # Set the reach of the flux tube to nan, since it doesn't even reach up to the source surface
-                self.reference_long_min, self.reference_long_max = np.NaN, np.NaN
+                self.reference_long_min, self.reference_long_max = np.nan, np.nan
 
                 ref_arr = plt.arrow(np.deg2rad(self.reference_long), 1, 0, arrow_dist, head_width=0.1, head_length=0.5, edgecolor='black',
                                     facecolor='black', lw=1., zorder=7, overhang=0.5)
@@ -1457,7 +1457,7 @@ class SolarMACH():
         if self.reference_long:
             photospheric_footpoints.append(self.reference_long)
             fieldline_polarities.append(ref_objects[0].polarity)
-            self.pfss_table["Reference flux tube lon range"] = [np.NaN if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)]
+            self.pfss_table["Reference flux tube lon range"] = [np.nan if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)]
 
         self.pfss_table["Magnetic footpoint (PFSS)"] = photospheric_footpoints
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
@@ -2087,13 +2087,13 @@ def sc_distance(sc1, sc2, dtime):
 
     try:
         sc1_coord = get_horizons_coord(sc1, obstime, None)
-    except ValueError:
+    except (ValueError, RuntimeError):
         print(f"Unable to obtain position for '{sc1}' at {obstime}. Please try a different name or date.")
         return np.nan*u.AU
     #
     try:
         sc2_coord = get_horizons_coord(sc2, obstime, None)
-    except ValueError:
+    except (ValueError, RuntimeError):
         print(f"Unable to obtain position for '{sc2}' at {obstime}. Please try a different name or date.")
         return np.nan*u.AU
 
