@@ -115,6 +115,15 @@ Example Notebooks
  
 .. |nbviewer2| image:: https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg
  :target: https://nbviewer.org/github/serpentine-h2020/serpentine/blob/main/notebooks/solarmach/solarmach.ipynb
+
+
+Contributing
+------------
+
+Contributions to this package are very much welcome and encouraged! Contributions can take the form of `issues <https://github.com/jgieseler/solarmach/issues>`_ to report bugs and request new features or `pull requests <https://github.com/jgieseler/solarmach/pulls>`_ to submit new code. 
+
+Please make contributions specific to the streamlit web-version that is used for `solar-mach.github.io <https://solar-mach.github.io>`_ in the corresponding repository at `github.com/jgieseler/Solar-MACH <https://github.com/jgieseler/Solar-MACH/>`_.
+
  
 Citation
 --------
