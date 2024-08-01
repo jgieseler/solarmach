@@ -1854,7 +1854,7 @@ class SolarMACH():
                                      colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
-            # fig.update_layout(width=700, height=700)
+            fig.update_layout(width=700, height=700)
             import streamlit as st
             import streamlit.components.v1 as components            
             tab1, tab2 = st.tabs(["3d plot", "3d plot (mobile devices)"])
@@ -2039,7 +2039,7 @@ class SolarMACH():
                                      colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
-            # fig.update_layout(width=700, height=700)
+            fig.update_layout(width=700, height=700)
             import streamlit as st
             import streamlit.components.v1 as components            
             tab1, tab2 = st.tabs(["3d plot", "3d plot (mobile devices)"])
