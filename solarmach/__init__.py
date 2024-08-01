@@ -715,9 +715,10 @@ class SolarMACH():
             # if using streamlit, send plot to streamlit output, else call plt.show()
             if _isstreamlit():
                 import streamlit as st
-                import streamlit.components.v1 as components
+                # import streamlit.components.v1 as components
                 # st.plotly_chart(pfig, theme="streamlit")
-                components.html(pfig.to_html(include_mathjax='cdn'), height=500)
+                # components.html(pfig.to_html(include_mathjax='cdn'), height=500)
+                st.plotly_chart(fig, theme="streamlit", use_container_width=True)
             else:
                 pfig.show()
 
@@ -1853,11 +1854,11 @@ class SolarMACH():
                                      colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
-            fig.update_layout(width=700, height=700)
+            # fig.update_layout(width=700, height=700)
             import streamlit as st
-            import streamlit.components.v1 as components
-            # st.plotly_chart(pfig, theme="streamlit")
-            components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            # import streamlit.components.v1 as components
+            # components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
         else:
             fig.show()
 
@@ -2035,11 +2036,11 @@ class SolarMACH():
                                      colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
-            fig.update_layout(width=700, height=700)
+            # fig.update_layout(width=700, height=700)
             import streamlit as st
-            import streamlit.components.v1 as components
-            # st.plotly_chart(pfig, theme="streamlit")
-            components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            # import streamlit.components.v1 as components
+            # components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
         else:
             fig.show()
 
