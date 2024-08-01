@@ -1854,14 +1854,11 @@ class SolarMACH():
                                      colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
-            fig.update_layout(width=700, height=700)
+            # fig.update_layout(width=700, height=700)
             import streamlit as st
-            import streamlit.components.v1 as components            
-            tab1, tab2 = st.tabs(["3d plot", "3d plot (mobile devices)"])
-            with tab1:
-                st.plotly_chart(fig, theme="streamlit", use_container_width=True)
-            with tab2:
-                components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            # import streamlit.components.v1 as components
+            # components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
         else:
             fig.show()
 
@@ -2039,14 +2036,11 @@ class SolarMACH():
                                      colorscale='gray', showscale=False, opacity=0.2))
 
         if _isstreamlit():
-            fig.update_layout(width=700, height=700)
+            # fig.update_layout(width=700, height=700)
             import streamlit as st
-            import streamlit.components.v1 as components            
-            tab1, tab2 = st.tabs(["3d plot", "3d plot (mobile devices)"])
-            with tab1:
-                st.plotly_chart(fig, theme="streamlit", use_container_width=True)
-            with tab2:
-                components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            # import streamlit.components.v1 as components
+            # components.html(fig.to_html(include_mathjax='cdn'), height=700)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
         else:
             fig.show()
 
