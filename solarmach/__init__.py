@@ -175,6 +175,85 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
         return default_vsw
 
 
+def backmapping(body_pos, reference_long, target_solar_radius=1, vsw=400, **kwargs):
+    """
+    Determine the longitudinal separation angle of a given body and a given reference longitude
+
+    Parameters
+    ----------
+    body_pos : astropy.coordinates.sky_coordinate.SkyCoord
+        coordinates of the body
+    reference_long: float
+        Longitude of reference point at Sun to which we determine the longitudinal separation
+    target_solar_radius: float
+        Target solar radius to which to be backmapped. 0 corresponds to Sun's center, 1 to 1 solar radius, and e.g. 2.5 to the source surface.
+    vsw: float
+            solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
+
+    Returns
+    -------
+        sep: float
+            longitudinal separation of body magnetic footpoint and reference longitude in degrees
+        alpha: float
+            backmapping angle
+    """
+    if 'diff_rot' in kwargs.keys():
+        diff_rot = kwargs['diff_rot']
+    else:
+        diff_rot = True
+
+    pos = body_pos
+    lon = pos.lon.value
+    lat = pos.lat.value
+    # dist = pos.radius.value
+    radius = pos.radius
+
+    # take into account solar differential rotation wrt. latitude
+    omega = solar_diff_rot(lat, diff_rot=diff_rot)
+    # old:
+    # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
+
+    # tt = dist * AU / vsw
+    # alpha = math.degrees(omega * tt)
+    alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
+
+    # diff = math.degrees(target_solar_radius*aconst.R_sun.to(u.km).value * omega / vsw * np.log(radius.to(u.km).value/(target_solar_radius*aconst.R_sun).to(u.km).value))
+
+    if reference_long is not None:
+        sep = (lon + alpha) - reference_long
+        if sep > 180.:
+            sep = sep - 360
+
+        if sep < -180.:
+            sep = 360 - abs(sep)
+    else:
+        sep = np.nan
+
+    return sep, alpha
+
+
+def solar_diff_rot(lat, **kwargs):
+    """
+    Calculate solar differential rotation wrt. latitude,
+    based on rLSQ method of Beljan et al. (2017),
+    doi: 10.1051/0004-6361/201731047
+
+    Parameters
+    ----------
+    lat : number (int, flotat)
+        Heliographic latitude in degrees
+
+    Returns
+    -------
+    numpy.float64
+        Solar angular rotation in rad/sec
+    """
+    if 'diff_rot' in kwargs.keys():
+        if kwargs['diff_rot'] is False:
+            lat = 0
+    return np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))  # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
+
+
 class SolarMACH():
     """
     Class handling selected bodies
@@ -295,7 +374,7 @@ class SolarMACH():
 
                 body_vsw_list.append(vsw_list2[i])
 
-                sep, alpha = self.backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list2[i])
+                sep, alpha = backmapping(pos, reference_long, target_solar_radius=self.target_solar_radius, vsw=vsw_list2[i], diff_rot=self.diff_rot)
                 bodies[body_id].append(sep)
 
                 body_footp_long = pos.lon.value + alpha
@@ -355,80 +434,6 @@ class SolarMACH():
 
         # reset sunpy log level to initial state
         log.setLevel(initial_log_level)
-
-    def backmapping(self, body_pos, reference_long, target_solar_radius=1, vsw=400):
-        """
-        Determine the longitudinal separation angle of a given body and a given reference longitude
-
-        Parameters
-        ----------
-        body_pos : astropy.coordinates.sky_coordinate.SkyCoord
-            coordinates of the body
-        reference_long: float
-            Longitude of reference point at Sun to which we determine the longitudinal separation
-        target_solar_radius: float
-            Target solar radius to which to be backmapped. 0 corresponds to Sun's center, 1 to 1 solar radius, and e.g. 2.5 to the source surface.
-        vsw: float
-             solar wind speed (km/s) used to determine the position of the magnetic footpoint of the body. Default is 400.
-
-        Returns
-        -------
-            sep: float
-                longitudinal separation of body magnetic footpoint and reference longitude in degrees
-            alpha: float
-                backmapping angle
-        """
-        # AU = const.au / 1000  # km
-
-        pos = body_pos
-        lon = pos.lon.value
-        lat = pos.lat.value
-        # dist = pos.radius.value
-        radius = pos.radius
-
-        # take into account solar differential rotation wrt. latitude
-        omega = self.solar_diff_rot(lat)
-        # old:
-        # omega = math.radians(360. / (25.38 * 24 * 60 * 60))  # rot-angle in rad/sec, sidereal period
-
-        # tt = dist * AU / vsw
-        # alpha = math.degrees(omega * tt)
-        alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
-
-        # diff = math.degrees(target_solar_radius*aconst.R_sun.to(u.km).value * omega / vsw * np.log(radius.to(u.km).value/(target_solar_radius*aconst.R_sun).to(u.km).value))
-
-        if reference_long is not None:
-            sep = (lon + alpha) - reference_long
-            if sep > 180.:
-                sep = sep - 360
-
-            if sep < -180.:
-                sep = 360 - abs(sep)
-        else:
-            sep = np.nan
-
-        return sep, alpha
-
-    def solar_diff_rot(self, lat):
-        """
-        Calculate solar differential rotation wrt. latitude,
-        based on rLSQ method of Beljan et al. (2017),
-        doi: 10.1051/0004-6361/201731047
-
-        Parameters
-        ----------
-        lat : number (int, flotat)
-            Heliographic latitude in degrees
-
-        Returns
-        -------
-        numpy.float64
-            Solar angular rotation in rad/sec
-        """
-        # (14.50-2.87*np.sin(np.deg2rad(lat))**2) defines degrees/day
-        if self.diff_rot is False:
-            lat = 0
-        return np.radians((14.50-2.87*np.sin(np.deg2rad(lat))**2)/(24*60*60))
 
     def plot(self, plot_spirals=True,
              plot_sun_body_line=False,
@@ -538,7 +543,7 @@ class SolarMACH():
             body_lat = pos.lat.value
 
             # take into account solar differential rotation wrt. latitude
-            omega = self.solar_diff_rot(body_lat)
+            omega = solar_diff_rot(body_lat, diff_rot=self.diff_rot)
             # old:
             # omega = np.radians(360. / (25.38 * 24 * 60 * 60))  # solar rot-angle in rad/sec, sidereal period
 
@@ -621,7 +626,7 @@ class SolarMACH():
             else:
                 ref_lat = self.reference_lat
             # take into account solar differential rotation wrt. latitude
-            omega_ref = self.solar_diff_rot(ref_lat)
+            omega_ref = solar_diff_rot(ref_lat, diff_rot=self.diff_rot)
 
             # old eq. for alpha_ref contained redundant dist_e variable:
             # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (dist_e / AU - r_array) - (omega_ref / (reference_vsw / AU) * (dist_e / AU))
@@ -750,8 +755,8 @@ class SolarMACH():
 
                 long_sector_lat = [0, 0]  # maybe later add option to have different latitudes, so that the long_sector plane is out of the ecliptic
                 # take into account solar differential rotation wrt. latitude
-                omega_ref1 = self.solar_diff_rot(long_sector_lat[0])
-                omega_ref2 = self.solar_diff_rot(long_sector_lat[1])
+                omega_ref1 = solar_diff_rot(long_sector_lat[0], diff_rot=self.diff_rot)
+                omega_ref2 = solar_diff_rot(long_sector_lat[1], diff_rot=self.diff_rot)
 
                 # Build an r_array for the second spiral for while loop to iterate forwards
                 r_array2 = np.copy(r_array)
@@ -806,7 +811,7 @@ class SolarMACH():
                 # maybe later add option to have a non-zero latitude, so that the field lines are out of the ecliptic
                 background_spirals_lat = 0
                 # take into account solar differential rotation wrt. latitude
-                omega_ref = self.solar_diff_rot(background_spirals_lat)
+                omega_ref = solar_diff_rot(background_spirals_lat, diff_rot=self.diff_rot)
 
                 if len(background_spirals)>=3:
                     background_spirals_ls = background_spirals[2]
@@ -1087,7 +1092,7 @@ class SolarMACH():
             body_lat = pos.lat.value
 
             # take into account solar differential rotation wrt. latitude
-            omega = self.solar_diff_rot(body_lat)
+            omega = solar_diff_rot(body_lat, diff_rot=self.diff_rot)
 
             # The radial coordinates (outside source surface) for each object
             r_array = np.linspace(r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), rss, 1000)
@@ -1193,7 +1198,7 @@ class SolarMACH():
                 ref_lat = self.reference_lat
 
             # take into account solar differential rotation wrt. latitude
-            omega_ref = self.solar_diff_rot(ref_lat)
+            omega_ref = solar_diff_rot(ref_lat, diff_rot=self.diff_rot)
 
             # Track up from the reference point a fluxtube
             # Start tracking from the height of 0.1 solar radii
@@ -1299,8 +1304,8 @@ class SolarMACH():
                 long_sector_lat = [0, 0]
 
                 # take into account solar differential rotation wrt. latitude
-                omega_ref1 = self.solar_diff_rot(long_sector_lat[0])
-                omega_ref2 = self.solar_diff_rot(long_sector_lat[1])
+                omega_ref1 = solar_diff_rot(long_sector_lat[0], diff_rot=self.diff_rot)
+                omega_ref2 = solar_diff_rot(long_sector_lat[1], diff_rot=self.diff_rot)
 
                 if long_sector_vsw is not None:
 
@@ -1674,7 +1679,7 @@ class SolarMACH():
         #     # body_lat = pos.lat.value
 
         #     # take into account solar differential rotation wrt. latitude
-        #     # omega = self.solar_diff_rot(body_lat)
+        #     # omega = solar_diff_rot(body_lat, diff_rot=self.diff_rot)
 
         #     print(body_pos.cartesian.x.to(u.solRad).value, body_pos.cartesian.y.to(u.solRad).value, body_pos.cartesian.z.to(u.solRad).value)
 
@@ -1726,7 +1731,7 @@ class SolarMACH():
             body_lat = pos.lat.value
 
             # take into account solar differential rotation wrt. latitude
-            omega = self.solar_diff_rot(body_lat)
+            omega = solar_diff_rot(body_lat, diff_rot=self.diff_rot)
 
             # TODO: np.cos(np.deg2rad(body_lat) correct????
             # alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
@@ -1798,7 +1803,7 @@ class SolarMACH():
             else:
                 ref_lat = self.reference_lat
 
-            omega_ref = self.solar_diff_rot(ref_lat)
+            omega_ref = solar_diff_rot(ref_lat, diff_rot=self.diff_rot)
             alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(ref_lat))
 
             arrow_dist = min([self.max_dist/3.2, 2.])
@@ -1917,7 +1922,7 @@ class SolarMACH():
             body_lat = pos.lat.value
 
             # take into account solar differential rotation wrt. latitude
-            omega = self.solar_diff_rot(body_lat)
+            omega = solar_diff_rot(body_lat, diff_rot=self.diff_rot)
 
             # TODO: np.cos(np.deg2rad(body_lat) correct????
             alpha_body = np.deg2rad(body_long) + omega / (body_vsw / AU) * (dist_body - r_array) * np.cos(np.deg2rad(body_lat))
@@ -1980,7 +1985,7 @@ class SolarMACH():
             else:
                 ref_lat = self.reference_lat
 
-            omega_ref = self.solar_diff_rot(ref_lat)
+            omega_ref = solar_diff_rot(ref_lat, diff_rot=self.diff_rot)
             alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(ref_lat))
 
             arrow_dist = min([self.max_dist/3.2, 2.])
