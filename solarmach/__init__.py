@@ -395,6 +395,8 @@ class SolarMACH():
         # alpha = math.degrees(omega * tt)
         alpha = math.degrees(omega * (radius-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
 
+        # diff = math.degrees(target_solar_radius*aconst.R_sun.to(u.km).value * omega / vsw * np.log(radius.to(u.km).value/(target_solar_radius*aconst.R_sun).to(u.km).value))
+
         if reference_long is not None:
             sep = (lon + alpha) - reference_long
             if sep > 180.:
@@ -1245,7 +1247,7 @@ class SolarMACH():
                 ref_arr = plt.arrow(np.deg2rad(self.reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
                                     facecolor='black', lw=0, zorder=7, overhang=0.1)
 
-                reference_legend_label = f"reference long.\nsector:\n({np.round(self.reference_long_min,1)}, {np.round(self.reference_long_max,1)})"
+                reference_legend_label = f"reference long.\nsector:\n({np.round(self.reference_long_min, 1)}, {np.round(self.reference_long_max, 1)})"
 
             else:
                 # Set the reach of the flux tube to nan, since it doesn't even reach up to the source surface
