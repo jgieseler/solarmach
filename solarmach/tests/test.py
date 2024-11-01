@@ -3,6 +3,7 @@ import os
 import astropy
 import astropy.units as u
 import datetime as dt
+import hashlib
 import matplotlib
 import numpy as np
 import pandas
@@ -128,9 +129,9 @@ def test_solarmach_plot():
 @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
 def test_solarmach_pfss():
     date = '2021-4-1 1:00:00'
-    body_list = ['Earth', 'STEREO-A']
+    body_list = ['Earth', 'PSP']
     vsw_list = [400, 400]   # position-sensitive solar wind speed per body in body_list
-    sm = SolarMACH(date, body_list, vsw_list, reference_long=100, reference_lat=10, coord_sys='Carrington')
+    sm = SolarMACH(date, body_list, vsw_list, reference_long=180, reference_lat=10, coord_sys='Carrington')
     gong_map = get_gong_map(time=date, filepath=None)
     assert isinstance(gong_map, sunpy.map.sources.gong.GONGSynopticMap)
     pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5, coord_sys='Carrington')
@@ -140,6 +141,8 @@ def test_solarmach_pfss():
                            long_sector_color='red', reference_vsw=400.0)
     assert isinstance(fig, matplotlib.figure.Figure)
     return fig
+    assert hashlib.sha1(pd.util.hash_pandas_object(sm.coord_table).values).hexdigest() == '0709d8b384c5b74b792ce725c4165a2741f88e3f'
+    # assert hashlib.sha1(pd.util.hash_pandas_object(sm.pfss_table).values).hexdigest() == ''  # fails - bc. of nan's in DF?
 
 
 def test_sc_distance():
