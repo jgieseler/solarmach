@@ -96,8 +96,8 @@ def test_solarmach_wrong_datetime_format():
 
 
 """
-Create/update hash library for the following matplotlib tests by running for example the following command from the base package dir:
-tox -e py311-test -- --mpl-generate-hash-library=solarmach/tests/figure_hashes_mpl_391.json --mpl-deterministic
+Create/update hash library for the following matplotlib tests by running for example the following command from the base package dir (replace py312 with installed Python version):
+tox -e py312-test -- --mpl-generate-hash-library=solarmach/tests/figure_hashes_mpl_391.json --mpl-deterministic
 """
 
 
