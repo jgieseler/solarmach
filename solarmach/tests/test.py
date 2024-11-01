@@ -6,7 +6,7 @@ import datetime as dt
 import hashlib
 import matplotlib
 import numpy as np
-import pandas
+import pandas as pd
 import sunkit_magex.pfss as pfsspy
 import pytest
 import sunpy
@@ -16,7 +16,7 @@ from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_s
 
 def test_print_body_list():
     df = print_body_list()
-    assert isinstance(df, pandas.core.frame.DataFrame)
+    assert isinstance(df, pd.core.frame.DataFrame)
     assert df['Body'].loc['PSP'] == 'Parker Solar Probe'
 
 
