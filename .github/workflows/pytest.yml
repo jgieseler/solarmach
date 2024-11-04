@@ -48,3 +48,9 @@ jobs:
       with:
         name: ${{ matrix.python-version }}-pfss-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/solarmach_pfss.png"
+    - name: Upload File Standard Plot
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.python-version }}-standard-plot-artifact
+        path: "/home/runner/work/solarmach/solarmach/solarmach.png"
