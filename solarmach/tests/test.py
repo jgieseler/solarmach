@@ -110,7 +110,7 @@ def test_solarmach_plot():
     reference_long = 273
     reference_lat = 9
     reference_vsw = 400
-    filename = 'test.png'
+    filename = 'solarmach.png'
     long_sector=[290, 328]
     long_sector_vsw=[400, 600]
     long_sector_color='red'
@@ -139,24 +139,6 @@ def test_solarmach_pfss():
     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
                            long_sector_color='red', reference_vsw=400.0, outfile='solarmach_pfss.png')
-
-    plotfile = os.getcwd()+os.sep+'solarmach_pfss.png'
-    print(plotfile)
-
-    import base64
-    with open('solarmach_pfss.png', 'rb') as image_file:
-        base64_bytes = base64.b64encode(image_file.read())
-        # print(base64_bytes)
-
-        base64_string = base64_bytes.decode()
-        # print(base64_string)
-    file1 = open('solarmach_pfss.txt', 'w')
-    file1.write(base64_string)
-    file1.close()
-
-
-
-
     assert isinstance(fig, matplotlib.figure.Figure)
     return fig
     assert hashlib.sha1(pd.util.hash_pandas_object(sm.coord_table).values).hexdigest() == '0709d8b384c5b74b792ce725c4165a2741f88e3f'
