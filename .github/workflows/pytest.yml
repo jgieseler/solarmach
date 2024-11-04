@@ -42,3 +42,8 @@ jobs:
       uses: codecov/codecov-action@v4
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    - name: Upload File
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact
+        path: "/home/runner/work/solarmach/solarmach/solarmach_pfss.txt"

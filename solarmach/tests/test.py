@@ -146,7 +146,7 @@ def test_solarmach_pfss():
     import base64
     with open('solarmach_pfss.png', 'rb') as image_file:
         base64_bytes = base64.b64encode(image_file.read())
-        print(base64_bytes)
+        # print(base64_bytes)
 
         base64_string = base64_bytes.decode()
         # print(base64_string)
