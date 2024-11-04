@@ -140,7 +140,8 @@ def test_solarmach_pfss():
                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
                            long_sector_color='red', reference_vsw=400.0, outfile='solarmach_pfss.png')
 
-    # plotfile = #os.getcwd()+os.sep+'solarmach_pfss.png'
+    plotfile = os.getcwd()+os.sep+'solarmach_pfss.png'
+    print(plotfile)
 
     import base64
     with open('solarmach_pfss.png', 'rb') as image_file:
@@ -148,10 +149,11 @@ def test_solarmach_pfss():
         print(base64_bytes)
 
         base64_string = base64_bytes.decode()
-        print(base64_string)
+        # print(base64_string)
     file1 = open('solarmach_pfss.txt', 'w')
     file1.write(base64_string)
     file1.close()
+
 
 
 
