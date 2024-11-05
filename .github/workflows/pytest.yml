@@ -37,20 +37,26 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest -rP --mpl --cov .
+        pytest -rP --mpl --mpl-generate-summary=html --mpl-results-path='/home/runner/work/solarmach/solarmach/' --cov .
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    - name: Upload File PFSS Plot
+    - name: Save PFSS plot as artifcat
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.python-version }}-pfss-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/solarmach_pfss.png"
-    - name: Upload File Standard Plot
+    - name: Save standard plot as artifcat
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.python-version }}-standard-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/solarmach.png"
+    - name: Save pytest-mpl report as artifcat
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.python-version }}-pytest-mpl-report-artifact
+        path: "/home/runner/work/solarmach/solarmach/fig_comparison_basic.html"
