@@ -132,7 +132,7 @@ def test_solarmach_plot():
 
 # Because for test_solarmach_pfss() the hash comparison always failed on GitHub Actions, fall back to plain image comparison mode for it.
 # @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True, remove_text=True)
-@pytest.mark.mpl_image_compare(remove_text=True)
+@pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
 def test_solarmach_pfss():
     date = '2021-4-1 1:00:00'
     body_list = ['Earth', 'PSP']
