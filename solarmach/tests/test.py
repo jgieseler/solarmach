@@ -97,8 +97,12 @@ def test_solarmach_wrong_datetime_format():
 
 
 """
-Create/update hash library for the following matplotlib tests by running for example the following command from the base package dir (replace py312 with installed Python version):
+Create/update hash library and baseline images for the following matplotlib tests by running e.g. the following command from the base package dir (replace py312 with installed Python version):
 tox -e py312-test -- --mpl-generate-hash-library=solarmach/tests/figure_hashes_mpl_391.json --mpl-deterministic
+
+Because for test_solarmach_pfss() the hash comparison always failed on GitHub Actions, fall back to plain image comparison mode for it.
+To create/update the baseline images, run the following command from the base package dir:
+pytest --mpl-generate-path=solarmach/tests/baseline
 """
 
 
@@ -126,6 +130,7 @@ def test_solarmach_plot():
     return fig
 
 
+# Because for test_solarmach_pfss() the hash comparison always failed on GitHub Actions, fall back to plain image comparison mode for it.
 # @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True, remove_text=True)
 @pytest.mark.mpl_image_compare(remove_text=True)
 def test_solarmach_pfss():

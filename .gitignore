@@ -218,7 +218,7 @@ examples/**/*.csv
 figure_test_images*
 tags
 sunpy_map.asdf
-baseline
+# baseline
 docs/guide/data_types/figure.png
 october_M1_flares.csv
 aia_map.fits
