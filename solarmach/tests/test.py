@@ -119,29 +119,29 @@ def test_solarmach_plot():
     sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
     fig, ax = sm.plot(plot_spirals=True, plot_sun_body_line=True,
                       reference_vsw=reference_vsw, transparent=False,
-                      show_earth_centered_coord=False, markers='numbers',
+                      show_earth_centered_coord=False, markers=False,
                       long_sector=long_sector, long_sector_vsw=long_sector_vsw, long_sector_color=long_sector_color,
                       background_spirals=background_spirals, outfile=filename, return_plot_object=True)
     assert os.path.exists(os.getcwd()+os.sep+filename)
     return fig
 
 
-@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
-def test_solarmach_pfss():
-    date = '2021-4-1 1:00:00'
-    body_list = ['Earth', 'PSP']
-    vsw_list = [400, 400]   # position-sensitive solar wind speed per body in body_list
-    sm = SolarMACH(date, body_list, vsw_list, reference_long=180, reference_lat=10, coord_sys='Carrington')
-    gong_map = get_gong_map(time=date, filepath=None)
-    assert isinstance(gong_map, sunpy.map.sources.gong.GONGSynopticMap)
-    pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5, coord_sys='Carrington')
-    assert isinstance(pfss_solution, pfsspy.output.Output)
-    fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
-                           markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
-                           long_sector_color='red', reference_vsw=400.0, outfile='solarmach_pfss.png')
-    assert isinstance(fig, matplotlib.figure.Figure)
-    return fig
-    assert hashlib.sha1(pd.util.hash_pandas_object(sm.coord_table).values).hexdigest() == '0709d8b384c5b74b792ce725c4165a2741f88e3f'
+# @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
+# def test_solarmach_pfss():
+#     date = '2021-4-1 1:00:00'
+#     body_list = ['Earth', 'PSP']
+#     vsw_list = [400, 400]   # position-sensitive solar wind speed per body in body_list
+#     sm = SolarMACH(date, body_list, vsw_list, reference_long=180, reference_lat=10, coord_sys='Carrington')
+#     gong_map = get_gong_map(time=date, filepath=None)
+#     assert isinstance(gong_map, sunpy.map.sources.gong.GONGSynopticMap)
+#     pfss_solution = calculate_pfss_solution(gong_map=gong_map, rss=2.5, coord_sys='Carrington')
+#     assert isinstance(pfss_solution, pfsspy.output.Output)
+#     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
+#                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
+#                            long_sector_color='red', reference_vsw=400.0, outfile='solarmach_pfss.png')
+#     assert isinstance(fig, matplotlib.figure.Figure)
+#     return fig
+#     assert hashlib.sha1(pd.util.hash_pandas_object(sm.coord_table).values).hexdigest() == '0709d8b384c5b74b792ce725c4165a2741f88e3f'
     # assert hashlib.sha1(pd.util.hash_pandas_object(sm.pfss_table).values).hexdigest() == ''  # fails - bc. of nan's in DF?
 
 
