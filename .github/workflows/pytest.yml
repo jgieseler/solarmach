@@ -37,7 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest -rP --mpl --mpl-generate-summary=basic-html --mpl-results-path='/home/runner/work/solarmach/solarmach/' --cov .
+        pytest -rP --mpl --mpl-baseline-path=baseline --mpl-baseline-relative --mpl-generate-summary=basic-html --mpl-results-path='/home/runner/work/solarmach/solarmach/' --cov .
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       env:
