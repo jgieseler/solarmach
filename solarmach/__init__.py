@@ -1448,7 +1448,7 @@ class SolarMACH():
             else:
                 print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
 
-        leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13)
+        leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13, numpoints=1)
 
         if markers:
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
