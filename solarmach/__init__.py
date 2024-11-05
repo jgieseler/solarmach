@@ -915,7 +915,7 @@ class SolarMACH():
                                        head_width=0.75 * height)
 
         # leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
-        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13,
+        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13, numpoints=1,
                          handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), })
 
         if markers:
