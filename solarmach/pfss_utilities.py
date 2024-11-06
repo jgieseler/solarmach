@@ -73,7 +73,7 @@ def get_pfss_hmimap(filepath, email, carrington_rot, date, rss=2.5, nrho=35):
         files = Fido.fetch(result)
         hmi_map = sunpy.map.Map(files[0])
         # pfsspy.utils.fix_hmi_meta(hmi_map)
-        
+
         print('Data shape: ', hmi_map.data.shape)
 
         hmi_map = hmi_map.resample([360, 180]*u.pix)
@@ -590,7 +590,7 @@ def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
             # Convert GONG map from default Carrington to Carrington coordinate system.
             # This sounds useless, but is needed to rebuild the meta data of the GONG map when using sunpy>5.1.0
             # cf. https://github.com/sunpy/sunpy/issues/7313
-            new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')        
+            new_map_header = sunpy.map.header_helper.make_heliographic_header(date=gong_map.date, observer_coordinate=gong_map.observer_coordinate, shape=gong_map.data.shape, frame='carrington', projection_code='CEA')
         gong_map = gong_map.reproject_to(new_map_header)
     # GONG map is in Stonyhurst coordinates
     elif gong_map.coordinate_system.axis1=='HGLN-CEA':
@@ -676,7 +676,7 @@ def construct_gongmap_filename(timestr, directory):
         return directory
 
 
-def get_gong_map(time: str, filepath: str=None, autodownload=True):
+def get_gong_map(time: str, filepath: str = None, autodownload=True):
     """
     A wrapper for functions load_gong_map() and download_gong_map().
     Returns a gong map if one is found or autodownload is True. If no map found and
