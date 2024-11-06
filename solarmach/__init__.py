@@ -1148,8 +1148,8 @@ class SolarMACH():
         Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
         Also tracks an open field line down to photosphere given a point on the pfss.
 
-        pfss_solution : {pfsspy.output}
-            PFSS model calculated by pfsspy from magnetographic maps
+        pfss_solution : {sunkit_magex.pfss.output}
+            PFSS model calculated by sunkit_magex.pfss from magnetographic maps
         rss : {float}, optional
             source surface height of the potential field in solar radii. default 2.5
         reference_longitude : {int or float}, optional
@@ -1644,20 +1644,15 @@ class SolarMACH():
                 plot_spirals=True, plot_sun_body_line=False, numbered_markers=False, plot_equatorial_plane=True,
                 reference_vsw=400, zoom_out=False):
         """
-        https://plotly.github.io/plotly.py-docs/generated/plotly.graph_objects.Scatter3d.html
-        https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html
-        https://plotly.com/python-api-reference/plotly.graph_objects.html
-        https://fslab.org/XPlot/chart/plotly-3d-line-plots.html
-
         Opens up an interactive 3d-plot of the Sun and FieldLine objects. Also shows the flare area if provided.
 
         params
         -------
         active_area: (lonmax, lonmin, latmax, latmin)
-                    A tuple of the max and min of longitude and latitude in degrees
+            A tuple of the max and min of longitude and latitude in degrees
 
         color_code: str
-                    Choose either 'polarity' or 'object'
+            Choose either 'polarity' or 'object'
         """
 
         import plotly.express as px
