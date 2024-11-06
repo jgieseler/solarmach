@@ -1207,7 +1207,6 @@ class SolarMACH():
         ------
         This function plots the PFSS solution on a polar plot, including the source surface, solar surface, Parker spirals, and field lines. It also supports plotting varied field lines, long sectors, and markers for different bodies. The plot can be saved to a file or displayed using matplotlib or streamlit.
         """
-
         # check that PFSS solution and SolarMACH object use the same coordinate system
         if not pfss_solution.coordinate_frame.name==self.pos_E.name:
             raise Exception("The provided PFSS solution and the SolarMACH object use different coordinate systems! Aborting.")
@@ -1723,7 +1722,6 @@ class SolarMACH():
         --------
         None
         """
-
         import plotly.express as px
         import plotly.graph_objects as go
         from astropy.constants import R_sun
