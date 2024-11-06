@@ -9,7 +9,6 @@ solarmach
    :target: https://anaconda.org/conda-forge/solarmach/
 .. |python version| image:: https://img.shields.io/pypi/pyversions/solarmach?style=flat&logo=python
 .. |pytest| image:: https://github.com/jgieseler/solarmach/workflows/pytest/badge.svg
-   :target: https://github.com/jgieseler/solarmach/actions/workflows/pytest.yml
 .. |codecov| image:: https://codecov.io/gh/jgieseler/solarmach/branch/main/graph/badge.svg?token=CT2P8AQU3B
    :target: https://codecov.io/gh/jgieseler/solarmach
 .. |docs| image:: https://readthedocs.org/projects/solarmach/badge/?version=latest

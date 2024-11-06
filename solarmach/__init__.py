@@ -321,7 +321,7 @@ def solar_diff_rot(lat, **kwargs):
     Parameters
     ----------
     lat : astropy.units.Quantity
-        The latitude at which to calculate the differential rotation rate, e.g., 
+        The latitude at which to calculate the differential rotation rate, e.g.,
         "23 * astropy.units.deg". If no units are provided, it will be treated as radians!
 
     Returns
@@ -1140,7 +1140,7 @@ class SolarMACH():
                   figsize=(15, 10),
                   dpi=200,
                   return_plot_object=False,
-                  vary=False, 
+                  vary=False,
                   n_varies=1,
                   long_offset=270,
                   reference_vsw=400.,
@@ -1154,7 +1154,7 @@ class SolarMACH():
                   outfile=''):
         """
         Plot the Potential Field Source Surface (PFSS) solution on a polar plot with logarithmic r-axis outside the PFSS.
-        Tracks an open field line down to the photosphere given a point on the PFSS.        
+        Tracks an open field line down to the photosphere given a point on the PFSS.
 
         Parameters:
         -----------
