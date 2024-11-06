@@ -143,7 +143,7 @@ This project has received funding from the European Union’s Horizon 2020 resea
 
 Powered by: |matplotlib| |sunpy|
 
-.. |matplotlib| image:: https://matplotlib.org/stable/_static/logo2_compressed.svg
+.. |matplotlib| image:: https://matplotlib.org/stable/_static/logo_dark.svg
    :height: 25px
    :target: https://matplotlib.org
 .. |sunpy| image:: https://raw.githubusercontent.com/sunpy/sunpy-logo/master/generated/sunpy_logo_landscape.svg
