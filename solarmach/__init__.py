@@ -315,18 +315,18 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
 
 def solar_diff_rot(lat, **kwargs):
     """
-    Calculate solar differential rotation wrt. latitude,
-    based on rLSQ method of Beljan et al. (2017),
-    doi: 10.1051/0004-6361/201731047
+    Calculate the solar differential rotation rate at a given latitude.
+    Based on rLSQ method of Beljan et al. (2017), doi: 10.1051/0004-6361/201731047
 
     Parameters
     ----------
-    lat : astropy.units.quantity.Quantity
-        Heliographic latitude, e.g. "23 * astropy.units.deg". If no units are provided, it will be treated as radians!
+    lat : astropy.units.Quantity
+        The latitude at which to calculate the differential rotation rate, e.g., 
+        "23 * astropy.units.deg". If no units are provided, it will be treated as radians!
 
     Returns
     -------
-    astropy.units.quantity.Quantity
+    astropy.units.Quantity
         Solar angular rotation in deg/sec
     """
     if 'diff_rot' in kwargs.keys():
@@ -364,6 +364,8 @@ def backmapping_angle(distance, r, lat, vsw, **kwargs):
 
     This function computes the backmapping angle as defined in Eq. (1) of https://doi.org/10.3389/fspas.2022.1058810.
 
+    Parameters
+    ----------
     distance : astropy.units.Quantity
         Distance with astropy units.
     r : astropy.units.Quantity
@@ -632,6 +634,11 @@ class SolarMACH():
             If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
         numbered_markers: bool, deprecated
             Deprecated option, use markers='numbers' instead!
+
+        Returns
+        -------
+        matplotlib figure and axes or None
+            Returns the matplotlib figure and axes if return_plot_object=True (by default set to False), else nothing.
         """
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
@@ -1133,7 +1140,8 @@ class SolarMACH():
                   figsize=(15, 10),
                   dpi=200,
                   return_plot_object=False,
-                  vary=False, n_varies=1,
+                  vary=False, 
+                  n_varies=1,
                   long_offset=270,
                   reference_vsw=400.,
                   markers=False,
@@ -1145,15 +1153,59 @@ class SolarMACH():
                   numbered_markers=False,  # kept only for backward compatibility
                   outfile=''):
         """
-        Produces a figure of the heliosphere in polar coordinates with logarithmic r-axis outside the pfss.
-        Also tracks an open field line down to photosphere given a point on the pfss.
+        Plot the Potential Field Source Surface (PFSS) solution on a polar plot with logarithmic r-axis outside the PFSS.
+        Tracks an open field line down to the photosphere given a point on the PFSS.        
 
-        pfss_solution : {sunkit_magex.pfss.output}
-            PFSS model calculated by sunkit_magex.pfss from magnetographic maps
-        rss : {float}, optional
-            source surface height of the potential field in solar radii. default 2.5
-        reference_longitude : {int or float}, optional
-            draws an arrow pointing radially outward, input in degrees
+        Parameters:
+        -----------
+        pfss_solution : object
+            The PFSS solution object containing the magnetic field data.
+        rss : float, optional
+            The source surface radius in solar radii. Default is 2.5.
+        figsize : tuple, optional
+            The size of the figure in inches. Default is (15, 10).
+        dpi : int, optional
+            The resolution of the figure in dots per inch. Default is 200.
+        return_plot_object : bool, optional
+            If True, return the figure and axis objects. Default is False.
+        vary : bool, optional
+            If True, plot varied field lines. Default is False.
+        n_varies : int, optional
+            Number of varied field lines to plot if vary is True. Default is 1.
+        long_offset : float, optional
+            Longitude offset for the plot in degrees. Default is 270.
+        reference_vsw : float, optional
+            Solar wind speed for the reference point in km/s. Default is 400.
+        markers : bool or str, optional
+            If True or 'letters'/'numbers', plot markers at body positions. Default is False.
+        plot_spirals : bool, optional
+            If True, plot Parker spirals. Default is True.
+        long_sector : list or tuple, optional
+            A 2-element list defining the start and end longitude of the cone in degrees. Default is None.
+        long_sector_vsw : list or tuple, optional
+            Solar wind speeds for the Parker spirals in the long sector. Default is None.
+        long_sector_color : str, optional
+            Color for the long sector. Default is None.
+        hide_logo : bool, optional
+            If True, hide the Solar-MACH logo. Default is False.
+        numbered_markers : bool, optional
+            If True, use numbered markers for backward compatibility. Default is False.
+        outfile : str, optional
+            If provided, save the plot to the specified file. Default is ''.
+
+        Returns:
+        --------
+        fig, ax : tuple
+            The figure and axis objects if return_plot_object is True.
+
+        Raises:
+        -------
+        Exception
+            If the PFSS solution and the SolarMACH object use different coordinate systems.
+
+        Notes:
+        ------
+        This function plots the PFSS solution on a polar plot, including the source surface, solar surface, Parker spirals, and field lines. It also supports plotting varied field lines, long sectors, and markers for different bodies. The plot can be saved to a file or displayed using matplotlib or streamlit.
         """
 
         # check that PFSS solution and SolarMACH object use the same coordinate system
@@ -1644,15 +1696,32 @@ class SolarMACH():
                 plot_spirals=True, plot_sun_body_line=False, numbered_markers=False, plot_equatorial_plane=True,
                 reference_vsw=400, zoom_out=False):
         """
-        Opens up an interactive 3d-plot of the Sun and FieldLine objects. Also shows the flare area if provided.
+        Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
 
-        params
-        -------
-        active_area: (lonmax, lonmin, latmax, latmin)
-            A tuple of the max and min of longitude and latitude in degrees
+        Parameters:
+        -----------
+        active_area : tuple, optional
+            A tuple specifying the active area in the format (lonmax, lonmin, latmax, latmin). Default is (None, None, None, None).
+        color_code : str, optional
+            Specifies the color coding for the field lines. Options are 'object' or 'polarity'. Default is 'object'.
+        rss : float, optional
+            The source surface radius in solar radii. Default is 2.5.
+        plot_spirals : bool, optional
+            If True, plots the Parker spirals. Default is True.
+        plot_sun_body_line : bool, optional
+            If True, plots the direct line from the Sun to the body. Default is False.
+        numbered_markers : bool, optional
+            If True, adds numbered markers to the plot. Default is False.
+        plot_equatorial_plane : bool, optional
+            If True, plots the equatorial plane. Default is True.
+        reference_vsw : int, optional
+            The solar wind speed for the reference field line in km/s. Default is 400.
+        zoom_out : bool, optional
+            If True, zooms out the plot to show the entire field of view. Default is False.
 
-        color_code: str
-            Choose either 'polarity' or 'object'
+        Returns:
+        --------
+        None
         """
 
         import plotly.express as px
@@ -2021,14 +2090,26 @@ class SolarMACH():
 
         return
 
-    def plot_3d(self,
-                plot_spirals=True,
-                plot_sun_body_line=True,
-                numbered_markers=True,
-                plot_equatorial_plane=True,
-                reference_vsw=400):
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, numbered_markers=True, plot_equatorial_plane=True, reference_vsw=400):
         """
-        experimental 3d version of classic solarmach plot (no pfss)
+        Generates a 3D plot of the solar system with various optional features.
+
+        Parameters:
+        -----------
+        plot_spirals : bool, optional
+            If True, plots the magnetic field lines as spirals. Default is True.
+        plot_sun_body_line : bool, optional
+            If True, plots direct lines from the Sun to each body. Default is True.
+        numbered_markers : bool, optional
+            If True, adds numbered markers to each body. Default is True.
+        plot_equatorial_plane : bool, optional
+            If True, plots the equatorial plane. Default is True.
+        reference_vsw : int, optional
+            The reference solar wind speed in km/s. Default is 400.
+
+        Returns:
+        --------
+        None
         """
 
         import plotly.express as px
@@ -2221,7 +2302,7 @@ def sc_distance(sc1, sc2, dtime):
 
     Returns
     -------
-    astropy units
+    astropy.units.Quantity
         Absolute distance between body 1 and 2 in AU.
     """
     # parse datetime:
