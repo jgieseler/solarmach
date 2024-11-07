@@ -1727,6 +1727,8 @@ class SolarMACH():
         from astropy.constants import R_sun
         from plotly.graph_objs.scatter3d import Line
 
+        hide_logo = False  # optional later keyword to hide logo on figure
+
         # Flare site (or whatever area of interest) is plotted at this height
         FLARE_HEIGHT = 1.005
 
@@ -1777,6 +1779,9 @@ class SolarMACH():
                 show_in_legend = True
             else:
                 show_in_legend = False
+            
+            # never show field lines in legend
+            show_in_legend = False
 
             fieldline_trace = go.Scatter3d(x=coords.x/R_sun, y=coords.y/R_sun, z=coords.z/R_sun,
                                            mode='lines',
@@ -1810,6 +1815,9 @@ class SolarMACH():
                     show_in_legend = True
                 else:
                     show_in_legend = False
+
+                # never show field lines in legend
+                show_in_legend = False
 
                 fieldline_trace = go.Scatter3d(x=coords.x/R_sun, y=coords.y/R_sun, z=coords.z/R_sun,
                                                mode='lines',
@@ -1854,8 +1862,9 @@ class SolarMACH():
 
         equator_line = go.Scatter3d(x=equator_cartesians[0], y=equator_cartesians[1], z=equator_cartesians[2],
                                     mode='lines',
-                                    line=Line(color='black', width=5.5),
-                                    name="Solar equator"
+                                    line=Line(color='gray', width=5.5),
+                                    name="Solar equator",
+                                    showlegend=False,
                                     )
 
         traces.append(equator_line)
@@ -2021,9 +2030,11 @@ class SolarMACH():
 
             # omega_ref = solar_diff_rot_old(ref_lat, diff_rot=self.diff_rot)
             # alpha_ref = np.deg2rad(delta_ref) + omega_ref / (reference_vsw / AU) * (self.target_solar_radius*aconst.R_sun.to(u.AU).value - r_array) * np.cos(np.deg2rad(ref_lat))
-            alpha_ref = (delta_ref*u.deg + backmapping_angle(self.target_solar_radius*aconst.R_sun, r_array*u.AU, ref_lat*u.deg, reference_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
+            alpha_ref = (delta_ref*u.deg + backmapping_angle(self.target_solar_radius*aconst.R_sun, r_array*u.R_sun, ref_lat*u.deg, reference_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
 
-            arrow_dist = min([self.max_dist/3.2, 2.])
+            arrow_dist = min([max_dist2/3.2, 2.])
+            if zoom_out:
+                arrow_dist = min([max_dist2/3.2, 2.*(aconst.au/aconst.R_sun).value])
             x, y, z = spheric2cartesian([0.0, arrow_dist], [np.deg2rad(ref_lat), np.deg2rad(ref_lat)], [np.deg2rad(delta_ref), np.deg2rad(delta_ref)])
 
             # arrow plotting based on plotly hack provided through
@@ -2037,7 +2048,7 @@ class SolarMACH():
                                        z=z,
                                        mode='lines',
                                        # marker=dict(symbol="arrow", size=15, angleref="previous", color="black"),  # only works in plotly 2d plots
-                                       name='reference long.',
+                                       name=f'reference<br>(long={self.reference_long}°, lat={ref_lat}°)',
                                        showlegend=True,
                                        line=dict(color="black", width=3),
                                        # thetaunit="radians"
@@ -2049,7 +2060,7 @@ class SolarMACH():
                                   u=[arrow_tip_ratio*(x[1] - x[0])],
                                   v=[arrow_tip_ratio*(y[1] - y[0])],
                                   w=[arrow_tip_ratio*(z[1] - z[0])],
-                                  name='reference long.',
+                                  name=f'reference<br>(long={self.reference_long}°, lat={ref_lat}°)',
                                   showlegend=False,
                                   showscale=False,
                                   colorscale=[[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']]
@@ -2063,7 +2074,7 @@ class SolarMACH():
                                            y=y,
                                            z=z,
                                            mode='lines',
-                                           name=f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
+                                           name=f'field line connecting to<br>reference (vsw={reference_vsw} km/s) ',
                                            showlegend=True,
                                            line=dict(color="black", dash="dot"),
                                            # thetaunit="radians"
@@ -2077,14 +2088,46 @@ class SolarMACH():
                                      hoverinfo='skip',
                                      colorscale='gray', showscale=False, opacity=0.2))
 
+        stitle = str(self.date.to_value('iso', subfmt='date_hm'))
+        fig.update_layout(title=dict(text=stitle+' (UTC)', x=0.5, xref="paper", xanchor="center", font=dict(size=22, weight="normal"), automargin=True, yref='paper'),
+                          legend=dict(itemsizing='constant', xref="paper", yref="paper", yanchor="top", y=1.0, xanchor="right", x=1.3, font=dict(size=16)))
+
+        if not hide_logo:
+            logo_x = 1.3
+            logo_y = 0.05
+            fig.add_annotation(x=logo_x, y=logo_y,
+                               xref="paper", yref="paper",
+                               xanchor="right",
+                               yanchor="bottom",
+                               font=dict(color="black", size=23, family="DejaVu Serif"),
+                               text="Solar-MACH",
+                               showarrow=False
+                               )
+            fig.add_annotation(x=logo_x, y=logo_y,
+                               xref="paper", yref="paper",
+                               xanchor="right",
+                               yanchor="top",
+                               font=dict(color="black", size=13, family="DejaVu Sans"),
+                               text="https://solar-mach.github.io",
+                               showarrow=False
+                               )
+
+        config = {'toImageButtonOptions': {'format': 'png',  # one of png, svg, jpeg, webp
+                                           'filename': 'Solar-MACH_'+(stitle.replace(' ', '_')).replace(':', '-')+'_PFSS',
+                                           # 'height': 500,
+                                           # 'width': 700,
+                                           # 'scale': 1  # Multiply title/legend/axis/canvas sizes by this factor
+                                           }
+                  }
+
         if _isstreamlit():
             # fig.update_layout(width=700, height=700)
             import streamlit as st
             # import streamlit.components.v1 as components
             # components.html(fig.to_html(include_mathjax='cdn'), height=700)
-            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True, config=config)
         else:
-            fig.show()
+            fig.show(config=config)
 
         return
 
@@ -2115,6 +2158,7 @@ class SolarMACH():
         from astropy.constants import R_sun
         from plotly.graph_objs.scatter3d import Line
 
+        hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
         # sun_radius = aconst.R_sun.value  # meters
 
@@ -2233,7 +2277,7 @@ class SolarMACH():
                                        z=z,
                                        mode='lines',
                                        # marker=dict(symbol="arrow", size=15, angleref="previous", color="black"),  # only works in plotly 2d plots
-                                       name='reference long.',
+                                       name=f'reference<br>(long={self.reference_long}°, lat={ref_lat}°)',
                                        showlegend=True,
                                        line=dict(color="black", width=3),
                                        # thetaunit="radians"
@@ -2245,7 +2289,7 @@ class SolarMACH():
                                   u=[arrow_tip_ratio*(x[1] - x[0])],
                                   v=[arrow_tip_ratio*(y[1] - y[0])],
                                   w=[arrow_tip_ratio*(z[1] - z[0])],
-                                  name='reference long.',
+                                  name=f'reference<br>(long={self.reference_long}°, lat={ref_lat}°)',
                                   showlegend=False,
                                   showscale=False,
                                   colorscale=[[0, 'rgb(0,0,0)'], [1, 'rgb(0,0,0)']]
@@ -2259,7 +2303,7 @@ class SolarMACH():
                                            y=y,
                                            z=z,
                                            mode='lines',
-                                           name=f'field line connecting to<br>ref. long. (vsw={reference_vsw} km/s)',
+                                           name=f'field line connecting to<br>reference (vsw={reference_vsw} km/s) ',
                                            showlegend=True,
                                            line=dict(color="black", dash="dot"),
                                            # thetaunit="radians"
@@ -2273,14 +2317,46 @@ class SolarMACH():
                                      hoverinfo='skip',
                                      colorscale='gray', showscale=False, opacity=0.2))
 
+        stitle = str(self.date.to_value('iso', subfmt='date_hm'))
+        fig.update_layout(title=dict(text=stitle+' (UTC)', x=0.5, xref="paper", xanchor="center", font=dict(size=22, weight="normal"), automargin=True, yref='paper'),
+                          legend=dict(itemsizing='constant', xref="paper", yref="paper", yanchor="top", y=1.0, xanchor="right", x=1.3, font=dict(size=16)))
+
+        if not hide_logo:
+            logo_x = 1.3
+            logo_y = 0.05
+            fig.add_annotation(x=logo_x, y=logo_y,
+                               xref="paper", yref="paper",
+                               xanchor="right",
+                               yanchor="bottom",
+                               font=dict(color="black", size=23, family="DejaVu Serif"),
+                               text="Solar-MACH",
+                               showarrow=False
+                               )
+            fig.add_annotation(x=logo_x, y=logo_y,
+                               xref="paper", yref="paper",
+                               xanchor="right",
+                               yanchor="top",
+                               font=dict(color="black", size=13, family="DejaVu Sans"),
+                               text="https://solar-mach.github.io",
+                               showarrow=False
+                               )
+
+        config = {'toImageButtonOptions': {'format': 'png',  # one of png, svg, jpeg, webp
+                                           'filename': 'Solar-MACH_3D_'+(stitle.replace(' ', '_')).replace(':', '-')+'_3D',
+                                           # 'height': 500,
+                                           # 'width': 700,
+                                           # 'scale': 1  # Multiply title/legend/axis/canvas sizes by this factor
+                                           }
+                  }
+
         if _isstreamlit():
             # fig.update_layout(width=700, height=700)
             import streamlit as st
             # import streamlit.components.v1 as components
             # components.html(fig.to_html(include_mathjax='cdn'), height=700)
-            st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+            st.plotly_chart(fig, theme="streamlit", use_container_width=True, config=config)
         else:
-            fig.show()
+            fig.show(config=config)
 
         return
 
