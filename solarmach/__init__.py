@@ -1166,8 +1166,8 @@ class SolarMACH():
             The size of the figure in inches. Default is (15, 10).
         dpi : int, optional
             The resolution of the figure in dots per inch. Default is 200.
-        return_plot_object : bool, optional
-            If True, return the figure and axis objects. Default is False.
+        return_plot_object: bool, optional
+            if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
         vary : bool, optional
             If True, plot varied field lines. Default is False.
         n_varies : int, optional
@@ -1193,10 +1193,10 @@ class SolarMACH():
         outfile : str, optional
             If provided, save the plot to the specified file. Default is ''.
 
-        Returns:
-        --------
-        fig, ax : tuple
-            The figure and axis objects if return_plot_object is True.
+        Returns
+        -------
+        matplotlib figure and axes or None
+            Returns the matplotlib figure and axes if return_plot_object=True (by default set to False), else nothing.
 
         Raises:
         -------
@@ -1693,7 +1693,7 @@ class SolarMACH():
 
     def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
                 plot_spirals=True, plot_sun_body_line=False, numbered_markers=False, plot_equatorial_plane=True,
-                reference_vsw=400, zoom_out=False):
+                reference_vsw=400, zoom_out=False, return_plot_object=False):
         """
         Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
 
@@ -1717,10 +1717,13 @@ class SolarMACH():
             The solar wind speed for the reference field line in km/s. Default is 400.
         zoom_out : bool, optional
             If True, zooms out the plot to show the entire field of view. Default is False.
+        return_plot_object: bool, optional
+            if True, figure object of plotly is returned, allowing further adjustments to the figure
 
-        Returns:
-        --------
-        None
+        Returns
+        -------
+        plotly figure or None
+            Returns the plotly figure if return_plot_object=True (by default set to False), else nothing.
         """
         import plotly.express as px
         import plotly.graph_objects as go
@@ -1779,7 +1782,7 @@ class SolarMACH():
                 show_in_legend = True
             else:
                 show_in_legend = False
-            
+
             # never show field lines in legend
             show_in_legend = False
 
@@ -2129,9 +2132,12 @@ class SolarMACH():
         else:
             fig.show(config=config)
 
-        return
+        if return_plot_object:
+            return fig
+        else:
+            return
 
-    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, numbered_markers=True, plot_equatorial_plane=True, reference_vsw=400):
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, numbered_markers=True, plot_equatorial_plane=True, reference_vsw=400, return_plot_object=False):
         """
         Generates a 3D plot of the solar system with various optional features.
 
@@ -2147,10 +2153,13 @@ class SolarMACH():
             If True, plots the equatorial plane. Default is True.
         reference_vsw : int, optional
             The reference solar wind speed in km/s. Default is 400.
+        return_plot_object: bool, optional
+            if True, figure object of plotly is returned, allowing further adjustments to the figure
 
-        Returns:
-        --------
-        None
+        Returns
+        -------
+        plotly figure or None
+            Returns the plotly figure if return_plot_object=True (by default set to False), else nothing.
         """
 
         import plotly.express as px
@@ -2358,7 +2367,10 @@ class SolarMACH():
         else:
             fig.show(config=config)
 
-        return
+        if return_plot_object:
+            return fig
+        else:
+            return
 
 
 def sc_distance(sc1, sc2, dtime):
