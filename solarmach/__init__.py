@@ -2170,7 +2170,7 @@ class SolarMACH():
         else:
             return
 
-    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, markers=False, numbered_markers=False, plot_equatorial_plane=True, reference_vsw=400, return_plot_object=False):
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, markers=False, numbered_markers=False, plot_equatorial_plane=True, reference_vsw=400, return_plot_object=False, elite_map=False):
         """
         Generates a 3D plot of the solar system with various optional features.
 
@@ -2277,6 +2277,52 @@ class SolarMACH():
                                            showlegend=False,
                                            line=dict(color=body_dict[body_id][2]),
                                            # thetaunit="radians"
+                                           ))
+
+            if elite_map:
+                camera = dict(eye=dict(x=1.6, y=0., z=0.7))
+                fig.update_layout(scene_camera=camera)
+                fig.update_scenes(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False)
+
+                def add_ring(fig, radius, line=dict(color="black", dash="dot")):
+                    angle = np.linspace(0, 2*np.pi, 150) 
+                    x = radius*np.cos(angle)
+                    y = radius*np.sin(angle)
+                    z = np.zeros((len(x)))
+                    fig.add_trace(go.Scatter3d(x=x, y=y, z=z, 
+                                               mode='lines',
+                                               line=line,
+                                               showlegend=False,
+                                               ))
+                    return
+
+                add_ring(fig, 0.25, line=dict(color="gray"))
+                add_ring(fig, 0.50, line=dict(color="gray"))
+                add_ring(fig, 0.75, line=dict(color="gray"))
+                add_ring(fig, 1.00, line=dict(width=5, color="black"))
+                add_ring(fig, 1.25, line=dict(color="gray"))
+                # add_ring(fig, 1.50, line=dict(color="gray"))
+                # add_ring(fig, 1.75, line=dict(color="gray"))
+                # add_ring(fig, 2.00, line=dict(width=5, color="black"))
+                
+                x, y, z = spheric2cartesian([dist_body*np.cos(np.deg2rad(body_lat)), dist_body], [0.0, np.deg2rad(body_lat)], [np.deg2rad(body_long), np.deg2rad(body_long)])
+                
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} direct line',
+                                           showlegend=False,
+                                           line=dict(width=5, color=body_dict[body_id][2], dash='dot'),
+                                           # thetaunit="radians"
+                                           ))
+                fig.add_trace(go.Scatter3d(x=[x[0]],
+                                           y=[y[0]],
+                                           z=[z[0]],
+                                           mode='markers',
+                                           name=body_id,
+                                           showlegend=False,
+                                           marker=dict(symbol='circle', size=5, color='black'),  # body_dict[body_id][2]),
                                            ))
 
             if plot_sun_body_line:
