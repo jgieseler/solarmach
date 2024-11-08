@@ -1188,8 +1188,8 @@ class SolarMACH():
             Color for the long sector. Default is None.
         hide_logo : bool, optional
             If True, hide the Solar-MACH logo. Default is False.
-        numbered_markers : bool, optional
-            If True, use numbered markers for backward compatibility. Default is False.
+        numbered_markers: bool, deprecated
+            Deprecated option, use markers='numbers' instead!
         outfile : str, optional
             If provided, save the plot to the specified file. Default is ''.
 
@@ -1692,7 +1692,7 @@ class SolarMACH():
             return fig, ax
 
     def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
-                plot_spirals=True, plot_sun_body_line=False, numbered_markers=False, plot_equatorial_plane=True,
+                plot_spirals=True, plot_sun_body_line=False, markers=False, numbered_markers=False, plot_equatorial_plane=True,
                 reference_vsw=400, zoom_out=False, return_plot_object=False):
         """
         Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
@@ -1709,8 +1709,8 @@ class SolarMACH():
             If True, plots the Parker spirals. Default is True.
         plot_sun_body_line : bool, optional
             If True, plots the direct line from the Sun to the body. Default is False.
-        numbered_markers : bool, optional
-            If True, adds numbered markers to the plot. Default is False.
+        markers : bool or str, optional
+            If True or 'letters'/'numbers', plot markers at body positions. Default is False.
         plot_equatorial_plane : bool, optional
             If True, plots the equatorial plane. Default is True.
         reference_vsw : int, optional
@@ -1719,18 +1719,32 @@ class SolarMACH():
             If True, zooms out the plot to show the entire field of view. Default is False.
         return_plot_object: bool, optional
             if True, figure object of plotly is returned, allowing further adjustments to the figure
+        numbered_markers: bool, deprecated
+            Deprecated option, use markers='numbers' instead!
 
         Returns
         -------
         plotly figure or None
             Returns the plotly figure if return_plot_object=True (by default set to False), else nothing.
         """
-        import plotly.express as px
         import plotly.graph_objects as go
         from astropy.constants import R_sun
         from plotly.graph_objs.scatter3d import Line
 
         hide_logo = False  # optional later keyword to hide logo on figure
+
+        # catch old syntax
+        if numbered_markers is True and not markers:
+            markers='numbers'
+            print('')
+            print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
+            print('')
+
+        if markers:
+            if markers.lower() in ['n', 'number']:
+                markers='numbers'
+            if markers.lower() in ['l', 'letter']:
+                markers='letters'
 
         # Flare site (or whatever area of interest) is plotted at this height
         FLARE_HEIGHT = 1.005
@@ -1877,11 +1891,17 @@ class SolarMACH():
 
         # additional figure settings, like aspect mode, extreme values of axes etc...
         fig.update_layout(scene_aspectmode='cube')
-        fig.update_layout(scene=dict(
-                          xaxis=dict(nticks=4, range=[-2.5, 2.5],),
-                          yaxis=dict(nticks=4, range=[-2.5, 2.5],),
-                          zaxis=dict(nticks=4, range=[-2.5, 2.5],),),
-                          width=1280, height=720,
+        fig.update_layout(scene=dict(xaxis=dict(nticks=4, range=[-2.5, 2.5],),
+                                     yaxis=dict(nticks=4, range=[-2.5, 2.5],),
+                                     zaxis=dict(nticks=4, range=[-2.5, 2.5],),
+                                     xaxis_tickfont=dict(weight=500, size=14),
+                                     yaxis_tickfont=dict(weight=500, size=14),
+                                     zaxis_tickfont=dict(weight=500, size=14),
+                                     xaxis_title_font=dict(weight=500, size=16),
+                                     yaxis_title_font=dict(weight=500, size=16),
+                                     zaxis_title_font=dict(weight=500, size=16),
+                                     ),
+                          width=1024, height=1024,
                           margin=dict(r=20, l=10, b=10, t=10))
 
         # """START"""
@@ -1993,17 +2013,27 @@ class SolarMACH():
                                            # thetaunit="radians"
                                            ))
 
-            if numbered_markers:
-                str_number = f'<b>{i+1}</b>'
+            if markers:
+                if markers.lower()=='numbers':
+                    str_number = f'<b>{i+1}</b>'
+                if markers.lower()=='letters':
+                    if body_id[:6] == 'STEREO':
+                        str_number = f'<b>{body_id[-1]}</b>'
+                    elif body_id == 'Europa Clipper':
+                        str_number = f'<b>C</b>'
+                    else:
+                        str_number = f'<b>{body_id[0]}</b>'
+                symbol = 'circle'
             else:
                 str_number = None
+                symbol = 'square'
 
             fig.add_trace(go.Scatter3d(x=[(body_pos.cartesian.x.to(u.m)/R_sun).value],
                                        y=[(body_pos.cartesian.y.to(u.m)/R_sun).value],
                                        z=[(body_pos.cartesian.z.to(u.m)/R_sun).value],
                                        mode='markers+text',
                                        name=body_id,
-                                       marker=dict(size=5, color=body_dict[body_id][2]),
+                                       marker=dict(symbol=symbol, size=10, color=body_dict[body_id][2]),
                                        # text=[f'<b>{body_id}</b>'],
                                        text=[str_number],
                                        textfont=dict(color="white", size=14),
@@ -2018,7 +2048,7 @@ class SolarMACH():
             fig.update_layout(scene=dict(xaxis=dict(title="X / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
                                          yaxis=dict(title="Y / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
                                          zaxis=dict(title="Z / R_sun", nticks=4, range=[-xyz_range, xyz_range],)),
-                              width=1280, height=720,
+                              width=1024, height=1024,
                               margin=dict(r=20, l=10, b=10, t=10),
                               )
 
@@ -2128,7 +2158,10 @@ class SolarMACH():
             import streamlit as st
             # import streamlit.components.v1 as components
             # components.html(fig.to_html(include_mathjax='cdn'), height=700)
-            st.plotly_chart(fig, theme="streamlit", use_container_width=True, config=config)
+            st.plotly_chart(fig.update_layout(width=700, height=700),
+                            theme=None,  # "streamlit",
+                            use_container_width=True,
+                            config=config)
         else:
             fig.show(config=config)
 
@@ -2137,7 +2170,7 @@ class SolarMACH():
         else:
             return
 
-    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, numbered_markers=True, plot_equatorial_plane=True, reference_vsw=400, return_plot_object=False):
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, markers=False, numbered_markers=False, plot_equatorial_plane=True, reference_vsw=400, return_plot_object=False):
         """
         Generates a 3D plot of the solar system with various optional features.
 
@@ -2147,14 +2180,16 @@ class SolarMACH():
             If True, plots the magnetic field lines as spirals. Default is True.
         plot_sun_body_line : bool, optional
             If True, plots direct lines from the Sun to each body. Default is True.
-        numbered_markers : bool, optional
-            If True, adds numbered markers to each body. Default is True.
+        markers : bool or str, optional
+            If True or 'letters'/'numbers', plot markers at body positions. Default is False.
         plot_equatorial_plane : bool, optional
             If True, plots the equatorial plane. Default is True.
         reference_vsw : int, optional
             The reference solar wind speed in km/s. Default is 400.
         return_plot_object: bool, optional
             if True, figure object of plotly is returned, allowing further adjustments to the figure
+        numbered_markers: bool, deprecated
+            Deprecated option, use markers='numbers' instead!
 
         Returns
         -------
@@ -2162,7 +2197,6 @@ class SolarMACH():
             Returns the plotly figure if return_plot_object=True (by default set to False), else nothing.
         """
 
-        import plotly.express as px
         import plotly.graph_objects as go
         from astropy.constants import R_sun
         from plotly.graph_objs.scatter3d import Line
@@ -2170,6 +2204,19 @@ class SolarMACH():
         hide_logo = False  # optional later keyword to hide logo on figure
         AU = const.au / 1000  # km
         # sun_radius = aconst.R_sun.value  # meters
+
+        # catch old syntax
+        if numbered_markers is True and not markers:
+            markers='numbers'
+            print('')
+            print("WARNING: The usage of numbered_markers is deprecated and will be discontinued in the future! Use markers='numbers' instead.")
+            print('')
+
+        if markers:
+            if markers.lower() in ['n', 'number']:
+                markers='numbers'
+            if markers.lower() in ['l', 'letter']:
+                markers='letters'
 
         # build array of values for radius (in spherical coordinates!) given in AU!
         r_array = np.arange(0.007, (self.max_dist+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.001)
@@ -2186,8 +2233,15 @@ class SolarMACH():
 
         fig.update_layout(scene=dict(xaxis=dict(title="X / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
                                      yaxis=dict(title="Y / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
-                                     zaxis=dict(title="Z / AU", nticks=4, range=[-self.max_dist, self.max_dist],)),
-                          width=1280, height=720,
+                                     zaxis=dict(title="Z / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
+                                     xaxis_tickfont=dict(weight=500, size=14),
+                                     yaxis_tickfont=dict(weight=500, size=14),
+                                     zaxis_tickfont=dict(weight=500, size=14),
+                                     xaxis_title_font=dict(weight=500, size=16),
+                                     yaxis_title_font=dict(weight=500, size=16),
+                                     zaxis_title_font=dict(weight=500, size=16),
+                                     ),
+                          width=1024, height=1024,
                           margin=dict(r=20, l=10, b=10, t=10),
                           )
 
@@ -2238,10 +2292,20 @@ class SolarMACH():
                                            # thetaunit="radians"
                                            ))
 
-            if numbered_markers:
-                str_number = f'<b>{i+1}</b>'
+            if markers:
+                if markers.lower()=='numbers':
+                    str_number = f'<b>{i+1}</b>'
+                if markers.lower()=='letters':
+                    if body_id[:6] == 'STEREO':
+                        str_number = f'<b>{body_id[-1]}</b>'
+                    elif body_id == 'Europa Clipper':
+                        str_number = f'<b>C</b>'
+                    else:
+                        str_number = f'<b>{body_id[0]}</b>'
+                symbol = 'circle'
             else:
                 str_number = None
+                symbol = 'square'
 
             # customdata=[[dist_body], [body_long], [body_lat]]
             fig.add_trace(go.Scatter3d(x=[body_pos.cartesian.x.value],
@@ -2249,7 +2313,7 @@ class SolarMACH():
                                        z=[body_pos.cartesian.z.value],
                                        mode='markers+text',
                                        name=body_id,
-                                       marker=dict(size=5, color=body_dict[body_id][2]),
+                                       marker=dict(symbol=symbol, size=10, color=body_dict[body_id][2]),
                                        # text=[f'<b>{body_id}</b>'],
                                        text=[str_number],
                                        textfont=dict(color="white", size=14),
@@ -2352,9 +2416,9 @@ class SolarMACH():
 
         config = {'toImageButtonOptions': {'format': 'png',  # one of png, svg, jpeg, webp
                                            'filename': 'Solar-MACH_3D_'+(stitle.replace(' ', '_')).replace(':', '-')+'_3D',
-                                           # 'height': 500,
+                                           # 'height': 700,
                                            # 'width': 700,
-                                           # 'scale': 1  # Multiply title/legend/axis/canvas sizes by this factor
+                                           # 'scale': 1  # Multiply title/legend/axis/canvas sizes by this factor - doesn't seem to work; just scales the whole figure!
                                            }
                   }
 
@@ -2363,7 +2427,10 @@ class SolarMACH():
             import streamlit as st
             # import streamlit.components.v1 as components
             # components.html(fig.to_html(include_mathjax='cdn'), height=700)
-            st.plotly_chart(fig, theme="streamlit", use_container_width=True, config=config)
+            st.plotly_chart(fig.update_layout(width=700, height=700),
+                            theme=None,  # "streamlit",
+                            use_container_width=True,
+                            config=config)
         else:
             fig.show(config=config)
 
@@ -2439,7 +2506,7 @@ def _isstreamlit():
     # https://discuss.streamlit.io/t/how-to-check-if-code-is-run-inside-streamlit-and-not-e-g-ipython/23439
     try:
         from streamlit.runtime.scriptrunner import get_script_run_ctx
-        if not get_script_run_ctx():
+        if not get_script_run_ctx(suppress_warning=True):
             use_streamlit = False
         else:
             use_streamlit = True
