@@ -1692,7 +1692,7 @@ class SolarMACH():
             return fig, ax
 
     def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
-                plot_spirals=True, plot_sun_body_line=False, markers=False, numbered_markers=False, plot_equatorial_plane=True,
+                plot_spirals=True, plot_sun_body_line=False, markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True,
                 reference_vsw=400, zoom_out=False, return_plot_object=False):
         """
         Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
@@ -1713,6 +1713,8 @@ class SolarMACH():
             If True or 'letters'/'numbers', plot markers at body positions. Default is False.
         plot_equatorial_plane : bool, optional
             If True, plots the equatorial plane. Default is True.
+        plot_3d_grid : bool, optional
+            If True, plots grid and axis for x, y, z. Default is True.
         reference_vsw : int, optional
             The solar wind speed for the reference field line in km/s. Default is 400.
         zoom_out : bool, optional
@@ -1745,6 +1747,12 @@ class SolarMACH():
                 markers='numbers'
             if markers.lower() in ['l', 'letter']:
                 markers='letters'
+
+        AU = const.au / 1000  # km
+
+        # scale from AU/km to solar radii/km
+        # r_array = r_array * AU / R_sun.to(u.km).value
+        max_dist2 = self.max_dist * AU / R_sun.to(u.km).value
 
         # Flare site (or whatever area of interest) is plotted at this height
         FLARE_HEIGHT = 1.005
@@ -1889,80 +1897,11 @@ class SolarMACH():
         # create the figure
         fig = go.Figure(data=traces)
 
-        # additional figure settings, like aspect mode, extreme values of axes etc...
-        fig.update_layout(scene_aspectmode='cube')
-        fig.update_layout(scene=dict(xaxis=dict(nticks=4, range=[-2.5, 2.5],),
-                                     yaxis=dict(nticks=4, range=[-2.5, 2.5],),
-                                     zaxis=dict(nticks=4, range=[-2.5, 2.5],),
-                                     xaxis_tickfont=dict(weight=500, size=14),
-                                     yaxis_tickfont=dict(weight=500, size=14),
-                                     zaxis_tickfont=dict(weight=500, size=14),
-                                     xaxis_title_font=dict(weight=500, size=16),
-                                     yaxis_title_font=dict(weight=500, size=16),
-                                     zaxis_title_font=dict(weight=500, size=16),
-                                     ),
-                          width=1024, height=1024,
-                          margin=dict(r=20, l=10, b=10, t=10))
-
-        # """START"""
-        # fig.update_layout(scene=dict(
-        #                   xaxis=dict(nticks=4, range=[-220, 220],),
-        #                   yaxis=dict(nticks=4, range=[-220, 220],),
-        #                   zaxis=dict(nticks=4, range=[-220, 220],),),
-        #                   width=1280, height=720,
-        #                   margin=dict(r=20, l=10, b=10, t=10))
-        # for i, body_id in enumerate(self.body_dict):
-        #     body_lab = self.body_dict[body_id][1]
-        #     body_color = self.body_dict[body_id][2]
-        #     body_vsw = self.body_dict[body_id][4]
-        #     body_pos = self.body_dict[body_id][3]
-
-        #     # print(body_pos.cartesian.x.to(u.solRad), body_pos.cartesian.y.to(u.solRad), body_pos.cartesian.z.to(u.solRad))
-
-        #     # pos = body_pos
-        #     # dist_body = pos.radius.value
-
-        #     # body_long = pos.lon.value
-        #     # body_lat = pos.lat.value
-
-        #     # take into account solar differential rotation wrt. latitude
-        #     # omega = solar_diff_rot_old(body_lat, diff_rot=self.diff_rot)
-
-        #     print(body_pos.cartesian.x.to(u.solRad).value, body_pos.cartesian.y.to(u.solRad).value, body_pos.cartesian.z.to(u.solRad).value)
-
-        #     str_number = None
-        #     # x, y, z = spheric2cartesian(dist_body*np.cos(np.deg2rad(body_lat)), np.deg2rad(body_long), np.deg2rad(body_lat))
-        #     # x, y, z = spheric2cartesian(dist_body*np.cos(np.deg2rad(body_lat)), np.deg2rad(body_lat), np.deg2rad(body_long))
-        #     # x, y, z = spheric2cartesian(dist_body, np.deg2rad(body_long), np.deg2rad(body_lat))
-        #     # x = r*np.cos(theta) *np.sin(phi)
-        #     # y = r*np.sin(theta)*np.sin(phi)
-        #     # z= r*np.cos(phi)
-        #     fig.add_trace(go.Scatter3d(
-        #         x=[body_pos.cartesian.x.to(u.solRad).value],
-        #         y=[body_pos.cartesian.y.to(u.solRad).value],
-        #         z=[body_pos.cartesian.z.to(u.solRad).value],
-        #         mode='markers+text',
-        #         name=body_id,
-        #         marker=dict(size=16, color=body_dict[body_id][2]),
-        #         # text=[f'<b>{body_id}</b>'],
-        #         # textposition="top center",
-        #         text=[str_number],
-        #         textfont=dict(color="white", size=14),
-        #         textposition="middle center",
-        #         # thetaunit="radians"
-        #         ))
-        # """STOP"""
-        AU = const.au / 1000  # km
-
-        # scale from AU/km to solar radii/km
-        # r_array = r_array * AU / R_sun.to(u.km).value
-        max_dist2 = self.max_dist * AU / R_sun.to(u.km).value
-
         # TODO: is r_array falsly projected to the ecliptic here again???
         # build array of values for radius (in spherical coordinates!) given in AU!
         # r_array = np.arange(0.007, (self.max_dist+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.001)
         # r_array = np.arange(0.007, (max_dist2+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.001)  # Define with lower "resolution"!
-        r_array = np.arange(0.007, (max_dist2+0.1)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.05)
+        r_array = np.arange(0.007, (max_dist2+0.29*const.au/R_sun.to(u.m).value)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.05)
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -1988,7 +1927,9 @@ class SolarMACH():
             if plot_spirals:
                 phi = np.ones(len(r_array))*np.deg2rad(body_lat)
                 # x, y, z = spheric2cartesian(r_array * np.cos(np.deg2rad(body_lat)), phi, alpha_body)
-                x, y, z = spheric2cartesian(r_array[r_array>=rss], phi[r_array>=rss], alpha_body[r_array>=rss])
+                x, y, z = spheric2cartesian(r_array[(r_array>=rss) & (r_array<=max_dist2+0.29*const.au/R_sun.to(u.m).value)],
+                                            phi[(r_array>=rss) & (r_array<=max_dist2+0.29*const.au/R_sun.to(u.m).value)],
+                                            alpha_body[(r_array>=rss) & (r_array<=max_dist2+0.29*const.au/R_sun.to(u.m).value)])
 
                 fig.add_trace(go.Scatter3d(x=x,
                                            y=y,
@@ -2041,17 +1982,6 @@ class SolarMACH():
                                        # thetaunit="radians"
                                        ))
 
-            xyz_range = 2.5
-            if zoom_out:
-                xyz_range = max_dist2
-
-            fig.update_layout(scene=dict(xaxis=dict(title="X / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
-                                         yaxis=dict(title="Y / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
-                                         zaxis=dict(title="Z / R_sun", nticks=4, range=[-xyz_range, xyz_range],)),
-                              width=1024, height=1024,
-                              margin=dict(r=20, l=10, b=10, t=10),
-                              )
-
         if self.reference_long is not None:
             delta_ref = self.reference_long
             if delta_ref < 0.:
@@ -2101,7 +2031,9 @@ class SolarMACH():
 
             if plot_spirals:
                 phi = np.ones(len(r_array))*np.deg2rad(ref_lat)
-                x, y, z = spheric2cartesian(r_array, phi, alpha_ref)
+                x, y, z = spheric2cartesian(r_array[r_array<=max_dist2+0.29*const.au/R_sun.to(u.m).value],
+                                            phi[r_array<=max_dist2+0.29*const.au/R_sun.to(u.m).value],
+                                            alpha_ref[r_array<=max_dist2+0.29*const.au/R_sun.to(u.m).value])
 
                 fig.add_trace(go.Scatter3d(x=x,
                                            y=y,
@@ -2114,12 +2046,95 @@ class SolarMACH():
                                            ))
             #     ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
 
+        if not plot_3d_grid:
+            fig.update_scenes(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False)
+
+        if self.max_dist < 2:
+            ring_steps = 0.5
+        elif self.max_dist < 10:
+            ring_steps = 1
+        elif self.max_dist < 50:
+            ring_steps = 5
+        elif self.max_dist < 50:
+            ring_steps = 10
+        else:
+            ring_steps = 50
+
         if plot_equatorial_plane:
-            fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
-                                     y=np.linspace(-200, 200, 100),
-                                     z=np.zeros((100, 100)),
-                                     hoverinfo='skip',
-                                     colorscale='gray', showscale=False, opacity=0.2))
+            # fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
+            #                          y=np.linspace(-200, 200, 100),
+            #                          z=np.zeros((100, 100)),
+            #                          hoverinfo='skip',
+            #                          colorscale='gray', showscale=False, opacity=0.2))
+
+            # add rings
+            def add_ring(fig, radius, line=dict(color="black", dash="dot")):
+                angle = np.linspace(0, 2*np.pi, 150)
+                x = radius*np.cos(angle)
+                y = radius*np.sin(angle)
+                z = np.zeros((len(x)))
+                fig.add_trace(go.Scatter3d(x=x, y=y, z=z,
+                                           mode='lines',
+                                           line=line,
+                                           showlegend=False,
+                                           ))
+                return
+
+            add_ring(fig, max_dist2 + 0.29*const.au/R_sun.to(u.m).value, line=dict(width=5, color="black"))
+            for rr in np.arange(0, max_dist2 + 0.29*const.au/R_sun.to(u.m).value, ring_steps*const.au/R_sun.to(u.m).value)[1:]:
+                rr = int(rr)
+                add_ring(fig, rr, line=dict(color="lightgray"))
+                # x2, y2, z2 = spheric2cartesian([rr+ring_steps/5], [np.deg2rad(0)], [np.deg2rad(120)])
+                x2, y2, z2 = spheric2cartesian([rr+ring_steps/5*const.au/R_sun.to(u.m).value], [np.deg2rad(0)], [np.deg2rad(120)])
+                fig.add_trace(go.Scatter3d(x=x2, y=y2, z=z2, mode='text',
+                                           marker=dict(symbol=symbol, size=1, color='red'),
+                                           text=[f'{rr}'],
+                                           textfont=dict(color="black", size=16),
+                                           textposition="middle center",
+                                           showlegend=False,
+                                           ))
+
+            # if max_dist2 < 2*const.au/R_sun.to(u.m).value:
+            #     for rr in np.arange(0, max_dist2 + 0.29*const.au/R_sun.to(u.m).value, 0.5*const.au/R_sun.to(u.m).value)[1:]:
+            #         add_ring(fig, rr, line=dict(color="lightgray"))
+            #         x2, y2, z2 = spheric2cartesian([rr+0.1*const.au/R_sun.to(u.m).value], [np.deg2rad(0)], [np.deg2rad(120)])
+            #         fig.add_trace(go.Scatter3d(x=x2, y=y2, z=z2, mode='text',
+            #                                    marker=dict(symbol=symbol, size=1, color='red'),
+            #                                    text=[f'{rr}'],
+            #                                    textfont=dict(color="black", size=16),
+            #                                    textposition="middle center",
+            #                                    showlegend=False,
+            #                                    ))
+            # else:
+            #     if max_dist2 < 10*const.au/R_sun.to(u.m).value:
+            #         for rr in np.arange(0, max_dist2 + 0.29*const.au/R_sun.to(u.m).value, 1.0*const.au/R_sun.to(u.m).value)[1:]:
+            #             add_ring(fig, rr, line=dict(color="lightgray"))
+            #             x2, y2, z2 = spheric2cartesian([rr+0.1*const.au/R_sun.to(u.m).value], [np.deg2rad(0)], [np.deg2rad(120)])
+            #             fig.add_trace(go.Scatter3d(x=x2, y=y2, z=z2, mode='text',
+            #                                        marker=dict(symbol=symbol, size=1, color='red'),
+            #                                        text=[f'{rr}'],
+            #                                        textfont=dict(color="black", size=16),
+            #                                        textposition="middle center",
+            #                                        showlegend=False,
+            #                                        ))
+
+            # add spokes
+            for s_long in np.arange(0, 360, 45):
+                x, y, z = spheric2cartesian([0.01, max_dist2+0.29*const.au/R_sun.to(u.m).value], [0.0, 0.0], [np.deg2rad(s_long), np.deg2rad(s_long)])
+
+                fig.add_trace(go.Scatter3d(x=x, y=y, z=z, mode='lines',
+                                           showlegend=False,
+                                           line=dict(color='lightgray'),
+                                           ))
+
+                x2, y2, z2 = spheric2cartesian([0.01, max_dist2+(0.29+ring_steps/3)*const.au/R_sun.to(u.m).value+0.1*const.au/R_sun.to(u.m).value], [0.0, 0.0], [np.deg2rad(s_long), np.deg2rad(s_long)])
+                fig.add_trace(go.Scatter3d(x=[x2[-1]], y=[y2[-1]], z=[z2[-1]], mode='text',
+                                           marker=dict(symbol=symbol, size=1, color='red'),
+                                           text=[f'{s_long}°'],
+                                           textfont=dict(color="black", size=16),
+                                           textposition="middle center",
+                                           showlegend=False,
+                                           ))
 
         stitle = str(self.date.to_value('iso', subfmt='date_hm'))
         fig.update_layout(title=dict(text=stitle+' (UTC)', x=0.5, xref="paper", xanchor="center", font=dict(size=22, weight="normal"), automargin=True, yref='paper'),
@@ -2144,6 +2159,26 @@ class SolarMACH():
                                text="https://solar-mach.github.io",
                                showarrow=False
                                )
+
+        xyz_range = 2.5
+        if zoom_out:
+            xyz_range = max_dist2+ring_steps*const.au/R_sun.to(u.m).value
+
+        # additional figure settings, like aspect mode, extreme values of axes etc...
+        fig.update_layout(scene_aspectmode='cube')
+        fig.update_layout(scene=dict(xaxis=dict(title="X / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
+                                     yaxis=dict(title="Y / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
+                                     zaxis=dict(title="Z / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
+                                     xaxis_tickfont=dict(weight=500, size=14),
+                                     yaxis_tickfont=dict(weight=500, size=14),
+                                     zaxis_tickfont=dict(weight=500, size=14),
+                                     xaxis_title_font=dict(weight=500, size=16),
+                                     yaxis_title_font=dict(weight=500, size=16),
+                                     zaxis_title_font=dict(weight=500, size=16),
+                                     ),
+                          width=1024, height=1024,
+                          margin=dict(r=20, l=10, b=10, t=10)
+                          )
 
         config = {'toImageButtonOptions': {'format': 'png',  # one of png, svg, jpeg, webp
                                            'filename': 'Solar-MACH_'+(stitle.replace(' ', '_')).replace(':', '-')+'_PFSS',
@@ -2170,7 +2205,7 @@ class SolarMACH():
         else:
             return
 
-    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, markers=False, numbered_markers=False, plot_equatorial_plane=True, reference_vsw=400, return_plot_object=False):
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True, reference_vsw=400, return_plot_object=False):
         """
         Generates a 3D plot of the solar system with various optional features.
 
@@ -2184,6 +2219,8 @@ class SolarMACH():
             If True or 'letters'/'numbers', plot markers at body positions. Default is False.
         plot_equatorial_plane : bool, optional
             If True, plots the equatorial plane. Default is True.
+        plot_3d_grid : bool, optional
+            If True, plots grid and axis for x, y, z. Default is True.
         reference_vsw : int, optional
             The reference solar wind speed in km/s. Default is 400.
         return_plot_object: bool, optional
@@ -2229,21 +2266,7 @@ class SolarMACH():
         fig = go.Figure([sun])
 
         # additional figure settings, like aspect mode, extreme values of axes etc...
-        fig.update_layout(scene_aspectmode='cube')
-
-        fig.update_layout(scene=dict(xaxis=dict(title="X / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
-                                     yaxis=dict(title="Y / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
-                                     zaxis=dict(title="Z / AU", nticks=4, range=[-self.max_dist, self.max_dist],),
-                                     xaxis_tickfont=dict(weight=500, size=14),
-                                     yaxis_tickfont=dict(weight=500, size=14),
-                                     zaxis_tickfont=dict(weight=500, size=14),
-                                     xaxis_title_font=dict(weight=500, size=16),
-                                     yaxis_title_font=dict(weight=500, size=16),
-                                     zaxis_title_font=dict(weight=500, size=16),
-                                     ),
-                          width=1024, height=1024,
-                          margin=dict(r=20, l=10, b=10, t=10),
-                          )
+        fig.update_layout()
 
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
@@ -2267,7 +2290,9 @@ class SolarMACH():
             if plot_spirals:
                 phi = np.ones(len(r_array))*np.deg2rad(body_lat)
                 # x, y, z = spheric2cartesian(r_array * np.cos(np.deg2rad(body_lat)), phi, alpha_body)
-                x, y, z = spheric2cartesian(r_array, phi, alpha_body)
+                x, y, z = spheric2cartesian(r_array[r_array<=self.max_dist+0.29],
+                                            phi[r_array<=self.max_dist+0.29],
+                                            alpha_body[r_array<=self.max_dist+0.29])
 
                 fig.add_trace(go.Scatter3d(x=x,
                                            y=y,
@@ -2370,7 +2395,9 @@ class SolarMACH():
 
             if plot_spirals:
                 phi = np.ones(len(r_array))*np.deg2rad(ref_lat)
-                x, y, z = spheric2cartesian(r_array, phi, alpha_ref)
+                x, y, z = spheric2cartesian(r_array[r_array<=self.max_dist+0.29],
+                                            phi[r_array<=self.max_dist+0.29],
+                                            alpha_ref[r_array<=self.max_dist+0.29])
 
                 fig.add_trace(go.Scatter3d(x=x,
                                            y=y,
@@ -2383,12 +2410,71 @@ class SolarMACH():
                                            ))
             #     ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
 
+        if not plot_3d_grid:
+            fig.update_scenes(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False)
+
         if plot_equatorial_plane:
-            fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
-                                     y=np.linspace(-200, 200, 100),
-                                     z=np.zeros((100, 100)),
-                                     hoverinfo='skip',
-                                     colorscale='gray', showscale=False, opacity=0.2))
+            # fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
+            #                          y=np.linspace(-200, 200, 100),
+            #                          z=np.zeros((100, 100)),
+            #                          hoverinfo='skip',
+            #                          colorscale='gray', showscale=False, opacity=0.2))
+
+            # add rings
+            def add_ring(fig, radius, line=dict(color="black", dash="dot")):
+                angle = np.linspace(0, 2*np.pi, 150)
+                x = radius*np.cos(angle)
+                y = radius*np.sin(angle)
+                z = np.zeros((len(x)))
+                fig.add_trace(go.Scatter3d(x=x, y=y, z=z,
+                                           mode='lines',
+                                           line=line,
+                                           showlegend=False,
+                                           ))
+                return
+
+            add_ring(fig, self.max_dist + 0.29, line=dict(width=5, color="black"))
+            if self.max_dist < 2:
+                ring_steps = 0.5
+            elif self.max_dist < 10:
+                ring_steps = 1
+            elif self.max_dist < 50:
+                ring_steps = 5
+            elif self.max_dist < 50:
+                ring_steps = 10
+            else:
+                ring_steps = 50
+
+            for rr in np.arange(0, self.max_dist + 0.29, ring_steps)[1:]:
+                if isinstance(ring_steps, int):
+                    rr = int(rr)
+                add_ring(fig, rr, line=dict(color="lightgray"))
+                x2, y2, z2 = spheric2cartesian([rr+ring_steps/5], [np.deg2rad(0)], [np.deg2rad(120)])
+                fig.add_trace(go.Scatter3d(x=x2, y=y2, z=z2, mode='text',
+                                           marker=dict(symbol=symbol, size=1, color='red'),
+                                           text=[f'{rr}'],
+                                           textfont=dict(color="black", size=16),
+                                           textposition="middle center",
+                                           showlegend=False,
+                                           ))
+
+            # add spokes
+            for s_long in np.arange(0, 360, 45):
+                x, y, z = spheric2cartesian([0.01, self.max_dist+0.29], [0.0, 0.0], [np.deg2rad(s_long), np.deg2rad(s_long)])
+
+                fig.add_trace(go.Scatter3d(x=x, y=y, z=z, mode='lines',
+                                           showlegend=False,
+                                           line=dict(color='lightgray'),
+                                           ))
+
+                x2, y2, z2 = spheric2cartesian([0.01, self.max_dist+0.29+ring_steps/3], [0.0, 0.0], [np.deg2rad(s_long), np.deg2rad(s_long)])
+                fig.add_trace(go.Scatter3d(x=[x2[-1]], y=[y2[-1]], z=[z2[-1]], mode='text',
+                                           marker=dict(symbol=symbol, size=1, color='red'),
+                                           text=[f'{s_long}°'],
+                                           textfont=dict(color="black", size=16),
+                                           textposition="middle center",
+                                           showlegend=False,
+                                           ))
 
         stitle = str(self.date.to_value('iso', subfmt='date_hm'))
         fig.update_layout(title=dict(text=stitle+' (UTC)', x=0.5, xref="paper", xanchor="center", font=dict(size=22, weight="normal"), automargin=True, yref='paper'),
@@ -2413,6 +2499,21 @@ class SolarMACH():
                                text="https://solar-mach.github.io",
                                showarrow=False
                                )
+
+        fig.update_layout(scene_aspectmode='cube',
+                          scene=dict(xaxis=dict(title="X / AU", nticks=4, range=[-(self.max_dist+ring_steps), self.max_dist+ring_steps],),
+                                     yaxis=dict(title="Y / AU", nticks=4, range=[-(self.max_dist+ring_steps), self.max_dist+ring_steps],),
+                                     zaxis=dict(title="Z / AU", nticks=4, range=[-(self.max_dist+ring_steps), self.max_dist+ring_steps],),
+                                     xaxis_tickfont=dict(weight=500, size=14),
+                                     yaxis_tickfont=dict(weight=500, size=14),
+                                     zaxis_tickfont=dict(weight=500, size=14),
+                                     xaxis_title_font=dict(weight=500, size=16),
+                                     yaxis_title_font=dict(weight=500, size=16),
+                                     zaxis_title_font=dict(weight=500, size=16),
+                                     ),
+                          width=1024, height=1024,
+                          margin=dict(r=20, l=10, b=10, t=10),
+                          )
 
         config = {'toImageButtonOptions': {'format': 'png',  # one of png, svg, jpeg, webp
                                            'filename': 'Solar-MACH_3D_'+(stitle.replace(' ', '_')).replace(':', '-')+'_3D',
