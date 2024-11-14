@@ -1629,7 +1629,7 @@ class SolarMACH():
         ax.set_rlabel_position(rlabel_pos)  # Move radial labels away from plotted line
         # ax.tick_params(which='major', labelsize=22,)
 
-        rlabels = ['1', str(rss), r'$10^1$', r'$10^2$']
+        rlabels = ['1', str(rss), r'$10^1$', r'$10^2\ \mathrm{R}_{\odot}$ ']
         ax.set_yticklabels(rlabels)
 
         # Drawing a circle around the plot, because sometimes for unkown reason the plot boundary is not drawn.
@@ -2088,7 +2088,7 @@ class SolarMACH():
                 x2, y2, z2 = spheric2cartesian([rr+ring_steps/5*const.au/R_sun.to(u.m).value], [np.deg2rad(0)], [np.deg2rad(120)])
                 fig.add_trace(go.Scatter3d(x=x2, y=y2, z=z2, mode='text',
                                            marker=dict(symbol=symbol, size=1, color='red'),
-                                           text=[f'{rr}'],
+                                           text=[f'{rr} R<sub>☉</sub>'],
                                            textfont=dict(color="black", size=16),
                                            textposition="middle center",
                                            showlegend=False,
@@ -2166,9 +2166,9 @@ class SolarMACH():
 
         # additional figure settings, like aspect mode, extreme values of axes etc...
         fig.update_layout(scene_aspectmode='cube')
-        fig.update_layout(scene=dict(xaxis=dict(title="X / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
-                                     yaxis=dict(title="Y / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
-                                     zaxis=dict(title="Z / R_sun", nticks=4, range=[-xyz_range, xyz_range],),
+        fig.update_layout(scene=dict(xaxis=dict(title="X / R<sub>☉</sub>", nticks=4, range=[-xyz_range, xyz_range],),
+                                     yaxis=dict(title="Y / R<sub>☉</sub>", nticks=4, range=[-xyz_range, xyz_range],),
+                                     zaxis=dict(title="Z / R<sub>☉</sub>", nticks=4, range=[-xyz_range, xyz_range],),
                                      xaxis_tickfont=dict(weight=500, size=14),
                                      yaxis_tickfont=dict(weight=500, size=14),
                                      zaxis_tickfont=dict(weight=500, size=14),
