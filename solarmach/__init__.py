@@ -2288,6 +2288,7 @@ class SolarMACH():
             alpha_body = (body_long*u.deg + backmapping_angle(dist_body*u.AU, r_array*u.AU, body_lat*u.deg, body_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
 
             if plot_spirals:
+                spiral_width = 3
                 phi = np.ones(len(r_array))*np.deg2rad(body_lat)
                 # x, y, z = spheric2cartesian(r_array * np.cos(np.deg2rad(body_lat)), phi, alpha_body)
                 x, y, z = spheric2cartesian(r_array[r_array<=self.max_dist+0.29],
@@ -2300,7 +2301,7 @@ class SolarMACH():
                                            mode='lines',
                                            name=f'{body_id} magnetic field line',
                                            showlegend=False,
-                                           line=dict(color=body_dict[body_id][2]),
+                                           line=dict(width=spiral_width, color=body_dict[body_id][2]),
                                            # thetaunit="radians"
                                            ))
 
@@ -2405,7 +2406,7 @@ class SolarMACH():
                                            mode='lines',
                                            name=f'field line connecting to<br>reference (vsw={reference_vsw} km/s) ',
                                            showlegend=True,
-                                           line=dict(color="black", dash="dot"),
+                                           line=dict(width=spiral_width, color="black", dash="dot"),
                                            # thetaunit="radians"
                                            ))
             #     ax.plot(alpha_ref, r_array * np.cos(np.deg2rad(ref_lat)), '--k', label=f'field line connecting to\nref. long. (vsw={reference_vsw} km/s)')
