@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sunkit_magex.pfss as pfsspy
 import sunpy.map
+import threadpoolctl
 from astropy.coordinates import SkyCoord
 from sunpy.net import Fido
 from sunpy.net import attrs as a
@@ -567,18 +568,18 @@ def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
 
     Parameters:
     -----------
-    gong_map : {SunPy Map}
-        GONG map as SunPy Map object obtained with get_gong_map()
+    gong_map : {sunpy.map.Map}
+        GONG map in Carrington or Stonyhurst coordinates, obtained with get_gong_map()
     rss : {float}
         source surface height in solar radii
     coord_sys: {str}
         cordinate system used: either 'car' or 'Carrington', or 'sto' or 'Stonyhurst'
-    nrho : {float/int}
-        rho = ln(r) -> nrho is the amount of points in this logarithmic range
+    nrho : {float/int, optional}
+        rho = ln(r) -> nrho is the amount of points in this logarithmic range. Default is 35.
 
     Returns:
     ----------
-    pfss_solution : {pfsspy solution object}
+    pfss_solution : {pfsspy.Output}
         The PFSS solution that can be used to plot magnetic field lines under the source surface
     """
     # GONG map is in Carrington coordinates
@@ -604,7 +605,8 @@ def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
     pfss_in = pfsspy.Input(gong_map, nrho, rss)
 
     # This is the pfss solution, calculated from the input object
-    pfss_solution = pfsspy.pfss(pfss_in)
+    with threadpoolctl.threadpool_limits(limits=1, user_api='blas'):
+        pfss_solution = pfsspy.pfss(pfss_in)
 
     return pfss_solution
 

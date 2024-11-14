@@ -14,5 +14,6 @@ setuptools
 speasy>=1.2.7
 sunkit_magex
 sunpy
+threadpoolctl
 tqdm
 zeep
