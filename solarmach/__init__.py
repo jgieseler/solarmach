@@ -1969,6 +1969,7 @@ class SolarMACH():
                 str_number = None
                 symbol = 'square'
 
+            # SkyCoord transformed to cartesian correspond to HEEQ for Stonyhurst
             fig.add_trace(go.Scatter3d(x=[(body_pos.cartesian.x.to(u.m)/R_sun).value],
                                        y=[(body_pos.cartesian.y.to(u.m)/R_sun).value],
                                        z=[(body_pos.cartesian.z.to(u.m)/R_sun).value],
@@ -2334,6 +2335,7 @@ class SolarMACH():
                 symbol = 'square'
 
             # customdata=[[dist_body], [body_long], [body_lat]]
+            # SkyCoord transformed to cartesian correspond to HEEQ for Stonyhurst
             fig.add_trace(go.Scatter3d(x=[body_pos.cartesian.x.value],
                                        y=[body_pos.cartesian.y.value],
                                        z=[body_pos.cartesian.z.value],

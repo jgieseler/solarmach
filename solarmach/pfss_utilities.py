@@ -515,7 +515,10 @@ def check_field_line_alignment(coordinates):
 
 def spheric2cartesian(r, theta, phi):
     """
-    Does a coordinate transformation from spherical to cartesian
+    Does a coordinate transformation from spherical to cartesian.
+    For Stonyhurst heliographic coordinates, this means converting to HEEQ
+    (Heliocentric Earth Equatorial), following Eq. (2) of Thompson (2006),
+    DOI: 10.1051/0004-6361:20054262
 
     r : the distance to the origin
     theta : the elevation angle (goes from -pi to pi)
