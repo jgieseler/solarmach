@@ -1692,7 +1692,8 @@ class SolarMACH():
             return fig, ax
 
     def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
-                plot_spirals=True, plot_sun_body_line=False, markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True,
+                plot_spirals=True, plot_sun_body_line=False, plot_vertical_line=False,
+                markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True,
                 reference_vsw=400, zoom_out=False, return_plot_object=False):
         """
         Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
@@ -1709,6 +1710,8 @@ class SolarMACH():
             If True, plots the Parker spirals. Default is True.
         plot_sun_body_line : bool, optional
             If True, plots the direct line from the Sun to the body. Default is False.
+        plot_vertical_line : bool, optional
+            If True, plots vertical lines from the heliographic equatorial plane to each body. Default is False.
         markers : bool or str, optional
             If True or 'letters'/'numbers', plot markers at body positions. Default is False.
         plot_equatorial_plane : bool, optional
@@ -1952,6 +1955,27 @@ class SolarMACH():
                                            showlegend=False,
                                            line=dict(color=body_dict[body_id][2], dash='dot'),
                                            # thetaunit="radians"
+                                           ))
+
+            if plot_vertical_line:
+                x, y, z = spheric2cartesian([dist_body*np.cos(np.deg2rad(body_lat)), dist_body], [0.0, np.deg2rad(body_lat)], [np.deg2rad(body_long), np.deg2rad(body_long)])
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} direct line',
+                                           showlegend=False,
+                                           line=dict(width=5, color=body_dict[body_id][2], dash='dot'),
+                                           # thetaunit="radians"
+                                           ))
+                fig.add_trace(go.Scatter3d(x=[x[0]],
+                                           y=[y[0]],
+                                           z=[z[0]],
+                                           mode='markers',
+                                           name=body_id,
+                                           showlegend=False,
+                                           marker=dict(symbol='circle', size=3, color=body_dict[body_id][2]),
                                            ))
 
             if markers:
@@ -2206,7 +2230,7 @@ class SolarMACH():
         else:
             return
 
-    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True, reference_vsw=400, return_plot_object=False):
+    def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, plot_vertical_line=False, markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True, reference_vsw=400, return_plot_object=False):
         """
         Generates a 3D plot of the solar system with various optional features.
 
@@ -2216,6 +2240,8 @@ class SolarMACH():
             If True, plots the magnetic field lines as spirals. Default is True.
         plot_sun_body_line : bool, optional
             If True, plots direct lines from the Sun to each body. Default is True.
+        plot_vertical_line : bool, optional
+            If True, plots vertical lines from the heliographic equatorial plane to each body. Default is False.
         markers : bool or str, optional
             If True or 'letters'/'numbers', plot markers at body positions. Default is False.
         plot_equatorial_plane : bool, optional
@@ -2317,6 +2343,27 @@ class SolarMACH():
                                            showlegend=False,
                                            line=dict(color=body_dict[body_id][2], dash='dot'),
                                            # thetaunit="radians"
+                                           ))
+
+            if plot_vertical_line:
+                x, y, z = spheric2cartesian([dist_body*np.cos(np.deg2rad(body_lat)), dist_body], [0.0, np.deg2rad(body_lat)], [np.deg2rad(body_long), np.deg2rad(body_long)])
+
+                fig.add_trace(go.Scatter3d(x=x,
+                                           y=y,
+                                           z=z,
+                                           mode='lines',
+                                           name=f'{body_id} direct line',
+                                           showlegend=False,
+                                           line=dict(width=5, color=body_dict[body_id][2], dash='dot'),
+                                           # thetaunit="radians"
+                                           ))
+                fig.add_trace(go.Scatter3d(x=[x[0]],
+                                           y=[y[0]],
+                                           z=[z[0]],
+                                           mode='markers',
+                                           name=body_id,
+                                           showlegend=False,
+                                           marker=dict(symbol='circle', size=3, color=body_dict[body_id][2]),
                                            ))
 
             if markers:
