@@ -2414,6 +2414,17 @@ class SolarMACH():
         if not plot_3d_grid:
             fig.update_scenes(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False)
 
+        if self.max_dist < 2:
+            ring_steps = 0.5
+        elif self.max_dist < 10:
+            ring_steps = 1
+        elif self.max_dist < 50:
+            ring_steps = 5
+        elif self.max_dist < 50:
+            ring_steps = 10
+        else:
+            ring_steps = 50
+
         if plot_equatorial_plane:
             # fig.add_trace(go.Surface(x=np.linspace(-200, 200, 100),
             #                          y=np.linspace(-200, 200, 100),
@@ -2435,16 +2446,6 @@ class SolarMACH():
                 return
 
             add_ring(fig, self.max_dist + 0.29, line=dict(width=5, color="black"))
-            if self.max_dist < 2:
-                ring_steps = 0.5
-            elif self.max_dist < 10:
-                ring_steps = 1
-            elif self.max_dist < 50:
-                ring_steps = 5
-            elif self.max_dist < 50:
-                ring_steps = 10
-            else:
-                ring_steps = 50
 
             for rr in np.arange(0, self.max_dist + 0.29, ring_steps)[1:]:
                 if isinstance(ring_steps, int):
