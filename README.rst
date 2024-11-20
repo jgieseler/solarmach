@@ -139,7 +139,7 @@ Acknowledgements
 
 The Solar-MACH tool was originally developed at Kiel University, Germany and further discussed within the `ESA Heliophysics Archives USer (HAUS) <https://www.cosmos.esa.int/web/esdc/archives-user-groups/heliophysics>`_ group.
 
-This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 101004159.
+This project has received funding from the European Union's Horizon Europe research and innovation programme under grant agreement No 101134999 (SOLER) and from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 101004159 (SERPENTINE).
 
 Powered by: |matplotlib| |sunpy|
 
