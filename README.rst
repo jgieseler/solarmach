@@ -141,7 +141,7 @@ The Solar-MACH tool was originally developed at Kiel University, Germany and fur
 
 This project has received funding from the European Union's Horizon Europe research and innovation programme under grant agreement No 101134999 (SOLER) and from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 101004159 (SERPENTINE).
 
-Powered by: |matplotlib| |sunpy|
+Powered by: |matplotlib| |sunpy| |speasy| |plotly|
 
 .. |matplotlib| image:: https://matplotlib.org/stable/_static/logo_dark.svg
    :height: 25px
@@ -149,3 +149,9 @@ Powered by: |matplotlib| |sunpy|
 .. |sunpy| image:: https://raw.githubusercontent.com/sunpy/sunpy-logo/master/generated/sunpy_logo_landscape.svg
    :height: 30px
    :target: https://sunpy.org
+.. |speasy| image:: https://raw.githubusercontent.com/SciQLop/speasy/main/logo/logo_speasy.svg
+   :height: 30px
+   :target: https://pypi.org/project/speasy/
+.. |plotly| image:: https://avatars.githubusercontent.com/u/5997976?s=64&v=4
+   :height: 30px
+   :target: https://github.com/plotly/plotly.py
