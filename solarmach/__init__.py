@@ -1632,12 +1632,17 @@ class SolarMACH():
         rlabels = ['1', str(np.round(rss, 2)), r'$10^1$', r'$10^2\ \mathrm{R}_{\odot}$ ']
         ax.set_yticklabels(rlabels)
 
+        """
+        # Deactivated by jgieseler (Jan 2025): 
+        # Hard-coding this is not feasible because the r range can not be assumed. It might work for missions always within 1 AU, but one can't rely on that. 
+
         # Drawing a circle around the plot, because sometimes for unkown reason the plot boundary is not drawn.
         # Here circle_radius corresponds to the boundary of the plot, and it was empirically found.
         circle_radius = 9.35
+        """
 
         circle = plt.Circle((0., 0.),
-                            circle_radius,
+                            r_max - 0.01,  # corresponding to classic plot, where set_rmax is set to "r_max + 0.3" and the circle is drawn at "r_max + 0.29"
                             transform=ax.transData._b,
                             edgecolor="k",
                             facecolor=None,
