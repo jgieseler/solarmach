@@ -1629,7 +1629,7 @@ class SolarMACH():
         ax.set_rlabel_position(rlabel_pos)  # Move radial labels away from plotted line
         # ax.tick_params(which='major', labelsize=22,)
 
-        rlabels = ['1', str(rss), r'$10^1$', r'$10^2\ \mathrm{R}_{\odot}$ ']
+        rlabels = ['1', str(np.round(rss, 2)), r'$10^1$', r'$10^2\ \mathrm{R}_{\odot}$ ']
         ax.set_yticklabels(rlabels)
 
         # Drawing a circle around the plot, because sometimes for unkown reason the plot boundary is not drawn.
