@@ -1248,7 +1248,8 @@ class SolarMACH():
         fig, ax = plt.subplots(subplot_kw=dict(projection='polar'), figsize=figsize, dpi=dpi)
 
         # maximum distance anything will be plotted
-        r_max = r_scaler * 5  # 5 AU = 1075 in units of solar radii
+        # r_max = r_scaler * 5  # 5 AU = 1075 in units of solar radii
+        r_max = np.max([r_scaler * 2 * self.max_dist, 5 * r_scaler])  # either twice the actual maximal radius, or minimal 5 AU
 
         # setting the title
         ax.set_title(str(self.date.to_value('iso', subfmt='date_hm')) + ' (UTC)\n', pad=30)  # , fontsize=26)
@@ -1273,7 +1274,8 @@ class SolarMACH():
         fieldline_polarities = []
 
         # The radial coordinates for reference parker spiral (plot even outside the figure boundaries to avert visual bugs)
-        reference_array = np.linspace(rss, r_max+200, int(1e3))
+        # reference_array = np.linspace(rss, r_max+200, int(1e3))
+        reference_array = np.linspace(rss, r_max, int(1e3))
 
         # Longitudinal and latitudinal separation angles to Earth's magnetic footpoint
         lon_sep_angles = np.array([])
@@ -1296,7 +1298,8 @@ class SolarMACH():
             # omega = solar_diff_rot_old(body_lat, diff_rot=self.diff_rot)
 
             # The radial coordinates (outside source surface) for each object
-            r_array = np.linspace(r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), rss, 1000)
+            # r_array = np.linspace(r_scaler*dist_body*np.cos(np.deg2rad(body_lat)), rss, 1000)
+            r_array = np.linspace(r_scaler*dist_body, rss, 1000)
 
             # plot body positions
             if markers:
@@ -1636,22 +1639,12 @@ class SolarMACH():
         rlabels = ['1', str(np.round(rss, 2)), r'$10^1$', r'$10^2\ \mathrm{R}_{\odot}$ ']
         ax.set_yticklabels(rlabels)
 
-        """
-        # Deactivated by jgieseler (Jan 2025): 
-        # Hard-coding this is not feasible because the r range can not be assumed. It might work for missions always within 1 AU, but one can't rely on that. 
-
         # Drawing a circle around the plot, because sometimes for unkown reason the plot boundary is not drawn.
-        # Here circle_radius corresponds to the boundary of the plot, and it was empirically found.
-        circle_radius = 9.35
-        """
-
-        circle = plt.Circle((0., 0.),
-                            r_max - 0.01,  # corresponding to classic plot, where set_rmax is set to "r_max + 0.3" and the circle is drawn at "r_max + 0.29"
-                            transform=ax.transData._b,
-                            edgecolor="k",
-                            facecolor=None,
-                            fill=False, lw=2)
-        ax.add_patch(circle)
+        ax.plot(np.linspace(0, 2*np.pi, 180),
+                [r_max]*180,
+                color="black",
+                lw=3,
+                )
 
         # Cut off unnecessary margins from the plot
         plt.tight_layout()
