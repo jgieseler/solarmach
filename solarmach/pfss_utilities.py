@@ -213,7 +213,7 @@ def get_field_line_coords(longitude, latitude, hmimap, seedheight):
 
             # Check that we are not too far from the original coordinate
             if (corner_tracker[0] >= 10):
-                print(f"no open field line found in the vicinity of {init_lon},{init_lat}")
+                print(f"no open field line found in the vicinity of {np.rad2deg(init_lon)}°, {np.rad2deg(init_lat)}°")
                 break
 
         # Get the field line coordinate values in the correct order
