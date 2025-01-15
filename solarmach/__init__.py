@@ -156,9 +156,9 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
 
     try:
         if dataset[body].spz_provider() == 'amda':
-            df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange), output_format="CDF_ISTP").to_dataframe()
+            df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange), output_format="CDF_ISTP").replace_fillval_by_nan().to_dataframe()
         elif dataset[body].spz_provider() == 'cda':
-            df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).to_dataframe()
+            df = spz.get_data(dataset[body], dtime-dt.timedelta(hours=trange), dtime+dt.timedelta(hours=trange)).replace_fillval_by_nan().to_dataframe()
         # OLD: df = df[sw_key[body]].resample('1h').mean()
         # This approach only takes the left-most column. All dataframe contain only a single column as of now. Be careful if this changes or new datasets are added!
         df = df.iloc[:, 0].resample('1h').mean()
