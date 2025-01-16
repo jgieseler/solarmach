@@ -680,6 +680,41 @@ class SolarMACH():
             import plotly.graph_objects as go
             pfig = go.Figure()
 
+        rlabel_pos = E_long + 120
+        ax.set_rlabel_position(rlabel_pos)
+        ax.set_theta_offset(np.deg2rad(long_offset - E_long))
+        ax.yaxis.get_major_locator().base.set_params(nbins=4)
+        circle = plt.Circle((0., 0.),
+                            self.max_dist + 0.29,
+                            transform=ax.transData._b,
+                            edgecolor="k",
+                            facecolor=None,
+                            fill=False, lw=2)
+        ax.add_patch(circle)
+
+        # r-grid with different resolution depending on maximum distance body
+        if self.max_dist < 2:
+            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=rlabel_pos)
+        elif self.max_dist < 10:
+            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
+
+        # manually plot r-grid lines with different resolution depending on maximum distance body
+        grid_radii = []
+        if self.max_dist < 2:
+            grid_radii = np.arange(0, self.max_dist + 0.29, 0.5)[1:]
+        elif self.max_dist < 10:
+            grid_radii = np.arange(0, self.max_dist + 0.29, 1.0)[1:]
+        if len(grid_radii) > 0:
+            grid_lines, grid_labels = ax.set_rgrids(grid_radii, angle=rlabel_pos)
+            # overplot r-grid circles manually because there sometimes missing
+            for grid_radius in grid_radii:
+                ax.plot(np.linspace(0, 2*np.pi, 180), [grid_radius]*180,
+                        color=grid_lines[0].get_color(),
+                        lw=grid_lines[0].get_lw(),
+                        ls=grid_lines[0].get_ls(),
+                        zorder=grid_lines[0].get_zorder(),
+                        )
+
         for i, body_id in enumerate(self.body_dict):
             body_lab = self.body_dict[body_id][1]
             body_color = self.body_dict[body_id][2]
@@ -1048,26 +1083,8 @@ class SolarMACH():
         #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
         #     ax.set_thetalim(-np.pi, np.pi)
 
-        rlabel_pos = E_long + 120
-        ax.set_rlabel_position(rlabel_pos)
-        ax.set_theta_offset(np.deg2rad(long_offset - E_long))
         ax.set_rmax(self.max_dist + 0.3)
         ax.set_rmin(0.01)
-        ax.yaxis.get_major_locator().base.set_params(nbins=4)
-        circle = plt.Circle((0., 0.),
-                            self.max_dist + 0.29,
-                            transform=ax.transData._b,
-                            edgecolor="k",
-                            facecolor=None,
-                            fill=False, lw=2)
-        ax.add_patch(circle)
-
-        # manually plot r-grid lines with different resolution depending on maximum distance body
-        if self.max_dist < 2:
-            ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 0.5)[1:], angle=rlabel_pos)
-        else:
-            if self.max_dist < 10:
-                ax.set_rgrids(np.arange(0, self.max_dist + 0.29, 1.0)[1:], angle=rlabel_pos)
 
         ax.set_title(str(self.date.to_value('iso', subfmt='date_hm')) + ' (UTC)\n', pad=30)
 
