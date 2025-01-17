@@ -1441,12 +1441,10 @@ class SolarMACH():
             self.reference_fieldlines = []
             self.reference_fieldlines.append(ref_objects[0])
 
-            # Also init extreme values for the longitudinal span of the uptracked flux tube
-            self.reference_long_min, self.reference_long_max = 360, 0
-
             # Boolean switch to keep track what kind of arrow/spiral to draw for reference point
             open_mag_flux_near_ref_point = False
 
+            varyref_objects_longitudes = []
             # Loop the fieldlines, collect them to the list and find the extreme values of longitude at the ss
             for ref_vary in varyref_objects:
                 self.reference_fieldlines.append(ref_vary)
@@ -1461,20 +1459,31 @@ class SolarMACH():
                 # Check the orientation of the field line; is the first index at the photosphere or the last?
                 idx = 0 if ref_vary.coords.radius.value[0] > ref_vary.coords.radius.value[-1] else -1
 
-                # Collect the longitudinal extreme values from the uptracked fluxtube at the source surface height
-                if ref_vary.coords.lon.value[idx] < self.reference_long_min:
-                    self.reference_long_min = ref_vary.coords.lon.value[idx]
-                if ref_vary.coords.lon.value[idx] > self.reference_long_max:
-                    self.reference_long_max = ref_vary.coords.lon.value[idx]
+                # Collect the longitudinal values from the uptracked fluxtube at the source surface height
+                varyref_objects_longitudes.append(ref_vary.coords.lon.value[idx])
 
             arrow_dist = rss-0.80
             if open_mag_flux_near_ref_point:
+                self.reference_long_min = min(varyref_objects_longitudes)
+                self.reference_long_max = max(varyref_objects_longitudes)
+                if self.reference_long_max-self.reference_long_min > 180:
+                    varyref_objects_longitudes2 = []
+                    for lon in varyref_objects_longitudes:
+                        if lon > 180:
+                            varyref_objects_longitudes2.append(lon-360)
+                        else:
+                            varyref_objects_longitudes2.append(lon)
+                    self.reference_long_max = max(varyref_objects_longitudes2)
+                    self.reference_long_min = min(varyref_objects_longitudes2)
+
                 ref_arr = plt.arrow(np.deg2rad(self.reference_long_min), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
                                     facecolor='black', lw=0, zorder=7, overhang=0.1)
                 ref_arr = plt.arrow(np.deg2rad(self.reference_long_max), 1, 0, arrow_dist, head_width=0.05, head_length=0.2, edgecolor='black',
                                     facecolor='black', lw=0, zorder=7, overhang=0.1)
 
                 reference_legend_label = f"reference long.\nsector:\n({np.round(self.reference_long_min, 1)}, {np.round(self.reference_long_max, 1)})"
+                if (self.reference_long_min < 0) & (self.coord_sys=='Carrington'):
+                    reference_legend_label = f"reference long.\nsector:\n({np.round(360+self.reference_long_min, 1)}, {np.round(self.reference_long_max, 1)})"
 
             else:
                 # Set the reach of the flux tube to nan, since it doesn't even reach up to the source surface
@@ -1494,19 +1503,52 @@ class SolarMACH():
                 alpha_ref_min = (self.reference_long_min*u.deg + backmapping_angle(rss*u.R_sun, reference_array*u.R_sun, ref_lat*u.deg, reference_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
                 alpha_ref_max = (self.reference_long_max*u.deg + backmapping_angle(rss*u.R_sun, reference_array*u.R_sun, ref_lat*u.deg, reference_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
 
+                # Construct a second r_array for the second spiral for while loop to iterate forwards.
+                # This copy of an array will be used to plot both spiral later.
+                reference_array2 = np.copy(reference_array)
+
+                # Check that reference angle of the first loop is ahead
+                if alpha_ref_min[-1] > alpha_ref_max[-1]:
+                    alpha_ref_min_comp = alpha_ref_min[-1] - 2*np.pi
+                else:
+                    alpha_ref_min_comp = alpha_ref_min[-1]
+                
+                # While the second spiral is behind the first spiral in angle, extend the second spiral
+                while alpha_ref_max[-1] > alpha_ref_min_comp:
+                    reference_array2 = np.append(reference_array2, reference_array2[-1] + 1)
+                    # alpha_ref_max = np.append(alpha_ref_max, (delta_ref2*u.deg + backmapping_angle(rss*u.R_sun, reference_array2[-1]*u.R_sun, long_sector_lat[1]*u.deg, long_sector_vsw[1]*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value)
+                    alpha_ref_max = np.append(alpha_ref_max, (self.reference_long_max*u.deg + backmapping_angle(rss*u.R_sun, reference_array2[-1]*u.R_sun, ref_lat*u.deg, reference_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value)
+
+                # Finally interpolate the first spiral's angles to the coarser second spiral's angles (outside the plot)
+                alpha_ref_min = np.interp(reference_array2, reference_array, alpha_ref_min)
+
+                # Introduce r axis to plot that is common between these if and else blocks
+                r_to_plot = reference_array2
+
                 # Plot the spirals
-                min_edge = plt.polar(alpha_ref_min, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
-                max_edge = plt.polar(alpha_ref_max, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
+                # min_edge = plt.polar(alpha_ref_min, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
+                # max_edge = plt.polar(alpha_ref_max, reference_array * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
+                min_edge = plt.polar(alpha_ref_min, r_to_plot * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
+                max_edge = plt.polar(alpha_ref_max, r_to_plot * np.cos(np.deg2rad(ref_lat)), lw=0.7, color="grey", alpha=0.45)[0]
 
                 # Extract 'x' and 'y' values
                 x1 = min_edge.get_xdata()
                 y1 = min_edge.get_ydata()
                 x2 = max_edge.get_xdata()
 
-                plt.fill_betweenx(y1, x1, x2, lw=0, color="grey", alpha=0.35)
+                # Check that plotted are is between the two spirals, and do not fill after potential crossing
+                clause1 = x1 < x2
+                clause2 = alpha_ref_min[clause1] < alpha_ref_max[clause1]
 
-            # TODO: doesn't this misses a "and not open_mag_flux_near_ref_point" or should it always be plotted?
-            # Here we plot spirals but open magnetic flux was not found -> draw only one spiral
+                # Take as a selection only the points that fill the above clauses
+                y1_fill = y1[clause1][clause2]
+                x1_fill = x1[clause1][clause2]
+                x2_fill = x2[clause1][clause2]
+
+                # plt.fill_betweenx(y1, x1, x2, lw=0, color="grey", alpha=0.35)
+                plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color="grey", alpha=0.35)
+
+            # Here we plot spirals (open magnetic flux was not necessarily found) -> draw only one spiral
             if plot_spirals:
 
                 # alpha_ref_single = np.deg2rad(self.reference_long) + omega_ref / (1000*reference_vsw / sun_radius) * (rss - reference_array) * np.cos(np.deg2rad(ref_lat))
