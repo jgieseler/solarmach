@@ -1078,10 +1078,9 @@ class SolarMACH():
                 text.set_text('L1')
 
         # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
-        # NB: this remove the rgridlines for unknown reasons! deactivated for now
-        # if self.coord_sys=='Stonyhurst':
-        #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
-        #     ax.set_thetalim(-np.pi, np.pi)
+        if self.coord_sys=='Stonyhurst':
+            ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
+            ax.set_thetalim(-np.pi, np.pi)
 
         ax.set_rmax(self.max_dist + 0.3)
         ax.set_rmin(0.01)
@@ -1462,15 +1461,29 @@ class SolarMACH():
                 # Collect the longitudinal values from the uptracked fluxtube at the source surface height
                 varyref_objects_longitudes.append(ref_vary.coords.lon.value[idx])
 
+            """
+            # These are test-cases for the following code to select the boundaries of the longitudinal range.
+            varyref_objects_longitudes = [-170, 180, 160]  # To be used with Stonyhurst coordinates
+            varyref_objects_longitudes = [-30, 0, 15]  # To be used with Stonyhurst coordinates
+            varyref_objects_longitudes = [-30, 0, 30, 140]  # To be used with Stonyhurst coordinates
+            varyref_objects_longitudes = [-30, 0, 30, 160]  # To be used with Stonyhurst coordinates
+            print(varyref_objects_longitudes)
+            """
+
             arrow_dist = rss-0.80
             if open_mag_flux_near_ref_point:
                 self.reference_long_min = min(varyref_objects_longitudes)
                 self.reference_long_max = max(varyref_objects_longitudes)
+
+                # TODO: IMPROVE!
+                # The following is a rather severe if-statement because it renders situations with a real londitudinal spread of bigger than 180° unusable. Unfortunately, there is no better solution as of now.
                 if self.reference_long_max-self.reference_long_min > 180:
                     varyref_objects_longitudes2 = []
                     for lon in varyref_objects_longitudes:
-                        if lon > 180:
+                        if (lon > 180) and (self.coord_sys=='Carrington'):
                             varyref_objects_longitudes2.append(lon-360)
+                        elif (lon < 0) and (self.coord_sys=='Stonyhurst'):
+                            varyref_objects_longitudes2.append(lon+360)
                         else:
                             varyref_objects_longitudes2.append(lon)
                     self.reference_long_max = max(varyref_objects_longitudes2)
@@ -1678,10 +1691,9 @@ class SolarMACH():
                 text.set_text('L1')
 
         # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
-        # NB: this remove the rgridlines for unknown reasons! deactivated for now
-        # if self.coord_sys=='Stonyhurst':
-        #     ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
-        #     ax.set_thetalim(-np.pi, np.pi)
+        if self.coord_sys=='Stonyhurst':
+            ax.set_xticks(np.pi/180. * np.linspace(180, -180, 8, endpoint=False))
+            ax.set_thetalim(-np.pi, np.pi)
 
         # Spin the angular coordinate so that earth is at 6 o'clock
         ax.set_theta_offset(np.deg2rad(long_offset - E_long))
