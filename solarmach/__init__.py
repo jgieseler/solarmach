@@ -764,6 +764,45 @@ class SolarMACH():
                 alpha_body = (body_long*u.deg + backmapping_angle(dist_body*u.AU, r_array*u.AU, body_lat*u.deg, body_vsw*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
 
+                phi_array = np.linspace(0, 2*np.pi, 180)
+                omega = solar_diff_rot(body_lat*u.deg)
+                from scipy.special import lambertw
+                        # r = R                             sec(t) (cos(t)                 - W(-(e^((p v)                          /(R w                   ) - (p0                                v)/(R                    w))                   cos(t))/R))
+                # r_wrt_phi = dist_body*u.AU * 1/np.cos(body_lat*u.deg) * (np.cos(body_lat*u.deg) - lambertw(-(np.exp((phi_array*u.rad * body_vsw*u.km/u.s)/(dist_body*u.AU * omega) - (body_long*u.deg * body_vsw*u.km/u.s)/(dist_body*u.AU * omega)) * np.cos(body_lat*u.deg))/dist_body*u.AU))
+                # lambertw_arg = -(np.exp((phi_array*u.rad * body_vsw*u.km/u.s)/(dist_body*u.AU * omega) - (body_long*u.deg * body_vsw*u.km/u.s)/(dist_body*u.AU * omega)) * np.cos(body_lat*u.deg))/(dist_body*u.AU)
+                # lambertw_arg_AU = lambertw_arg.value
+                # lambertw_res_AU = lambertw(lambertw_arg_AU)
+                # r_wrt_phi = dist_body*u.AU * 1/np.cos(body_lat*u.deg) * (np.cos(body_lat*u.deg) - lambertw_res_AU)
+                # ax.plot(phi_array, r_wrt_phi * np.cos(np.deg2rad(body_lat)), color='magenta')
+
+                # lambertw_arg = -np.cos(body_lat*u.deg)/(dist_body*u.AU) * np.exp(body_vsw*u.km/u.s/(dist_body*u.AU * omega) * (phi_array*u.rad - body_long*u.deg))
+                # lambertw_arg_AU = lambertw_arg.value
+                # lambertw_res_AU = lambertw(lambertw_arg_AU)
+                # r_wrt_phi = dist_body*u.AU - dist_body*u.AU/np.cos(body_lat*u.deg) * lambertw_res_AU
+                # # r_wrt_phi = dist_body*u.AU * 1/np.cos(body_lat*u.deg) * (np.cos(body_lat*u.deg) - lambertw_res_AU)
+                # ax.plot(phi_array, r_wrt_phi * np.cos(np.deg2rad(body_lat)), color=body_color, ls=':')
+
+                # lambertw_arg = -1/(dist_body*u.AU) * np.exp(body_vsw*u.km/u.s/(dist_body*u.AU * omega) * (phi_array*u.rad - body_long*u.deg))
+                # lambertw_arg_AU = lambertw_arg.value
+                # lambertw_arg_km = lambertw_arg.to(1/u.km).value
+                # lambertw_res_AU = lambertw(lambertw_arg_AU)
+                # lambertw_res_km = lambertw(lambertw_arg_km)
+                # r_wrt_phi_AU = dist_body*u.AU - dist_body*u.AU * lambertw_res_AU
+                # r_wrt_phi_km = ((dist_body*u.AU).to(u.km) - ((dist_body*u.AU).to(u.km) * lambertw_res_km)).to(u.AU)
+                # ax.plot(phi_array, r_wrt_phi_AU * np.cos(np.deg2rad(body_lat)), color=body_color, ls='--')
+                # ax.plot(phi_array, r_wrt_phi_km * np.cos(np.deg2rad(body_lat)), color=body_color, ls=':')
+
+                lambertw_arg = -np.exp(body_vsw*u.km/u.s/(dist_body*u.AU * omega) * (phi_array*u.rad - body_long*u.deg) - 1)
+                # lambertw_res_AU = lambertw(lambertw_arg.value)
+                # r_wrt_phi_AU = -dist_body*u.AU * lambertw_res_AU
+                r_wrt_phi_AU = -dist_body*u.AU * lambertw(lambertw_arg.value)
+                ax.plot(phi_array, r_wrt_phi_AU * np.cos(np.deg2rad(body_lat)), color=body_color, ls='--')
+                # ax.plot(phi_array, r_wrt_phi_AU.real * np.cos(np.deg2rad(body_lat)), color='black', ls=':')
+
+                r_classic = dist_body*u.AU - body_vsw*u.km/u.s/omega * (phi_array*u.rad - body_long*u.deg)
+                ax.plot(phi_array, r_classic * np.cos(np.deg2rad(body_lat)), color='grey', ls=':')
+
+                # stop
             if test_plotly:
                 if plot_spirals:
                     pfig.add_trace(go.Scatterpolar(
