@@ -206,10 +206,10 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
     else:
         diff_rot = True
 
-    pos = body_pos
-    lon = pos.lon.value
-    lat = pos.lat.value
-    dist_body = pos.radius.value
+    # pos = body_pos
+    # lon = pos.lon.value
+    # lat = pos.lat.value
+    # dist_body = pos.radius.value
 
     # take into account solar differential rotation wrt. latitude
     # omega = solar_diff_rot_old(lat, diff_rot=diff_rot)
@@ -220,12 +220,14 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
     # tt = dist * AU / vsw
     # alpha = math.degrees(omega * tt)
     # alpha = math.degrees(omega * (dist_body-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
-    alpha = (backmapping_angle(dist_body*u.AU, target_solar_radius*u.R_sun, lat*u.deg, vsw*u.km/u.s, diff_rot=diff_rot)).to(u.deg).value
+    # alpha = (backmapping_angle(dist_body*u.AU, target_solar_radius*u.R_sun, lat*u.deg, vsw*u.km/u.s, diff_rot=diff_rot)).to(u.deg).value
+    alpha = (backmapping_angle(body_pos.radius, target_solar_radius*u.R_sun, body_pos.lat, vsw*u.km/u.s, diff_rot=diff_rot))
 
     # diff = math.degrees(target_solar_radius*aconst.R_sun.to(u.km).value * omega / vsw * np.log(radius.to(u.km).value/(target_solar_radius*aconst.R_sun).to(u.km).value))
 
     if reference_long is not None:
-        sep = (lon + alpha) - reference_long
+        # sep = (lon + alpha) - reference_long
+        sep = ((body_pos.lon + alpha) - reference_long*u.deg).to(u.deg).value
         if sep > 180.:
             sep = sep - 360
 
@@ -234,7 +236,7 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
     else:
         sep = np.nan
 
-    return sep, alpha
+    return sep, alpha.to(u.deg).value
 
 
 # def backmapping_old(body_pos, reference_long=None, target_solar_radius=1, vsw=400, **kwargs):
