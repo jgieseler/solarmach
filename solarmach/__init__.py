@@ -691,8 +691,13 @@ class SolarMACH():
                             transform=ax.transData._b,
                             edgecolor="k",
                             facecolor=None,
-                            fill=False, lw=2)
+                            fill=False, lw=3,
+                            zorder=2.5)
         ax.add_patch(circle)
+
+        # deactivate plotting of the outer circle that limits the plotting area bc. it sometimes vanishes. 
+        # it's "replaced" by the plt.Circle above
+        ax.spines['polar'].set_linewidth(0)
 
         # r-grid with different resolution depending on maximum distance body
         if self.max_dist < 2:
