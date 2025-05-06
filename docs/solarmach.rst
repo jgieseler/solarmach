@@ -7,4 +7,4 @@ API reference
 
 .. autoclass:: solarmach.SolarMACH
    :noindex:
-   :members: plot, plot_pfss, pfss_3d
+   :members: plot, plot_3d, plot_pfss, pfss_3d
