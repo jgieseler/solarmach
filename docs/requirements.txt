@@ -1,3 +1,4 @@
+ipython
 nbsphinx
 nbsphinx_link
 # numpydoc
