@@ -46,6 +46,9 @@ body_dict.update(dict.fromkeys(['JUICE', 'Juice', -28], [-28, 'JUICE', 'violet']
 body_dict.update(dict.fromkeys(['Juno', 'JUNO', -61], [-61, 'Juno', 'orangered']))
 body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
 body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
+body_dict.update(dict.fromkeys(['L2', 32], [32, 'SEMB-L2', 'salmon']))
+body_dict.update(dict.fromkeys(['L4', 34], [34, 'SEMB-L4', 'lightsteelblue']))
+body_dict.update(dict.fromkeys(['L5', 35], [35, 'SEMB-L5', 'olive']))
 body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
 body_dict.update(dict.fromkeys(['Mars Express', -41], [-41, 'Mars Express', 'darkorange']))
 body_dict.update(dict.fromkeys(['MAVEN', 'Maven', -202], [-202, 'MAVEN', 'brown']))
@@ -1081,8 +1084,8 @@ class SolarMACH():
 
         # replace 'SEMB-L1' in legend with 'L1' if present
         for text in leg1.get_texts():
-            if text.get_text() == 'SEMB-L1':
-                text.set_text('L1')
+            if text.get_text()[:6] == 'SEMB-L':
+                text.set_text(text.get_text()[-2:])
 
         # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
         if self.coord_sys=='Stonyhurst':
@@ -1694,8 +1697,8 @@ class SolarMACH():
 
         # replace 'SEMB-L1' in legend with 'L1' if present
         for text in leg1.get_texts():
-            if text.get_text() == 'SEMB-L1':
-                text.set_text('L1')
+            if text.get_text()[:6] == 'SEMB-L':
+                text.set_text(text.get_text()[-2:])
 
         # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
         if self.coord_sys=='Stonyhurst':
