@@ -46,6 +46,9 @@ body_dict.update(dict.fromkeys(['JUICE', 'Juice', -28], [-28, 'JUICE', 'violet']
 body_dict.update(dict.fromkeys(['Juno', 'JUNO', -61], [-61, 'Juno', 'orangered']))
 body_dict.update(dict.fromkeys(['Jupiter', 599], [599, 'Jupiter', 'navy']))
 body_dict.update(dict.fromkeys(['L1', 31], [31, 'SEMB-L1', 'black']))
+body_dict.update(dict.fromkeys(['L2', 32], [32, 'SEMB-L2', 'salmon']))
+body_dict.update(dict.fromkeys(['L4', 34], [34, 'SEMB-L4', 'lightsteelblue']))
+body_dict.update(dict.fromkeys(['L5', 35], [35, 'SEMB-L5', 'olive']))
 body_dict.update(dict.fromkeys(['Mars', 499], [499, 'Mars', 'maroon']))
 body_dict.update(dict.fromkeys(['Mars Express', -41], [-41, 'Mars Express', 'darkorange']))
 body_dict.update(dict.fromkeys(['MAVEN', 'Maven', -202], [-202, 'MAVEN', 'brown']))
@@ -206,10 +209,10 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
     else:
         diff_rot = True
 
-    pos = body_pos
-    lon = pos.lon.value
-    lat = pos.lat.value
-    dist_body = pos.radius.value
+    # pos = body_pos
+    # lon = pos.lon.value
+    # lat = pos.lat.value
+    # dist_body = pos.radius.value
 
     # take into account solar differential rotation wrt. latitude
     # omega = solar_diff_rot_old(lat, diff_rot=diff_rot)
@@ -220,12 +223,14 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
     # tt = dist * AU / vsw
     # alpha = math.degrees(omega * tt)
     # alpha = math.degrees(omega * (dist_body-target_solar_radius*aconst.R_sun).to(u.km).value / vsw * np.cos(np.deg2rad(lat)))
-    alpha = (backmapping_angle(dist_body*u.AU, target_solar_radius*u.R_sun, lat*u.deg, vsw*u.km/u.s, diff_rot=diff_rot)).to(u.deg).value
+    # alpha = (backmapping_angle(dist_body*u.AU, target_solar_radius*u.R_sun, lat*u.deg, vsw*u.km/u.s, diff_rot=diff_rot)).to(u.deg).value
+    alpha = (backmapping_angle(body_pos.radius, target_solar_radius*u.R_sun, body_pos.lat, vsw*u.km/u.s, diff_rot=diff_rot))
 
     # diff = math.degrees(target_solar_radius*aconst.R_sun.to(u.km).value * omega / vsw * np.log(radius.to(u.km).value/(target_solar_radius*aconst.R_sun).to(u.km).value))
 
     if reference_long is not None:
-        sep = (lon + alpha) - reference_long
+        # sep = (lon + alpha) - reference_long
+        sep = ((body_pos.lon + alpha) - reference_long*u.deg).to(u.deg).value
         if sep > 180.:
             sep = sep - 360
 
@@ -234,7 +239,7 @@ def backmapping(body_pos, reference_long=None, target_solar_radius=1, vsw=400, *
     else:
         sep = np.nan
 
-    return sep, alpha
+    return sep, alpha.to(u.deg).value
 
 
 # def backmapping_old(body_pos, reference_long=None, target_solar_radius=1, vsw=400, **kwargs):
@@ -689,8 +694,13 @@ class SolarMACH():
                             transform=ax.transData._b,
                             edgecolor="k",
                             facecolor=None,
-                            fill=False, lw=2)
+                            fill=False, lw=3,
+                            zorder=2.5)
         ax.add_patch(circle)
+
+        # deactivate plotting of the outer circle that limits the plotting area bc. it sometimes vanishes. 
+        # it's "replaced" by the plt.Circle above
+        ax.spines['polar'].set_linewidth(0)
 
         # r-grid with different resolution depending on maximum distance body
         if self.max_dist < 2:
@@ -1074,8 +1084,8 @@ class SolarMACH():
 
         # replace 'SEMB-L1' in legend with 'L1' if present
         for text in leg1.get_texts():
-            if text.get_text() == 'SEMB-L1':
-                text.set_text('L1')
+            if text.get_text()[:6] == 'SEMB-L':
+                text.set_text(text.get_text()[-2:])
 
         # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
         if self.coord_sys=='Stonyhurst':
@@ -1700,8 +1710,8 @@ class SolarMACH():
 
         # replace 'SEMB-L1' in legend with 'L1' if present
         for text in leg1.get_texts():
-            if text.get_text() == 'SEMB-L1':
-                text.set_text('L1')
+            if text.get_text()[:6] == 'SEMB-L':
+                text.set_text(text.get_text()[-2:])
 
         # for Stonyhurst, define the longitude from -180 to 180 (instead of 0 to 360)
         if self.coord_sys=='Stonyhurst':
