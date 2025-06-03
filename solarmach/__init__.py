@@ -1771,7 +1771,6 @@ class SolarMACH():
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
 
         # Assemble the dataframe that contains the pfss-extrapolated magnetic fieldline footpoints
-        _ = pfss_footpoints_dict[body_id].pop(-1)
         self.produce_pfss_footpoints_df(footpoints_dict=pfss_footpoints_dict)
 
         # Update solar wind speed to the reference point
