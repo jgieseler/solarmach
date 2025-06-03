@@ -2698,7 +2698,7 @@ class SolarMACH():
         variable called 'pfss_footpoints'.
 
         If the input dictionary is somehow invalid for a dataframe, an empty dataframe
-        will be instead.
+        will be initialized instead.
 
         Parameter:
         ----------
