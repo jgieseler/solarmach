@@ -1771,6 +1771,7 @@ class SolarMACH():
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
 
         # Assemble the dataframe that contains the pfss-extrapolated magnetic fieldline footpoints
+        _ = pfss_footpoints_dict[body_id].pop(-1)
         self.produce_pfss_footpoints_df(footpoints_dict=pfss_footpoints_dict)
 
         # Update solar wind speed to the reference point
@@ -2691,13 +2692,28 @@ class SolarMACH():
             return
 
 
-    def produce_pfss_footpoints_df(self, footpoints_dict):
+    def produce_pfss_footpoints_df(self, footpoints_dict:dict) -> None:
         """
         Produces a dataframe that contains the footpoints of 
-        the pfss-extrapolated fieldlines.
+        the pfss-extrapolated fieldlines. Attaches this dataframe to the class
+        variable called 'pfss_footpoints'.
+
+        If the input dictionary is somehow invalid for a dataframe, an empty dataframe
+        will be instead.
+
+        Parameter:
+        ----------
+        footpoints_dict : {dict} A dictionary that contains lists of (longitude,latitude)
+        pairs mapped by the object names.
         """
 
-        df = pd.DataFrame(data=footpoints_dict)
+        try:
+            df = pd.DataFrame(data=footpoints_dict)
+        except ValueError as ve:
+            print(f"Something went wrong with collecting photospheric footpoints to pfss_footpoints.\n({ve})")
+            # An empty placeholder dataframe
+            df = pd.DataFrame(columns=self.body_dict.keys())
+
         df.index.name = "Fieldline #"
         self.pfss_footpoints = df
 
