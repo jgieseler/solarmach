@@ -1299,6 +1299,10 @@ class SolarMACH():
         photospheric_footpoints = []
         fieldline_polarities = []
 
+        # Collect the pfss-fieldline footpoints to a dictionary -> to be assembled into a pd DataFrame 
+        # at the end.
+        pfss_footpoints_dict = {}
+
         # The radial coordinates for reference parker spiral (plot even outside the figure boundaries to avert visual bugs)
         # reference_array = np.linspace(rss, r_max+200, int(1e3))
         reference_array = np.linspace(rss, r_max, int(1e3))
@@ -1355,6 +1359,9 @@ class SolarMACH():
             if plot_spirals:
                 ax.plot(alpha_body, r_array * np.cos(np.deg2rad(body_lat)), color=body_color)
 
+            # To this list we later collect pfss-extrapolated footpoints
+            pfss_footpoints = []
+
             # Acquire an array of (r,lon,lat) coordinates of the open field lines under the pfss
             # based on the footpoint(s) of the sc
             if vary:
@@ -1367,11 +1374,13 @@ class SolarMACH():
                 for varyfline in varyfline_objects:
                     self.fieldlines.append(varyfline)
 
-                # Plot the color coded varied field lines
+                # Plot the color coded varied field lines and collect the footpoints to the list
                 for triplet in varyfline_triplets:
                     v_fl_r   = triplet[0]
                     v_fl_lon = triplet[1]
                     v_fl_lat = triplet[2]
+
+                    pfss_footpoints.append((v_fl_lon[0], v_fl_lat[0]))
 
                     fieldline = multicolorline(np.deg2rad(v_fl_lon), np.cos(np.deg2rad(v_fl_lat))*v_fl_r, ax=ax, cvals=v_fl_lat, vmin=-90, vmax=90)
 
@@ -1393,11 +1402,15 @@ class SolarMACH():
 
             # Finally, save the photospheric footpoint of the middlemost field lines as a tuple and magnetic polarity as +1/-1
             photospheric_footpoints.append((fl_lon[0], fl_lat[0]))
+            pfss_footpoints.append((fl_lon[0], fl_lat[0]))
             fieldline_polarities.append(int(fline_objects[0].polarity))
 
             # Save Earth's magnetic footpoint for later comparison:
             if body_lab == "Earth":
                 earth_footpoint = (fl_lon[0], fl_lat[0])
+            
+            # Finally save all the collected footpoints to the dictionary
+            pfss_footpoints_dict[body_id] = pfss_footpoints
 
         # Calculate footpoint separation angles to Earth's footpoint
         if "Earth" in self.body_dict:
@@ -1756,6 +1769,9 @@ class SolarMACH():
 
         self.pfss_table["Magnetic footpoint (PFSS)"] = photospheric_footpoints
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
+
+        # Assemble the dataframe that contains the pfss-extrapolated magnetic fieldline footpoints
+        self.produce_pfss_footpoints_df(footpoints_dict=pfss_footpoints_dict)
 
         # Update solar wind speed to the reference point
         if reference_vsw:
@@ -2674,6 +2690,31 @@ class SolarMACH():
         else:
             return
 
+
+    def produce_pfss_footpoints_df(self, footpoints_dict:dict) -> None:
+        """
+        Produces a dataframe that contains the footpoints of 
+        the pfss-extrapolated fieldlines. Attaches this dataframe to the class
+        variable called 'pfss_footpoints'.
+
+        If the input dictionary is somehow invalid for a dataframe, an empty dataframe
+        will be initialized instead.
+
+        Parameter:
+        ----------
+        footpoints_dict : {dict} A dictionary that contains lists of (longitude,latitude)
+        pairs mapped by the object names.
+        """
+
+        try:
+            df = pd.DataFrame(data=footpoints_dict)
+        except ValueError as ve:
+            print(f"Something went wrong with collecting photospheric footpoints to pfss_footpoints.\n({ve})")
+            # An empty placeholder dataframe
+            df = pd.DataFrame(columns=self.body_dict.keys())
+
+        df.index.name = "Fieldline #"
+        self.pfss_footpoints = df
 
 def sc_distance(sc1, sc2, dtime):
     """
