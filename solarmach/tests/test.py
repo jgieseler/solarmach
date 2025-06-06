@@ -114,7 +114,7 @@ def test_solarmach_plot():
     reference_long = 273
     reference_lat = 9
     reference_vsw = 400
-    filename = 'solarmach.png'
+    filename = 'tmp_solarmach.png'
     long_sector=[290, 328]
     long_sector_vsw=[400, 600]
     long_sector_color='red'
@@ -144,7 +144,7 @@ def test_solarmach_pfss():
     assert isinstance(pfss_solution, pfsspy.output.Output)
     fig, ax = sm.plot_pfss(rss=2.5, pfss_solution=pfss_solution, vary=True, return_plot_object=True,
                            markers='numbers', long_sector=[290, 328], long_sector_vsw=[400, 600],
-                           long_sector_color='red', reference_vsw=400.0, outfile='solarmach_pfss.png')
+                           long_sector_color='red', reference_vsw=400.0, outfile='tmp_solarmach_pfss.png')
     assert isinstance(fig, matplotlib.figure.Figure)
 
     assert sm.pfss_footpoints.shape == (17,2)
