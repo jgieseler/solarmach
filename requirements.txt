@@ -6,6 +6,7 @@ Jinja2
 lxml
 matplotlib
 numpy
+orjson  # not needed, but improves plotly performance
 pandas
 plotly
 python-dateutil
