@@ -28,7 +28,7 @@ dependencies = [
     "plotly",
     "python-dateutil",
     "scipy",
-    # "setuptools",
+    "setuptools",  # needed for pkg_resources
     "speasy>=1.2.7",
     "sunkit_magex",
     "sunpy",
