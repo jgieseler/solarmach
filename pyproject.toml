@@ -1,7 +1,138 @@
 [build-system]
+requires = [
+  "setuptools>=62.1",
+  "setuptools_scm[toml]>=8.0.0",
+  "wheel",]
+build-backend = "setuptools.build_meta"
 
-requires = ["setuptools",
-            "setuptools_scm",
-            "wheel"]
+[project]
+name = "solarmach"
+description = "Multi-spacecraft longitudinal configuration plotter"
+requires-python = ">=3.10"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+license = "BSD-3-Clause"
+authors = [
+  { name = "Jan Gieseler", email = "jan.gieseler@utu.fi" },
+]
+dependencies = [
+    "astropy",
+    "cmasher",
+    "drms",
+    "imageio>=2.31.6",
+    "Jinja2",
+    "lxml",
+    "matplotlib",
+    "numpy",
+    "orjson", # not needed, but improves plotly performance
+    "pandas",
+    "plotly",
+    "python-dateutil",
+    "scipy",
+    "speasy>=1.2.7",
+    "sunkit_magex",
+    "sunpy",
+    "threadpoolctl",
+    "tqdm",
+    "zeep",
+]
+dynamic = ["version"]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Physics",
+]
 
-build-backend = 'setuptools.build_meta'
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-doctestplus",
+    "pytest-cov",
+    "pytest-mpl"
+]
+docs = [
+    "sphinx",
+    "sphinx-automodapi",
+    "numpydoc",
+    "sphinx_rtd_theme",
+]
+[project.urls]
+repository = "https://github.com/jgieseler/solarmach"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["solarmach*"]
+exclude = ["solarmach._dev*"]
+
+[tool.setuptools_scm]
+version_file = "solarmach/_version.py"
+
+[tool.pytest.ini_options]
+testpaths = [
+  "solarmach",
+  "docs",
+]
+doctest_plus = "enabled"
+text_file_format = "rst"
+addopts = [
+  "--doctest-rst",
+  "--ignore=solarmach/_dev",
+]
+python_files = [
+  "test_*.py",
+  "*_test.py",
+  "test.py",
+  "tests.py",
+]
+
+[tool.coverage.run]
+omit = [
+ "setup.py",
+ "solarmach/_dev/*",
+ "solarmach/_version*",
+ "solarmach/conftest.py",
+ "solarmach/*setup_package*",
+ "solarmach/setup*",
+ "solarmach/tests/*",
+ "solarmach/*/tests/*",
+ "solarmach/extern/*",
+ "solarmach/version*",
+ "*/solarmach/_dev/*",
+ "*/solarmach/conftest.py",
+ "*/solarmach/*setup_package*",
+ "*/solarmach/setup*",
+ "*/solarmach/tests/*",
+ "*/solarmach/*/tests/*",
+ "*/solarmach/extern/*",
+ "*/solarmach/version*",
+ "*/solarmach/_version*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  # Have to re-enable the standard pragma
+  "pragma: no cover",
+  # Don't complain about packages we have installed
+  "except ImportError",
+  # Don't complain if tests don't hit assertions
+  "raise AssertionError",
+  "raise NotImplementedError",
+  # Don't complain about script hooks
+  "def main(.*):",
+  # Ignore branches that don't pertain to this version of Python
+  "pragma: py{ignore_python_version}",
+  # Don't complain about IPython completion helper
+  "def _ipython_key_completions_",
+  # typing.TYPE_CHECKING is False at runtime
+  "if TYPE_CHECKING:",
+  # Ignore typing overloads
+  "@overload",
+]

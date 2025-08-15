@@ -1,17 +1,25 @@
+import datetime as dt
+# import hashlib
 import os
+from pathlib import Path
 
 import astropy
 import astropy.units as u
-import datetime as dt
-import hashlib
 import matplotlib
 import numpy as np
 import pandas as pd
-import sunkit_magex.pfss as pfsspy
 import pytest
+import sunkit_magex.pfss as pfsspy
 import sunpy
-from pathlib import Path
-from solarmach import SolarMACH, print_body_list, get_gong_map, calculate_pfss_solution, sc_distance, get_sw_speed
+
+from solarmach import (
+    SolarMACH,
+    calculate_pfss_solution,
+    get_gong_map,
+    get_sw_speed,
+    print_body_list,
+    sc_distance,
+)
 
 
 def test_print_body_list():
@@ -107,6 +115,7 @@ pytest --mpl-generate-path=solarmach/tests/baseline
 
 
 @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
+@pytest.mark.filterwarnings("ignore:FigureCanvasAgg is non-interactive, and thus cannot be shown:UserWarning:solarmach")
 def test_solarmach_plot():
     body_list = ['STEREO-A']
     vsw_list = [400]
@@ -133,6 +142,7 @@ def test_solarmach_plot():
 # Because for test_solarmach_pfss() the hash comparison always failed on GitHub Actions, fall back to plain image comparison mode for it.
 # @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True, remove_text=True)
 @pytest.mark.mpl_image_compare(remove_text=False, deterministic=True)
+@pytest.mark.filterwarnings("ignore:FigureCanvasAgg is non-interactive, and thus cannot be shown:UserWarning:solarmach")
 def test_solarmach_pfss():
     date = '2021-4-1 1:00:00'
     body_list = ['Earth', 'PSP']

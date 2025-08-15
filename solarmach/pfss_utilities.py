@@ -1,15 +1,3 @@
-# Licensed under a 3-clause BSD style license - see LICENSE.rst
-
-"""
-This library holds the necessary functions to support the pfss-extension of Solar-MACH.
-"""
-
-from pkg_resources import get_distribution, DistributionNotFound
-try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-    pass  # package is not installed
-
 import dateutil.parser  # type: ignore
 import glob
 import os

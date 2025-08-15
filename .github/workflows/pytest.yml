@@ -28,7 +28,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest pytest-doctestplus pytest-cov pytest-mpl
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install .
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -47,13 +48,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.python-version }}-pfss-plot-artifact
-        path: "/home/runner/work/solarmach/solarmach/solarmach_pfss.png"
+        path: "/home/runner/work/solarmach/solarmach/tmp_solarmach_pfss.png"
     - name: Save standard plot as artifcat
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.python-version }}-standard-plot-artifact
-        path: "/home/runner/work/solarmach/solarmach/solarmach.png"
+        path: "/home/runner/work/solarmach/solarmach/tmp_solarmach.png"
     - name: Save pytest-mpl report as artifcat
       if: always()
       uses: actions/upload-artifact@v4
