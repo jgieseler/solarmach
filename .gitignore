@@ -202,26 +202,23 @@ $RECYCLE.BIN/
 .vscode/
 .vs/*
 
-### Extra Python Items and SunPy Specific
+### Extra Python Items and solarmach specific
 .hypothesis
 .pytest_cache
-sunpydata.sqlite
-sunpydata.sqlite-journal
-sunpy/_compiler.c
-sunpy/cython_version.py
-sunpy/_version.py
+solarmach/_version.py
 docs/_build
 docs/generated
 docs/whatsnew/latest_changelog.txt
 examples/**/*.asdf
 examples/**/*.csv
 figure_test_images*
+tmp_solarmach*
 tags
-sunpy_map.asdf
 # baseline
 docs/guide/data_types/figure.png
 october_M1_flares.csv
 aia_map.fits
+*.fits.gz
 
 ### Pycharm(?)
 .idea
@@ -237,7 +234,6 @@ aia_map.fits
 # PyInstaller Files
 .pyinstaller/run_tests
 .pyinstaller/run_tests.spec
-.pyinstaller/sunpy_tests
 
 ### Vagrant: https://www.toptal.com/developers/gitignore/api/vagrant
 # General
