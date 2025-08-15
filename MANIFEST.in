@@ -4,10 +4,17 @@
 prune build
 prune docs/_build
 prune docs/api
+global-exclude *.pyc *.o
 prune .circleci
 prune .github
 prune .jupyter
 prune binder
+prune examples
+
+# This subpackage is only used in development checkouts
+# and should not be included in built tarballs
+prune solarmach/_dev
+
 # exclude a bunch of common hidden files, you probably want to add your own here
 exclude .mailmap
 exclude .gitignore
