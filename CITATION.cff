@@ -35,7 +35,7 @@ authors:
 version: 0.5.1
 date-released: 2025-08-15
 repository-code: https://github.com/jgieseler/solarmach
-license: bsd-3-clause
+license: BSD-3-Clause
 #
 preferred-citation:
   type: article
