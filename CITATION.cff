@@ -78,8 +78,8 @@ preferred-citation:
     family-names: Veronig
     orcid: https://orcid.org/0000-0003-2073-002X
   doi: 10.3389/fspas.2022.1058810
-  journal: Frontiers in Astronomy and Space Sciences
-  month: February
-  title: 'Solar-MACH: An open-source tool to analyze solar magnetic connection configurations'
+  journal: "Frontiers in Astronomy and Space Sciences"
+  month: 2
+  title: "Solar-MACH: An open-source tool to analyze solar magnetic connection configurations"
   volume: 9
   year: 2023
