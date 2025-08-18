@@ -1,0 +1,88 @@
+# YAML 1.2
+# Metadata for citation of this software according to the CFF format (https://citation-file-format.github.io/)
+cff-version: 1.0.3
+message: If you use this software, please cite it using these metadata.
+title: solarmach
+doi: 10.5281/zenodo.16882017
+authors:
+- given-names: Jan
+  family-names: Gieseler
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0003-1848-7067
+- given-names: Nina
+  family-names: Dresing
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0003-3903-4649
+- given-names: Johan
+  family-names: Freiherr von Forstner
+  name-particle: L.
+  affiliation: Paradox Cat GmbH
+- given-names: Christian
+  family-names: Palmroos
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0002-7778-5454
+- given-names: Seve
+  family-names: Nyberg
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0003-2672-5491
+- given-names: Rami
+  family-names: Vainio
+  affiliation: University of Turku
+  orcid: https://orcid.org/0000-0002-3298-2067
+- given-names: drazerd
+  family-names: ''
+  affiliation: ''
+version: 0.5.1
+date-released: 2025-08-15
+repository-code: https://github.com/jgieseler/solarmach
+license: bsd-3-clause
+#
+preferred-citation:
+  type: article
+  authors:
+  - given-names: Jan
+    family-names: Gieseler
+    orcid: https://orcid.org/0000-0003-1848-7067
+  - given-names: Nina
+    family-names: Dresing
+    orcid: https://orcid.org/0000-0003-3903-4649
+  - given-names: Christian
+    family-names: Palmroos
+    orcid: https://orcid.org/0000-0002-7778-5454
+  - given-names: "Johan L."
+    family-names: "Freiherr von Forstner"
+  - given-names: "Daniel J."
+    family-names: Price
+    orcid: https://orcid.org/0000-0003-2672-5491
+  - given-names: Rami
+    family-names: Vainio
+    orcid: https://orcid.org/0000-0002-3298-2067
+  - given-names: Athanasios
+    family-names: Kouloumvakos
+    orcid: https://orcid.org/0000-0001-6589-4509
+  - given-names: Laura 
+    family-names: "Rodríguez-García"
+    orcid: https://orcid.org/0000-0003-2361-5510
+  - given-names: Domenico
+    family-names: Trotta
+    orcid: https://orcid.org/0000-0002-0608-8897
+  - given-names: Vincent
+    family-names: Génot
+    orcid: https://orcid.org/0000-0002-7708-8077
+  - given-names: Arnaud
+    family-names: Masson
+    orcid: https://orcid.org/0000-0002-5602-1957
+  - given-names: Markus
+    family-names: Roth
+    orcid: https://orcid.org/0000-0002-1430-7172
+  - given-names: Astrid
+    family-names: Veronig
+    orcid: https://orcid.org/0000-0003-2073-002X
+  doi: 10.3389/fspas.2022.1058810
+  url: http://dx.doi.org/10.3389/fspas.2022.1058810
+  issn: 2296-987X
+  journal: Frontiers in Astronomy and Space Sciences
+  month: February
+  title: 'Solar-MACH: An open-source tool to analyze solar magnetic connection configurations'
+  volume: 9
+  year: 2023
