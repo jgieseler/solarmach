@@ -1,4 +1,5 @@
-comment: off
+comment:
+  require_changes: "coverage_drop OR uncovered_patch"
 
 coverage:
   status:
