@@ -1,7 +1,7 @@
 solarmach
 =========
 
-|pypi Version| |conda version| |python version| |pytest| |codecov| |docs| |license| |zenodo|
+|pypi Version| |conda version| |python version| |pytest| |codecov| |docs| |repostatus| |license| |zenodo|
 
 .. |pypi Version| image:: https://img.shields.io/pypi/v/solarmach?style=flat&logo=pypi
    :target: https://pypi.org/project/solarmach/
@@ -14,6 +14,9 @@ solarmach
    :target: https://codecov.io/gh/jgieseler/solarmach
 .. |docs| image:: https://readthedocs.org/projects/solarmach/badge/?version=latest
    :target: https://solarmach.readthedocs.io/en/latest/?badge=latest
+.. |repostatus| image:: https://www.repostatus.org/badges/latest/active.svg
+   :alt: Project Status: Active – The project has reached a stable, usable state and is being actively developed.
+   :target: https://www.repostatus.org/#active
 .. |license| image:: https://img.shields.io/conda/l/conda-forge/solarmach?style=flat
    :target: https://github.com/jgieseler/solarmach/blob/main/LICENSE.rst
 .. |zenodo| image:: https://zenodo.org/badge/469735286.svg
