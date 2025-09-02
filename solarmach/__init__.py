@@ -1129,7 +1129,11 @@ class SolarMACH():
         # if using streamlit, send plot to streamlit output, else call plt.show()
         if _isstreamlit():
             import streamlit as st
-            st.pyplot(fig)  # , dpi=200)
+            # don't display figure if saving as pdf file in streamlit
+            if outfile.split('.')[-1] == 'pdf':
+                pass
+            else:
+                st.pyplot(fig)  # , dpi=200)
         else:
             plt.show()
 
