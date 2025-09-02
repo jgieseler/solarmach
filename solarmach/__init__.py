@@ -1043,7 +1043,10 @@ class SolarMACH():
         if markers:
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
             for i, body_id in enumerate(self.body_dict):
-                yoffset = i*18.7  # 18.5 19.5
+                if outfile.split('.')[-1] == 'pdf':
+                    yoffset = i*19.25  # 18.5 19.5
+                else:
+                    yoffset = i*18.7  # 18.5 19.5
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
