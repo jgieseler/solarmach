@@ -623,7 +623,7 @@ class SolarMACH():
         long_offset: int or float, optional
             longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
         outfile: string, optional
-            if provided, the plot is saved with outfile as filename
+            if provided, the plot is saved with outfile as filename. supports png and pdf format.
         long_sector: list of 2 numbers, optional
             Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for long_sector_vsw=None).
         long_sector_vsw: list of 2 numbers, optional
