@@ -14,12 +14,11 @@ import sunpy
 
 from solarmach import (
     SolarMACH,
-    calculate_pfss_solution,
-    get_gong_map,
     get_sw_speed,
     print_body_list,
     sc_distance,
 )
+from solarmach.pfss_utilities import calculate_pfss_solution, get_gong_map
 
 
 def test_print_body_list():

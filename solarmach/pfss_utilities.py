@@ -692,8 +692,7 @@ def get_gong_map(time: str, filepath: str = None, autodownload=True):
 
     try:
         gong_map = load_gong_map(filepath=filepath)
-    except Exception as exception:
-        # print(exception)
+    except Exception:
         if autodownload:
             new_filepath = download_gong_map(time, filepath=filepath)
             gong_map = load_gong_map(filepath=new_filepath)

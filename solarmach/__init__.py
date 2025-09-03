@@ -1,10 +1,8 @@
 from .version import version as __version__
 
-# __all__ = []  # defines which functions, variables etc. will be loaded when running "from pyonset import *"
+# __all__ = []  # defines which functions, variables etc. will be loaded when running "from solarmach import *"
 
 import copy
-# import dateutil.parser  # type: ignore
-import math
 import os
 
 import astropy.constants as aconst
@@ -16,13 +14,12 @@ import matplotlib.text
 import numpy as np
 import pandas as pd
 import scipy.constants as const
-from astropy.coordinates import SkyCoord
 from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
 
-from solarmach.pfss_utilities import calculate_pfss_solution, get_field_line_coords, get_gong_map, multicolorline, sphere, spheric2cartesian, vary_flines
+from solarmach.pfss_utilities import get_field_line_coords, multicolorline, sphere, spheric2cartesian, vary_flines
 
 # pd.options.display.max_rows = None
 # pd.options.display.float_format = '{:.1f}'.format
@@ -463,7 +460,7 @@ class SolarMACH():
             self.pos_E = pos_E
 
         # standardize "undefined" vsw_list for further usage:
-        if type(vsw_list)==type(None) or vsw_list is False:
+        if type(vsw_list) is type(None) or vsw_list is False:
             vsw_list=[]
 
         # make deep copy of vsw_list bc. otherwise it doesn't get reset in a new init:
@@ -646,7 +643,7 @@ class SolarMACH():
             Returns the matplotlib figure and axes if return_plot_object=True (by default set to False), else nothing.
         """
         hide_logo = False  # optional later keyword to hide logo on figure
-        AU = const.au / 1000  # km
+        # AU = const.au / 1000  # km
 
         # save inital rcParams and update some of them:
         initial_rcparams = plt.rcParams.copy()
@@ -924,7 +921,7 @@ class SolarMACH():
                 pfig.show()
 
         if long_sector is not None:
-            if type(long_sector) == list and np.array(long_sector).ndim==1:
+            if type(long_sector) is list and np.array(long_sector).ndim==1:
                 long_sector = [long_sector]
                 long_sector_vsw = [long_sector_vsw]
                 long_sector_color = [long_sector_color]
@@ -962,8 +959,8 @@ class SolarMACH():
                     alpha_ref1 = (delta_ref1*u.deg + backmapping_angle(self.target_solar_radius*aconst.R_sun, r_array*u.AU, long_sector_lat[0]*u.deg, t_long_sector_vsw[0]*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
                     alpha_ref2 = (delta_ref2*u.deg + backmapping_angle(self.target_solar_radius*aconst.R_sun, r_array2*u.AU, long_sector_lat[1]*u.deg, t_long_sector_vsw[1]*u.km/u.s, diff_rot=self.diff_rot)).to(u.rad).value
 
-                    # Save the last angle as a starting point for reference for the while loop
-                    alpha_init = alpha_ref2[-1]
+                    # # Save the last angle as a starting point for reference for the while loop
+                    # alpha_init = alpha_ref2[-1]
 
                     # Check that reference angle of the first loop is ahead
                     if alpha_ref1[-1] > alpha_ref2[-1]:
@@ -990,7 +987,7 @@ class SolarMACH():
                 y1 = c1.get_ydata()
                 c2 = plt.polar(alpha_ref2, r_array2 * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)[0]
                 x2 = c2.get_xdata()
-                y2 = c2.get_ydata()
+                # y2 = c2.get_ydata()
 
                 # Check that plotted are is between the two spirals, and do not fill after potential crossing
                 clause1 = x1 < x2
@@ -1004,7 +1001,7 @@ class SolarMACH():
                 plt.fill_betweenx(y1_fill, x1_fill, x2_fill, lw=0, color=t_long_sector_color, alpha=t_long_sector_alpha)
 
         if background_spirals is not None:
-            if type(background_spirals) == list and len(background_spirals)>=2:
+            if type(background_spirals) is list and len(background_spirals)>=2:
                 # maybe later add option to have a non-zero latitude, so that the field lines are out of the ecliptic
                 background_spirals_lat = 0
                 # take into account solar differential rotation wrt. latitude
@@ -1658,7 +1655,7 @@ class SolarMACH():
                 y1 = c1.get_ydata()
                 c2 = plt.polar(alpha_ref2, r_to_plot * np.cos(np.deg2rad(long_sector_lat[1])), lw=0, color=long_sector_color, alpha=0)[0]
                 x2 = c2.get_xdata()
-                y2 = c2.get_ydata()
+                # y2 = c2.get_ydata()
 
                 # Check that plotted are is between the two spirals, and do not fill after potential crossing
                 if long_sector_vsw:
@@ -1707,7 +1704,7 @@ class SolarMACH():
                 return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
                                            head_width=0.75 * height)
 
-            leg2 = ax.legend([ref_arr], [reference_legend_label], loc=(1.05, 0.6),
+            _leg2 = ax.legend([ref_arr], [reference_legend_label], loc=(1.05, 0.6),
                              handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
                              fontsize=15)
             ax.add_artist(leg1)
@@ -1759,7 +1756,7 @@ class SolarMACH():
                     ha='right', va='bottom', transform=fig.transFigure)
 
         # Create the colorbar displaying values of the last fieldline plotted
-        cb = fig.colorbar(fieldline, ax=ax, location="left", anchor=(1.4, 1.2), pad=0.12, shrink=0.6, ticks=[-90, -60, -30, 0, 30, 60, 90])
+        _cb = fig.colorbar(fieldline, ax=ax, location="left", anchor=(1.4, 1.2), pad=0.12, shrink=0.6, ticks=[-90, -60, -30, 0, 30, 60, 90])
 
         # Colorbar is the last object created -> it is the final index in the list of axes
         cb_ax = fig.axes[-1]
@@ -1792,6 +1789,9 @@ class SolarMACH():
                 st.pyplot(fig)  # , dpi=200)
             else:
                 plt.show()
+
+        # restore initial rcParams that have been saved at the beginning of this function:
+        plt.rcParams.update(initial_rcparams)
 
         if return_plot_object:
             return fig, ax
@@ -2012,8 +2012,8 @@ class SolarMACH():
         r_array = np.arange(0.007, (max_dist2+0.29*const.au/R_sun.to(u.m).value)/np.cos(np.deg2rad(self.max_dist_lat)) + 3.0, 0.05)
 
         for i, body_id in enumerate(self.body_dict):
-            body_lab = self.body_dict[body_id][1]
-            body_color = self.body_dict[body_id][2]
+            # body_lab = self.body_dict[body_id][1]
+            # body_color = self.body_dict[body_id][2]
             body_vsw = self.body_dict[body_id][4]
             body_pos = self.body_dict[body_id][3]
 
@@ -2090,7 +2090,7 @@ class SolarMACH():
                     if body_id[:6] == 'STEREO':
                         str_number = f'<b>{body_id[-1]}</b>'
                     elif body_id == 'Europa Clipper':
-                        str_number = f'<b>C</b>'
+                        str_number = '<b>C</b>'
                     else:
                         str_number = f'<b>{body_id[0]}</b>'
                 symbol = 'circle'
@@ -2367,11 +2367,11 @@ class SolarMACH():
         """
 
         import plotly.graph_objects as go
-        from astropy.constants import R_sun
-        from plotly.graph_objs.scatter3d import Line
+        # from astropy.constants import R_sun
+        # from plotly.graph_objs.scatter3d import Line
 
         hide_logo = False  # optional later keyword to hide logo on figure
-        AU = const.au / 1000  # km
+        # AU = const.au / 1000  # km
         # sun_radius = aconst.R_sun.value  # meters
 
         # catch old syntax
@@ -2401,8 +2401,8 @@ class SolarMACH():
         fig.update_layout()
 
         for i, body_id in enumerate(self.body_dict):
-            body_lab = self.body_dict[body_id][1]
-            body_color = self.body_dict[body_id][2]
+            # body_lab = self.body_dict[body_id][1]
+            # body_color = self.body_dict[body_id][2]
             body_vsw = self.body_dict[body_id][4]
             body_pos = self.body_dict[body_id][3]
 
@@ -2478,7 +2478,7 @@ class SolarMACH():
                     if body_id[:6] == 'STEREO':
                         str_number = f'<b>{body_id[-1]}</b>'
                     elif body_id == 'Europa Clipper':
-                        str_number = f'<b>C</b>'
+                        str_number = '<b>C</b>'
                     else:
                         str_number = f'<b>{body_id[0]}</b>'
                 symbol = 'circle'
@@ -2741,7 +2741,7 @@ def sc_distance(sc1, sc2, dtime):
         Absolute distance between body 1 and 2 in AU.
     """
     # parse datetime:
-    if type(dtime) == str:
+    if type(dtime) is str:
         try:
             obstime = parse_time(dtime)
         except ValueError:
