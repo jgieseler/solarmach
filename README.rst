@@ -75,8 +75,8 @@ Basic usage
    return_plot_object = False                       # figure and axis object of matplotib are returned, allowing further adjustments to the figure
    transparent = False                              # make output figure background transparent
    markers = 'numbers'                              # use 'numbers' or 'letters' for the body markers (use False for colored squares)
-   filename = 'Solar-MACH_'+date.replace(' ', '_')  # define filename of output figure
-
+   filename = 'solarmach.png'                       # define filename of output figure. can be .png or .pdf
+ 
    # initialize
    sm = SolarMACH(date, body_list, vsw_list, reference_long, reference_lat, coord_sys)
 
@@ -89,7 +89,7 @@ Basic usage
       markers=markers,
       long_offset=long_offset,
       return_plot_object=return_plot_object,
-      outfile=filename+'.png'
+      outfile=filename
    )
    
    # obtain data as Pandas DataFrame
