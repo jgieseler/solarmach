@@ -1126,16 +1126,14 @@ class SolarMACH():
         # restore initial rcParams that have been saved at the beginning of this function:
         plt.rcParams.update(initial_rcparams)
 
-        # if using streamlit, send plot to streamlit output, else call plt.show()
-        if _isstreamlit():
-            import streamlit as st
-            # don't display figure if saving as pdf file in streamlit
-            if outfile.split('.')[-1] == 'pdf':
-                pass
-            else:
+        # don't display figure if saving as pdf file
+        if outfile.split('.')[-1] != 'pdf':
+            # if using streamlit, send plot to streamlit output, else call plt.show()
+            if _isstreamlit():
+                import streamlit as st
                 st.pyplot(fig)  # , dpi=200)
-        else:
-            plt.show()
+            else:
+                plt.show()
 
         if return_plot_object:
             # TODO: not really straightforward; change in future
@@ -1686,7 +1684,10 @@ class SolarMACH():
         if markers:
             offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
             for i, body_id in enumerate(self.body_dict):
-                yoffset = i*18.7  # 18.5 19.5
+                if outfile.split('.')[-1] == 'pdf':
+                    yoffset = i*19.25  # 18.5 19.5
+                else:
+                    yoffset = i*18.7  # 18.5 19.5
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
@@ -1783,12 +1784,14 @@ class SolarMACH():
         if outfile != '':
             plt.savefig(outfile, bbox_inches="tight")
 
-        # if using streamlit, send plot to streamlit output, else call plt.show()
-        if _isstreamlit():
-            import streamlit as st
-            st.pyplot(fig)  # , dpi=200)
-        else:
-            plt.show()
+        # don't display figure if saving as pdf file
+        if outfile.split('.')[-1] != 'pdf':
+            # if using streamlit, send plot to streamlit output, else call plt.show()
+            if _isstreamlit():
+                import streamlit as st
+                st.pyplot(fig)  # , dpi=200)
+            else:
+                plt.show()
 
         if return_plot_object:
             return fig, ax
