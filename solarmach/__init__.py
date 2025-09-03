@@ -19,7 +19,7 @@ from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
 
-from solarmach.pfss_utilities import get_field_line_coords, multicolorline, sphere, spheric2cartesian, vary_flines
+from solarmach.pfss_utilities import calculate_pfss_solution, get_field_line_coords, get_gong_map, multicolorline, sphere, spheric2cartesian, vary_flines
 
 # pd.options.display.max_rows = None
 # pd.options.display.float_format = '{:.1f}'.format
