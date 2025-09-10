@@ -14,6 +14,7 @@ import matplotlib.text
 import numpy as np
 import pandas as pd
 import scipy.constants as const
+from astropy.coordinates import SkyCoord
 from matplotlib.legend_handler import HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
@@ -2774,6 +2775,45 @@ def sc_distance(sc1, sc2, dtime):
         return np.nan*u.AU
 
     return sc1_coord.separation_3d(sc2_coord)
+
+
+def sto2car(long, lat, dtime):
+    """
+    Converts heliographic Stonyhurst coordinates to heliographic Carrington coordinates.
+
+    Parameters:
+        long (float or array-like): Longitude(s) in degrees in the Stonyhurst frame.
+        lat (float or array-like): Latitude(s) in degrees in the Stonyhurst frame.
+        dtime (str or astropy.time.Time): Observation time corresponding to the coordinates.
+
+    Returns:
+        tuple: A tuple containing:
+            - Carrington longitude(s) in degrees (float or array-like)
+            - Carrington latitude(s) in degrees (float or array-like)
+    """
+
+    coord = SkyCoord(long*u.deg, lat*u.deg, frame=frames.HeliographicStonyhurst, obstime=dtime)
+    coord_trans = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
+    return coord_trans.lon.value, coord_trans.lat.value
+
+
+def car2sto(long, lat, dtime):
+    """
+    Converts heliographic Carrington coordinates to heliographic Stonyhurst coordinates.
+
+    Parameters:
+        long (float or array-like): Longitude(s) in degrees in the Carrington frame.
+        lat (float or array-like): Latitude(s) in degrees in the Carrington frame.
+        dtime (str or astropy.time.Time): Observation time corresponding to the coordinates.
+
+    Returns:
+        tuple: A tuple containing:
+            - Stonyhurst longitude(s) in degrees (float or array-like)
+            - Stonyhurst latitude(s) in degrees (float or array-like)
+    """
+    coord = SkyCoord(long*u.deg, lat*u.deg, frame=frames.HeliographicCarrington, observer='Sun', obstime=dtime)
+    coord_trans = coord.transform_to(frames.HeliographicStonyhurst)
+    return coord_trans.lon.value, coord_trans.lat.value
 
 
 def _isstreamlit():

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import astropy
+from astropy.time import Time
 import astropy.units as u
 import matplotlib
 import numpy as np
@@ -17,6 +18,8 @@ from solarmach import (
     get_sw_speed,
     print_body_list,
     sc_distance,
+    sto2car,
+    car2sto,
 )
 from solarmach.pfss_utilities import calculate_pfss_solution, get_gong_map
 
@@ -177,3 +180,117 @@ def test_sc_distance():
     distance = sc_distance('SolO', 'PSP', "2000/12/12")
     assert np.isnan(distance.value)
     assert distance.unit == u.AU
+
+
+def test_sto2car_scalar():
+    # Test with scalar input
+    long, lat = 10.0, 5.0
+    dtime = Time("2023-01-01T00:00:00")
+    car_long, car_lat = sto2car(long, lat, dtime)
+    assert np.isscalar(car_long)
+    assert np.isscalar(car_lat)
+    assert isinstance(car_long, float)
+    assert isinstance(car_lat, float)
+    # Carrington longitude should be in [0, 360)
+    assert 0.0 <= car_long < 360.0
+    # Latitude should be preserved (within a small tolerance)
+    assert np.isclose(car_lat, lat, atol=1e-8)
+
+
+def test_sto2car_array():
+    # Test with array input
+    longs = np.array([0.0, 90.0, 180.0])
+    lats = np.array([0.0, 10.0, -10.0])
+    dtime = Time("2023-01-01T12:00:00")
+    car_longs, car_lats = sto2car(longs, lats, dtime)
+    assert isinstance(car_longs, np.ndarray)
+    assert isinstance(car_lats, np.ndarray)
+    assert car_longs.shape == longs.shape
+    assert car_lats.shape == lats.shape
+    # Carrington longitude should be in [0, 360)
+    assert np.all((car_longs >= 0.0) & (car_longs < 360.0))
+    # Latitudes should be preserved (within a small tolerance)
+    assert np.allclose(car_lats, lats, atol=1e-8)
+
+
+def test_sto2car_times():
+    # Test with string time input
+    long, lat = 45.0, -20.0
+    dtime = "2022-06-15T18:30:00"
+    car_long, car_lat = sto2car(long, lat, dtime)
+    assert 0.0 <= car_long < 360.0
+    assert np.isclose(car_lat, lat, atol=1e-8)
+    dtime2 = Time("2022-06-15T18:30:00")
+    car_long2, car_lat2 = sto2car(long, lat, dtime2)
+    dtime3 = dt.datetime(2022, 6, 15, 18, 30, 0)
+    car_long3, car_lat3 = sto2car(long, lat, dtime3)
+    assert car_long == car_long2
+    assert car_long2 == car_long3
+
+
+def test_sto2car_latitude_bounds():
+    # Test with edge latitude values
+    for lat in [-90.0, 90.0]:
+        car_long, car_lat = sto2car(120.0, lat, "2021-01-01T00:00:00")
+        assert np.isclose(car_lat, lat, atol=1e-8)
+
+
+def test_sto2car_longitude_wrap():
+    # Test longitude wrapping
+    long = 370.0  # > 360
+    lat = 0.0
+    dtime = "2023-01-01T00:00:00"
+    car_long, car_lat = sto2car(long, lat, dtime)
+    assert 0.0 <= car_long < 360.0
+    car_long2, car_lat2 = sto2car(long-360, lat, dtime)
+    assert car_long == car_long2
+
+
+def test_car2sto_scalar():
+    # Test with scalar longitude and latitude
+    long, lat = 120.0, -10.0
+    dtime = Time("2023-01-01T00:00:00")
+    sto_long, sto_lat = car2sto(long, lat, dtime)
+    assert isinstance(sto_long, float) or isinstance(sto_long, np.floating)
+    assert isinstance(sto_lat, float) or isinstance(sto_lat, np.floating)
+    # Should be within valid longitude/latitude ranges
+    assert -180.0 <= sto_long <= 360.0
+    assert -90.0 <= sto_lat <= 90.0
+
+
+def test_car2sto_array():
+    # Test with array input
+    longs = np.array([0.0, 90.0, 180.0])
+    lats = np.array([0.0, 10.0, -10.0])
+    dtime = Time("2023-01-01T12:00:00")
+    sto_long, sto_lat = car2sto(longs, lats, dtime)
+    assert isinstance(sto_long, np.ndarray)
+    assert isinstance(sto_lat, np.ndarray)
+    assert sto_long.shape == longs.shape
+    assert sto_lat.shape == lats.shape
+
+
+def test_car2sto_time_string():
+    # Test with string time input
+    long, lat = 45.0, 0.0
+    dtime = "2022-06-15T18:30:00"
+    sto_long, sto_lat = car2sto(long, lat, dtime)
+    assert isinstance(sto_long, float)
+    assert isinstance(sto_lat, float)
+
+
+def test_car2sto_identity():
+    # Carrington and Stonyhurst coincide at Carrington longitude = L0 (central meridian)
+    # For the Sun center, at L0, the longitude should be 0 in Stonyhurst
+    dtime = Time("2023-01-01T00:00:00")
+    L0 = sunpy.coordinates.sun.L0(dtime)
+    sto_long, sto_lat = car2sto(L0.value, 0.0, dtime)
+    # Stonyhurst longitude should be close to 0
+    assert abs(sto_long) < 1e-10
+    assert abs(sto_lat) < 1e-10
+
+
+def test_car2sto_invalid_time():
+    # Should raise error if time is invalid
+    with pytest.raises(Exception):
+        car2sto(0.0, 0.0, "not-a-valid-time")
