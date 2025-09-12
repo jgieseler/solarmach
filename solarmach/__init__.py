@@ -379,8 +379,7 @@ def backmapping_angle(distance, r, lat, vsw, **kwargs):
         Solar wind speed with astropy units.
     **kwargs : dict, optional
         Additional keyword arguments:
-        - diff_rot : bool, optional
-            If True, differential rotation is considered. Default is True.
+            - diff_rot : bool, optional. If True, differential rotation is considered. Default is True.
 
     Returns
     -------
@@ -1185,8 +1184,8 @@ class SolarMACH():
         Plot the Potential Field Source Surface (PFSS) solution on a polar plot with logarithmic r-axis outside the PFSS.
         Tracks an open field line down to the photosphere given a point on the PFSS.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         pfss_solution : object
             The PFSS solution object containing the magnetic field data.
         rss : float, optional
@@ -1797,15 +1796,15 @@ class SolarMACH():
         if return_plot_object:
             return fig, ax
 
-    def pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
+    def plot_pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
                 plot_spirals=True, plot_sun_body_line=False, plot_vertical_line=False,
                 markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True,
                 reference_vsw=400, zoom_out=False, return_plot_object=False):
         """
         Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         active_area : tuple, optional
             A tuple specifying the active area in the format (lonmax, lonmin, latmax, latmin). Default is (None, None, None, None).
         color_code : str, optional
@@ -2336,12 +2335,15 @@ class SolarMACH():
         else:
             return
 
+    # for backward compatibility, copy the function under the old name too
+    pfss_3d = copy.copy(plot_pfss_3d)
+
     def plot_3d(self, plot_spirals=True, plot_sun_body_line=True, plot_vertical_line=False, markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True, reference_vsw=400, return_plot_object=False):
         """
         Generates a 3D plot of the solar system with various optional features.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         plot_spirals : bool, optional
             If True, plots the magnetic field lines as spirals. Default is True.
         plot_sun_body_line : bool, optional
@@ -2781,13 +2783,19 @@ def sto2car_sun(long, lat, dtime):
     """
     Converts heliographic Stonyhurst coordinates to heliographic Carrington coordinates for Sun as the observer.
 
-    Parameters:
-        long (float or array-like): Longitude(s) in degrees in the Stonyhurst frame.
-        lat (float or array-like): Latitude(s) in degrees in the Stonyhurst frame.
-        dtime (str or astropy.time.Time): Observation time corresponding to the coordinates.
+    Parameters
+    ----------
+    long : float or array-like
+        Longitude(s) in degrees in the Stonyhurst frame.
+    lat : float or array-like
+        Latitude(s) in degrees in the Stonyhurst frame.
+    dtime : str or astropy.time.Time
+        Observation time corresponding to the coordinates.
 
-    Returns:
-        tuple: A tuple containing:
+    Returns
+    -------
+    tuple
+        A tuple containing:
             - Carrington longitude(s) in degrees (float or array-like)
             - Carrington latitude(s) in degrees (float or array-like)
     """ 
@@ -2800,13 +2808,19 @@ def car2sto_sun(long, lat, dtime):
     """
     Converts heliographic Carrington coordinates to heliographic Stonyhurst coordinates for Sun as the observer.
 
-    Parameters:
-        long (float or array-like): Longitude(s) in degrees in the Carrington frame.
-        lat (float or array-like): Latitude(s) in degrees in the Carrington frame.
-        dtime (str or astropy.time.Time): Observation time corresponding to the coordinates.
+    Parameters
+    ----------
+    long : float or array-like
+        Longitude(s) in degrees in the Carrington frame.
+    lat : float or array-like
+        Latitude(s) in degrees in the Carrington frame.
+    dtime : str or astropy.time.Time
+        Observation time corresponding to the coordinates.
 
-    Returns:
-        tuple: A tuple containing:
+    Returns
+    -------
+    tuple
+        A tuple containing:
             - Stonyhurst longitude(s) in degrees (float or array-like)
             - Stonyhurst latitude(s) in degrees (float or array-like)
     """
