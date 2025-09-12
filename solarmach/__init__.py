@@ -414,7 +414,7 @@ class SolarMACH():
     default_vsw: int or float, optional
         Solar wind bulk speed in km/s to be used if vsw_list is not defined and no vsw measurements could be obtained. By default 400.0.
     coord_sys: string, optional
-        Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'
+        Defines the coordinate system used: 'Carrington' (default) or 'Stonyhurst'. Note that the Carrington longitude is given for an observer at the Sun, not at Earth or any other body. When comparing with observations at different locations, those might need to be corrected for the light travel time.
     reference_long: float, optional
         Longitute of reference position at the Sun
     reference_lat: float, optional
@@ -2777,9 +2777,9 @@ def sc_distance(sc1, sc2, dtime):
     return sc1_coord.separation_3d(sc2_coord)
 
 
-def sto2car(long, lat, dtime):
+def sto2car_sun(long, lat, dtime):
     """
-    Converts heliographic Stonyhurst coordinates to heliographic Carrington coordinates.
+    Converts heliographic Stonyhurst coordinates to heliographic Carrington coordinates for Sun as the observer.
 
     Parameters:
         long (float or array-like): Longitude(s) in degrees in the Stonyhurst frame.
@@ -2790,16 +2790,15 @@ def sto2car(long, lat, dtime):
         tuple: A tuple containing:
             - Carrington longitude(s) in degrees (float or array-like)
             - Carrington latitude(s) in degrees (float or array-like)
-    """
-
-    coord = SkyCoord(long*u.deg, lat*u.deg, frame=frames.HeliographicStonyhurst, obstime=dtime)
+    """ 
+    coord = SkyCoord(long*u.deg, lat*u.deg, aconst.R_sun, frame=frames.HeliographicStonyhurst, obstime=dtime)
     coord_trans = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
     return coord_trans.lon.value, coord_trans.lat.value
 
 
-def car2sto(long, lat, dtime):
+def car2sto_sun(long, lat, dtime):
     """
-    Converts heliographic Carrington coordinates to heliographic Stonyhurst coordinates.
+    Converts heliographic Carrington coordinates to heliographic Stonyhurst coordinates for Sun as the observer.
 
     Parameters:
         long (float or array-like): Longitude(s) in degrees in the Carrington frame.
@@ -2811,7 +2810,7 @@ def car2sto(long, lat, dtime):
             - Stonyhurst longitude(s) in degrees (float or array-like)
             - Stonyhurst latitude(s) in degrees (float or array-like)
     """
-    coord = SkyCoord(long*u.deg, lat*u.deg, frame=frames.HeliographicCarrington, observer='Sun', obstime=dtime)
+    coord = SkyCoord(long*u.deg, lat*u.deg, aconst.R_sun, frame=frames.HeliographicCarrington, observer='Sun', obstime=dtime)
     coord_trans = coord.transform_to(frames.HeliographicStonyhurst)
     return coord_trans.lon.value, coord_trans.lat.value
 
