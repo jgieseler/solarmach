@@ -3,7 +3,7 @@ API reference
 
 .. automodule:: solarmach
    :no-index:
-   :members: backmapping, backmapping_angle, car2sto, get_sw_speed, print_body_list, sc_distance, solar_diff_rot, sto2car
+   :members: backmapping, backmapping_angle, car2sto_sun, get_sw_speed, print_body_list, sc_distance, solar_diff_rot, sto2car_sun
 
 .. autoclass:: solarmach.SolarMACH
    :no-index:
