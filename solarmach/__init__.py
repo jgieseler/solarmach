@@ -1128,7 +1128,7 @@ class SolarMACH():
             # if using streamlit, send plot to streamlit output, else call plt.show()
             if _isstreamlit():
                 import streamlit as st
-                st.pyplot(fig)  # , dpi=200)
+                st.pyplot(fig, width="content")  # , dpi=200)
             else:
                 plt.show()
 
@@ -1786,7 +1786,7 @@ class SolarMACH():
             # if using streamlit, send plot to streamlit output, else call plt.show()
             if _isstreamlit():
                 import streamlit as st
-                st.pyplot(fig)  # , dpi=200)
+                st.pyplot(fig, width="content")  # , dpi=200)
             else:
                 plt.show()
 
