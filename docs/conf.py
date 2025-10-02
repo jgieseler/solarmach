@@ -19,8 +19,16 @@ version = release
 extensions = ['nbsphinx',
               'nbsphinx_link',
               'sphinx.ext.autodoc',
+              'sphinx.ext.intersphinx',
+              'sphinx.ext.todo',
+              'sphinx.ext.coverage',
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.viewcode',
               'sphinx.ext.napoleon',
+              'sphinx.ext.doctest',
+              'sphinx.ext.mathjax',
               'sphinx_automodapi.automodapi',
+              'sphinx_automodapi.smart_resolver',
               'sphinx_copybutton',
               ]
 
@@ -33,4 +41,4 @@ napoleon_google_docstring = False
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
-html_static_path = []
+html_static_path = ['_static']
