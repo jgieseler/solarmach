@@ -23,6 +23,7 @@ The Solar MAgnetic Connection Haus (Solar-MACH) tool is a multi-spacecraft longi
    installation
    usage
    api
+   genindex
 
 
 .. Indices and tables
