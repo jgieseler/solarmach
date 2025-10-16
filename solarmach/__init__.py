@@ -1181,45 +1181,59 @@ class SolarMACH():
                   numbered_markers=False,  # kept only for backward compatibility
                   outfile=''):
         """
-        Make a polar plot showing the Sun in the center (view from North) and the positions of the selected bodies
+        Plot the Potential Field Source Surface (PFSS) solution on a polar plot with logarithmic r-axis outside the PFSS.
+        Tracks an open field line down to the photosphere given a point on the PFSS.
 
         Parameters
         ----------
-        plot_spirals : bool, optional
-            if True, the magnetic field lines connecting the bodies with the Sun are plotted
-        plot_sun_body_line : bool, optional
-            if True, straight lines connecting the bodies with the Sun are plotted
-        show_earth_centered_coord : bool, optional
-            Deprecated! With the introduction of coord_sys in class SolarMACH() this function is redundant and not functional any more!
-        reference_vsw : int, optional
-            if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
-        transparent : bool, optional
-            if True, output image has transparent background
-        markers : bool or string, optional
-            if defined, body markers contain 'numbers' or 'letters' for better identification. If False (default), only geometric markers are used.
-        return_plot_object : bool, optional
+        pfss_solution : object
+            The PFSS solution object containing the magnetic field data.
+        rss : float, optional
+            The source surface radius in solar radii. Default is 2.5.
+        figsize : tuple, optional
+            The size of the figure in inches. Default is (15, 10).
+        dpi : int, optional
+            The resolution of the figure in dots per inch. Default is 200.
+        return_plot_object: bool, optional
             if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
-        long_offset : int or float, optional
-            longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
-        outfile : string, optional
-            if provided, the plot is saved with outfile as filename. supports png and pdf format.
-        long_sector : list of 2 numbers, optional
-            Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for long_sector_vsw=None).
-        long_sector_vsw : list of 2 numbers, optional
-            Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by long_sector) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
-        long_sector_color : string, optional
-            String defining the matplotlib color used for the shading defined by long_sector. By default 'red'.
-        long_sector_alpha : float, optional
-            Float between 0.0 and 1.0, defining the matplotlib alpha used for the shading defined by long_sector. By default 0.5.W
-        background_spirals : list of 2 numbers (and 3 optional strings), optional
-            If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2 is "background_spirals=[12, 400, '-', 'red', 0.2]"
-        numbered_markers : bool, deprecated
+        vary : bool, optional
+            If True, plot varied field lines. Default is False.
+        n_varies : int, optional
+            Number of varied field lines to plot if vary is True. Default is 1.
+        long_offset : float, optional
+            Longitude offset for the plot in degrees. Default is 270.
+        reference_vsw : float, optional
+            Solar wind speed for the reference point in km/s. Default is 400.
+        markers : bool or str, optional
+            If True or 'letters'/'numbers', plot markers at body positions. Default is False.
+        plot_spirals : bool, optional
+            If True, plot Parker spirals. Default is True.
+        long_sector : list or tuple, optional
+            A 2-element list defining the start and end longitude of the cone in degrees. Default is None.
+        long_sector_vsw : list or tuple, optional
+            Solar wind speeds for the Parker spirals in the long sector. Default is None.
+        long_sector_color : str, optional
+            Color for the long sector. Default is None.
+        hide_logo : bool, optional
+            If True, hide the Solar-MACH logo. Default is False.
+        numbered_markers: bool, deprecated
             Deprecated option, use markers='numbers' instead!
+        outfile : str, optional
+            If provided, save the plot to the specified file. Default is ''.
 
         Returns
         -------
         matplotlib figure and axes or None
             Returns the matplotlib figure and axes if return_plot_object=True (by default set to False), else nothing.
+
+        Raises
+        ------
+        Exception
+            If the PFSS solution and the SolarMACH object use different coordinate systems.
+
+        Notes
+        -----
+        This function plots the PFSS solution on a polar plot, including the source surface, solar surface, Parker spirals, and field lines. It also supports plotting varied field lines, long sectors, and markers for different bodies. The plot can be saved to a file or displayed using matplotlib or streamlit.
         """
         # check that PFSS solution and SolarMACH object use the same coordinate system
         if not pfss_solution.coordinate_frame.name==self.pos_E.name:
@@ -1813,9 +1827,9 @@ class SolarMACH():
             The solar wind speed for the reference field line in km/s. Default is 400.
         zoom_out : bool, optional
             If True, zooms out the plot to show the entire field of view. Default is False.
-        return_plot_object: bool, optional
+        return_plot_object : bool, optional
             if True, figure object of plotly is returned, allowing further adjustments to the figure
-        numbered_markers: bool, deprecated
+        numbered_markers : bool, deprecated
             Deprecated option, use markers='numbers' instead!
 
         Returns
