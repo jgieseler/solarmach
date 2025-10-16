@@ -606,35 +606,35 @@ class SolarMACH():
 
         Parameters
         ----------
-        plot_spirals: bool, optional
+        plot_spirals : bool, optional
             if True, the magnetic field lines connecting the bodies with the Sun are plotted
-        plot_sun_body_line: bool, optional
+        plot_sun_body_line : bool, optional
             if True, straight lines connecting the bodies with the Sun are plotted
-        show_earth_centered_coord: bool, optional
+        show_earth_centered_coord : bool, optional
             Deprecated! With the introduction of coord_sys in class SolarMACH() this function is redundant and not functional any more!
-        reference_vsw: int, optional
+        reference_vsw : int, optional
             if defined, defines solar wind speed for reference. if not defined, 400 km/s is used
-        transparent: bool, optional
+        transparent : bool, optional
             if True, output image has transparent background
-        markers: bool or string, optional
+        markers : bool or string, optional
             if defined, body markers contain 'numbers' or 'letters' for better identification. If False (default), only geometric markers are used.
-        return_plot_object: bool, optional
+        return_plot_object : bool, optional
             if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
-        long_offset: int or float, optional
+        long_offset : int or float, optional
             longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
-        outfile: string, optional
+        outfile : string, optional
             if provided, the plot is saved with outfile as filename. supports png and pdf format.
-        long_sector: list of 2 numbers, optional
+        long_sector : list of 2 numbers, optional
             Start and stop longitude of a shaded area; e.g. [350, 20] to get a cone from 350 to 20 degree longitude (for long_sector_vsw=None).
-        long_sector_vsw: list of 2 numbers, optional
+        long_sector_vsw : list of 2 numbers, optional
             Solar wind speed used to calculate Parker spirals (at start and stop longitude provided by long_sector) between which a reference cone should be drawn; e.g. [400, 400] to assume for both edges of the fill area a Parker spiral produced by solar wind speeds of 400 km/s. If None, instead of Parker spirals straight lines are used, i.e. a simple cone wil be plotted. By default None.
-        long_sector_color: string, optional
+        long_sector_color : string, optional
             String defining the matplotlib color used for the shading defined by long_sector. By default 'red'.
-        long_sector_alpha: float, optional
+        long_sector_alpha : float, optional
             Float between 0.0 and 1.0, defining the matplotlib alpha used for the shading defined by long_sector. By default 0.5.W
-        background_spirals: list of 2 numbers (and 3 optional strings), optional
+        background_spirals : list of 2 numbers (and 3 optional strings), optional
             If defined, plot evenly distributed Parker spirals over 360°. background_spirals[0] defines the number of spirals, background_spirals[1] the solar wind speed in km/s used for their calculation. background_spirals[2], background_spirals[3], and background_spirals[4] optionally change the plotting line style, color, and alpha setting, respectively (default values ':', 'grey', and 0.1). Full example that plots 12 spirals (i.e., every 30°) using a solar wind speed of 400 km/s with solid red lines with alpha=0.2: background_spirals=[12, 400, '-', 'red', 0.2]
-        numbered_markers: bool, deprecated
+        numbered_markers : bool, deprecated
             Deprecated option, use markers='numbers' instead!
 
         Returns
@@ -2358,9 +2358,9 @@ class SolarMACH():
             If True, plots grid and axis for x, y, z. Default is True.
         reference_vsw : int, optional
             The reference solar wind speed in km/s. Default is 400.
-        return_plot_object: bool, optional
+        return_plot_object : bool, optional
             if True, figure object of plotly is returned, allowing further adjustments to the figure
-        numbered_markers: bool, deprecated
+        numbered_markers : bool, deprecated
             Deprecated option, use markers='numbers' instead!
 
         Returns
