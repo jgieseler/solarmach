@@ -2,8 +2,8 @@ ipython
 nbsphinx
 nbsphinx_link
 numpydoc
-solarmach
 sphinx
 sphinx-automodapi
 sphinx-copybutton
 sphinx_rtd_theme
+-e .
