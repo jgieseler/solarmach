@@ -51,6 +51,7 @@ body_dict.update(dict.fromkeys(['MESSENGER', 'Messenger', -236], [-236, 'MESSENG
 body_dict.update(dict.fromkeys(['PSP', 'Parker Solar Probe', 'parkersolarprobe', 'ParkerSolarProbe', -96], [-96, 'Parker Solar Probe', 'purple']))
 body_dict.update(dict.fromkeys(['Pioneer10', 'Pioneer 10', -23], [-23, 'Pioneer 10', 'teal']))
 body_dict.update(dict.fromkeys(['Pioneer11', 'Pioneer 11', -24], [-24, 'Pioneer 11', 'darkblue']))
+body_dict.update(dict.fromkeys(['Psyche', -255], [-255, 'Psyche', '#a53f5b']))  # dark pink
 body_dict.update(dict.fromkeys(['Rosetta', -226], [-226, 'Rosetta', 'blueviolet']))
 body_dict.update(dict.fromkeys(['SOHO', 'soho', 'SoHO', -21], [-21, 'SOHO', 'darkgreen']))
 body_dict.update(dict.fromkeys(['Solar Orbiter', 'SolO', 'solo', 'SOLO', 'solarorbiter', 'SolarOrbiter', -144], [-144, 'Solar Orbiter', 'dodgerblue']))
