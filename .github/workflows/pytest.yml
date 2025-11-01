@@ -45,19 +45,19 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     - name: Save PFSS plot as artifcat
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.python-version }}-pfss-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/tmp_solarmach_pfss.png"
     - name: Save standard plot as artifcat
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.python-version }}-standard-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/tmp_solarmach.png"
     - name: Save pytest-mpl report as artifcat
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.python-version }}-pytest-mpl-report-artifact
         path: "/home/runner/work/solarmach/solarmach/report/"
