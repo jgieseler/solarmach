@@ -1,4 +1,5 @@
 {
-  "solarmach.tests.test.test_solarmach_plot": "53086961f48868f8d686c28258dbd53d58a99e4bbd9d250c288f585dc0df8f9b",
-  "solarmach.tests.test.test_solarmach_pfss": "ee9c8886e831b834c79da3a3078d1a9bb0845217b4c6217d48c7d4cbdb34d723"
+  "solarmach.tests.test.test_solarmach_plot[Carrington-numbers-True-270]": "340c9cd49b5b4b167bca92b832e693d1087c5b87ceedf1d52d00e0119c68b121",
+  "solarmach.tests.test.test_solarmach_plot[Stonyhurst-letters-False-0]": "802af17af20c79b80c7e35b8262b194de6053eb6188f2b3f494d991dafe09e01",
+  "solarmach.tests.test.test_solarmach_pfss": "3e1397b7e555862d47419969d2f762201e7d71d5cf79fff7cc8ac9a35f51b828"
 }
