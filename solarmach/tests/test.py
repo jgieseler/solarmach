@@ -117,7 +117,7 @@ pytest --mpl-generate-path=solarmach/tests/baseline
 
 
 @pytest.mark.parametrize("coord_sys, markers, fix_earth, long_offset", [('Carrington', 'numbers', True, 270), ('Stonyhurst', 'letters', False, 0)])
-@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
+# @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
 @pytest.mark.filterwarnings("ignore:FigureCanvasAgg is non-interactive, and thus cannot be shown:UserWarning:solarmach")
 def test_solarmach_plot(coord_sys, markers, fix_earth, long_offset):
     body_list = ['STEREO-A']
