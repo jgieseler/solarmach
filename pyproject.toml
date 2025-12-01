@@ -30,7 +30,7 @@ dependencies = [
     "scipy",
     "speasy>=1.2.7",
     "sunkit_magex",
-    "sunpy",
+    "sunpy==7.1.0rc1",
     "threadpoolctl",
     "tqdm",
     "zeep",
