@@ -79,7 +79,7 @@ def print_body_list():
     return data
 
 
-def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
+def get_sw_speed(body, dtime, trange=1, default_vsw=400.0, silent=False):
     """
     Obtains measured solar wind bulk speed. Downloads solar wind speed
     measurements for "body" from "trange" hours before "dtime" until "trange"
@@ -98,6 +98,8 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     default_vsw : float
         Default solar wind bulk speed in km/s that is returned if no
         measurements can be obtained. Default value 400.0
+    silent : bool, optional
+        If True, suppresses most print statements. Default is False. Use at own risk!
 
     Returns
     -------
@@ -140,10 +142,12 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
     # sw_key['Wind'] = '|v|'  # |v|
 
     if body in ['Earth', 'SEMB-L1']:
-        print(f"Using 'ACE' measurements for '{body}'.")
+        if not silent:
+            print(f"Using 'ACE' measurements for '{body}'.")
         body = 'ACE'
     elif body not in dataset.keys():
-        print(f"Body '{body}' not supported, assuming default Vsw value of {default_vsw} km/s.")
+        if not silent:
+            print(f"Body '{body}' not supported, assuming default Vsw value of {default_vsw} km/s.")
         return default_vsw
 
     try:
@@ -167,13 +171,16 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0):
             if idx.values[0] >= 0.0:
                 return idx.values[0]
             else:
-                print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
+                if not silent:
+                    print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
                 return default_vsw
         else:
-            print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
+            if not silent:
+                print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
             return default_vsw
     except AttributeError:
-        print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
+        if not silent:
+            print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
         return default_vsw
 
 
@@ -419,9 +426,11 @@ class SolarMACH():
         Longitute of reference position at the Sun
     reference_lat: float, optional
         Latitude of referene position at the Sun
+    silent : bool, optional
+        If True, suppresses most print statements. Default is False. Use at own risk!
     """
 
-    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', default_vsw=400.0, **kwargs):
+    def __init__(self, date, body_list, vsw_list=[], reference_long=None, reference_lat=None, coord_sys='Carrington', default_vsw=400.0, silent=False, **kwargs):
         if 'diff_rot' in kwargs.keys():
             self.diff_rot = kwargs['diff_rot']
         else:
@@ -453,8 +462,9 @@ class SolarMACH():
         try:
             pos_E = get_horizons_coord(399, self.date, None)  # (lon, lat, radius) in (deg, deg, AU)
         except (ValueError, RuntimeError):
-            print('')
-            print('!!! No ephemeris found for Earth for date {self.date} - there probably is a problem with JPL HORIZONS.')
+            if not silent:
+                print('')
+                print('!!! No ephemeris found for Earth for date {self.date} - there probably is a problem with JPL HORIZONS.')
         if coord_sys=='Carrington':
             self.pos_E = pos_E.transform_to(frames.HeliographicCarrington(observer='Sun'))
         elif coord_sys=='Stonyhurst':
@@ -468,9 +478,10 @@ class SolarMACH():
         vsw_list2 = copy.deepcopy(vsw_list)
 
         if len(vsw_list2) == 0:
-            print('No solar wind speeds defined, trying to obtain measurements...')
+            if not silent:
+                print('No solar wind speeds defined, trying to obtain measurements...')
             for body in body_list:
-                vsw_list2.append(get_sw_speed(body=body, dtime=date, default_vsw=default_vsw))
+                vsw_list2.append(get_sw_speed(body=body, dtime=date, default_vsw=default_vsw, silent=silent))
             # vsw_list = np.zeros(len(body_list)) + 400
 
         random_cols = ['forestgreen', 'mediumblue', 'm', 'saddlebrown', 'tomato', 'olive', 'steelblue', 'darkmagenta',
@@ -539,8 +550,9 @@ class SolarMACH():
                     lat_sep = pos.lat.value - self.reference_lat
                     latsep_list.append(lat_sep)
             except (ValueError, RuntimeError):
-                print('')
-                print('!!! No ephemeris for target "' + str(body) + '" for date ' + str(self.date))
+                if not silent:
+                    print('')
+                    print('!!! No ephemeris for target "' + str(body) + '" for date ' + str(self.date))
                 body_list.remove(body)
 
         body_dict_short = {sel_key: bodies[sel_key] for sel_key in body_list}
