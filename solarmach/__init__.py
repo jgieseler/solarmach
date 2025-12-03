@@ -579,10 +579,17 @@ class SolarMACH():
             self.coord_table['Longitudinal separation between body and reference_long'] = longsep_list
             self.coord_table[
                 "Longitudinal separation between body's magnetic footpoint and reference_long"] = footp_longsep_list
-            self.pfss_table.loc[len(self.pfss_table.index)] = ["Reference Point", self.reference_long, self.reference_lat, 1, np.nan]
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
-            self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference Point", f"{coord_sys} latitude (°)"] = self.reference_lat
+        
+        if self.reference_long is not None or self.reference_lat is not None:
+            self.pfss_table = pd.concat([self.pfss_table, 
+                                         pd.DataFrame({"Spacecraft/Body": ["Reference Point"],
+                                                       f"{coord_sys} longitude (°)": [self.reference_long],
+                                                       f"{coord_sys} latitude (°)": [self.reference_lat], 
+                                                       "Heliocentric_distance (R_Sun)": [1],
+                                                       "Vsw": [np.nan]})],
+                                                       ignore_index=True)
 
         # Does this still have a use?
         pass
