@@ -32,7 +32,7 @@ authors:
 - given-names: drazerd
   family-names: ''
   affiliation: ''
-version: 0.5.1
+version: 0.5.2
 date-released: 2025-08-15
 repository-code: https://github.com/jgieseler/solarmach
 license: BSD-3-Clause
