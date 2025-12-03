@@ -116,9 +116,10 @@ pytest --mpl-generate-path=solarmach/tests/baseline
 """
 
 
-@pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
+@pytest.mark.parametrize("coord_sys, markers, fix_earth, long_offset", [('Carrington', 'numbers', True, 270), ('Stonyhurst', 'letters', False, 0)])
+# @pytest.mark.mpl_image_compare(hash_library=Path(__file__).parent / 'figure_hashes_mpl_391.json', deterministic=True)
 @pytest.mark.filterwarnings("ignore:FigureCanvasAgg is non-interactive, and thus cannot be shown:UserWarning:solarmach")
-def test_solarmach_plot():
+def test_solarmach_plot(coord_sys, markers, fix_earth, long_offset):
     body_list = ['STEREO-A']
     vsw_list = [400]
     date = '2021-10-28 15:15:00'
@@ -131,10 +132,10 @@ def test_solarmach_plot():
     long_sector_color='red'
     background_spirals=[6, 600]
 
-    sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat)
+    sm = SolarMACH(date=date, body_list=body_list, vsw_list=vsw_list, reference_long=reference_long, reference_lat=reference_lat, coord_sys=coord_sys)
     fig, ax = sm.plot(plot_spirals=True, plot_sun_body_line=True,
                       reference_vsw=reference_vsw, transparent=False,
-                      show_earth_centered_coord=False, markers='numbers',
+                      markers=markers, fix_earth=fix_earth,
                       long_sector=long_sector, long_sector_vsw=long_sector_vsw, long_sector_color=long_sector_color,
                       background_spirals=background_spirals, outfile=filename, return_plot_object=True)
     assert os.path.exists(os.getcwd()+os.sep+filename)

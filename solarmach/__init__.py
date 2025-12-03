@@ -598,6 +598,7 @@ class SolarMACH():
              transparent=False,
              markers=False,
              return_plot_object=False,
+             fix_earth=True,
              long_offset=270,
              outfile='',
              figsize=(12, 8),
@@ -633,8 +634,10 @@ class SolarMACH():
             if defined, body markers contain 'numbers' or 'letters' for better identification. If False (default), only geometric markers are used.
         return_plot_object : bool, optional
             if True, figure and axis object of matplotib are returned, allowing further adjustments to the figure
+        fix_earth : bool, optional
+            if True (default), Earth is always at the defined long_offset position (by default "6 o'clock", i.e., 270°). If False, the plot is oriented with 0° at the position defined with long_offset.
         long_offset : int or float, optional
-            longitudinal offset for polar plot; defines where Earth's longitude is (by default 270, i.e., at "6 o'clock")
+            longitudinal offset for polar plot; defines for fix_earth=True (default) where Earth's longitude is (by default 270, i.e., at "6 o'clock"). For fix_earth=False it defines where 0° is located.
         outfile : string, optional
             if provided, the plot is saved with outfile as filename. supports png and pdf format.
         long_sector : list of 2 numbers, optional
@@ -693,7 +696,10 @@ class SolarMACH():
 
         rlabel_pos = E_long + 120
         ax.set_rlabel_position(rlabel_pos)
-        ax.set_theta_offset(np.deg2rad(long_offset - E_long))
+        if fix_earth:
+            ax.set_theta_offset(np.deg2rad(long_offset - E_long))
+        elif not fix_earth:
+            ax.set_theta_offset(np.deg2rad(long_offset))
         ax.yaxis.get_major_locator().base.set_params(nbins=4)
         circle = plt.Circle((0., 0.),
                             self.max_dist + 0.29,
