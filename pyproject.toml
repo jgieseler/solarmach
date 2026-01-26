@@ -25,7 +25,7 @@ dependencies = [
     "numpy",
     "orjson", # not needed, but improves plotly performance
     "pandas",
-    "parfive==2.1.0",
+    "parfive==2.1.0",  # TODO: relax when parfive is working again for downloading GONG maps
     "plotly",
     "python-dateutil",
     "scipy",
