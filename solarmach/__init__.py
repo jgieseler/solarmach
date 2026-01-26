@@ -942,7 +942,7 @@ class SolarMACH():
                 # import streamlit.components.v1 as components
                 # st.plotly_chart(pfig, theme="streamlit")
                 # components.html(pfig.to_html(include_mathjax='cdn'), height=500)
-                st.plotly_chart(fig, theme="streamlit", use_container_width=True)
+                st.plotly_chart(fig, theme="streamlit", width='stretch')
             else:
                 pfig.show()
 
@@ -2351,7 +2351,7 @@ class SolarMACH():
             # components.html(fig.to_html(include_mathjax='cdn'), height=700)
             st.plotly_chart(fig.update_layout(width=700, height=700),
                             theme=None,  # "streamlit",
-                            use_container_width=True,
+                            width='stretch',
                             config=config)
         else:
             fig.show(config=config)
@@ -2715,7 +2715,7 @@ class SolarMACH():
             # components.html(fig.to_html(include_mathjax='cdn'), height=700)
             st.plotly_chart(fig.update_layout(width=700, height=700),
                             theme=None,  # "streamlit",
-                            use_container_width=True,
+                            width='stretch',
                             config=config)
         else:
             fig.show(config=config)
