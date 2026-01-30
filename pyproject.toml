@@ -25,7 +25,7 @@ dependencies = [
     "numpy",
     "orjson", # not needed, but improves plotly performance
     "pandas",
-    "parfive==2.3.1",
+    "parfive>=2.3.1",
     "plotly",
     "python-dateutil",
     "scipy",
