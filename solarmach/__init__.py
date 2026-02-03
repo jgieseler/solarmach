@@ -1446,9 +1446,9 @@ class SolarMACH():
                 lon_sep_angles = np.append(lon_sep_angles, lon_sep)
                 lat_sep_angles = np.append(lat_sep_angles, lat_sep)
 
-            if self.reference_long:
+            if self.reference_long is not None:
                 ref_earth_sep_lon = earth_footpoint[0] - self.reference_long if earth_footpoint[0] - self.reference_long < 180 else earth_footpoint[0] - self.reference_long - 360
-                ref_earth_sep_lat = earth_footpoint[1] - self.reference_lat if self.reference_lat else earth_footpoint[1]
+                ref_earth_sep_lat = earth_footpoint[1] - self.reference_lat if self.reference_lat is not None else np.nan
                 lon_sep_angles = np.append(lon_sep_angles, ref_earth_sep_lon)
                 lat_sep_angles = np.append(lat_sep_angles, ref_earth_sep_lat)
 
@@ -1456,7 +1456,7 @@ class SolarMACH():
             self.pfss_table["Footpoint lat separation to Earth's footpoint lat"] = lat_sep_angles
 
         # Reference longitude and corresponding parker spiral arm
-        if self.reference_long:
+        if self.reference_long is not None:
             delta_ref = self.reference_long
             if delta_ref < 0.:
                 delta_ref = delta_ref + 360.
@@ -1523,7 +1523,9 @@ class SolarMACH():
                 self.reference_long_max = max(varyref_objects_longitudes)
 
                 # TODO: IMPROVE!
-                # The following is a rather severe if-statement because it renders situations with a real londitudinal spread of bigger than 180° unusable. Unfortunately, there is no better solution as of now.
+                # The following is a rather severe if-statement because it renders situations 
+                # with a real londitudinal spread of bigger than 180° unusable. 
+                # Unfortunately, there is no better solution as of now.
                 if self.reference_long_max-self.reference_long_min > 180:
                     varyref_objects_longitudes2 = []
                     for lon in varyref_objects_longitudes:
@@ -1789,7 +1791,7 @@ class SolarMACH():
         cb_ax.set_ylabel('Heliographic latitude [deg]', fontsize=16)  # 20
 
         # Add footpoints, magnetic polarities and the reach of reference_long flux tube to PFSS_table
-        if self.reference_long:
+        if self.reference_long is not None:
             photospheric_footpoints.append(self.reference_long)
             fieldline_polarities.append(ref_objects[0].polarity)
             self.pfss_table["Reference flux tube lon range"] = [np.nan if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)]
@@ -1802,7 +1804,7 @@ class SolarMACH():
 
         # Update solar wind speed to the reference point
         if reference_vsw:
-            self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference_point", "Vsw"] = reference_vsw
+            self.pfss_table.loc[self.pfss_table["Spacecraft/Body"]=="Reference Point", "Vsw"] = reference_vsw
 
         if outfile != '':
             plt.savefig(outfile, bbox_inches="tight")
