@@ -582,12 +582,19 @@ class SolarMACH():
                 "Longitudinal separation between body's magnetic footpoint and reference_long"] = footp_longsep_list
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
-        
-        if self.reference_long is not None or self.reference_lat is not None:
-            self.pfss_table = pd.concat([self.pfss_table, 
+
+        if self.reference_long is not None:
+            # The reference latitude is by default None, but that is not a valid input value in a dataframe column
+            # that contains float values. Therefore, the input value must be a nan if the original variable is None.
+            # The warning of the upcoming error is copy-pasted below:
+            # FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. 
+            # In a future version, this will no longer exclude empty or all-NA columns when determining the 
+            # result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+            table_reference_lat_value = self.reference_lat if self.reference_lat is not None else np.nan
+            self.pfss_table = pd.concat([self.pfss_table,
                                          pd.DataFrame({"Spacecraft/Body": ["Reference Point"],
                                                        f"{coord_sys} longitude (°)": [self.reference_long],
-                                                       f"{coord_sys} latitude (°)": [self.reference_lat], 
+                                                       f"{coord_sys} latitude (°)": [table_reference_lat_value], 
                                                        "Heliocentric_distance (R_Sun)": [1],
                                                        "Vsw": [np.nan]})],
                                                        ignore_index=True)
@@ -1793,9 +1800,16 @@ class SolarMACH():
 
         # Add footpoints, magnetic polarities and the reach of reference_long flux tube to PFSS_table
         if self.reference_long is not None:
-            photospheric_footpoints.append(self.reference_long)
+            # The reference latitude is by default None, but that is not a valid input value in a dataframe
+            # that contains float values. Therefore the input value must be a nan if the original variable is None.
+            # The warning of the upcoming error is copy-pasted below:
+            # FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. 
+            # In a future version, this will no longer exclude empty or all-NA columns when determining the 
+            # result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+            table_reference_lat_value = self.reference_lat if self.reference_lat is not None else np.nan
+            photospheric_footpoints.append((self.reference_long, table_reference_lat_value))
             fieldline_polarities.append(ref_objects[0].polarity)
-            self.pfss_table["Reference flux tube lon range"] = [np.nan if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)]
+            self.pfss_table["Reference flux tube lon range"] = [(np.nan, np.nan) if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)]
 
         self.pfss_table["Magnetic footpoint (PFSS)"] = photospheric_footpoints
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
