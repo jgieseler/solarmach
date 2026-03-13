@@ -583,7 +583,7 @@ class SolarMACH():
         if self.reference_lat is not None:
             self.coord_table['Latitudinal separation between body and reference_lat'] = latsep_list
 
-        if self.reference_long is not None or self.reference_lat is not None:
+        if self.reference_long is not None:
             # The reference latitude is by default None, but that is not a valid input value in a dataframe column
             # that contains float values. Therefore, the input value must be a nan if the original variable is None.
             # The warning of the upcoming error is copy-pasted below:
