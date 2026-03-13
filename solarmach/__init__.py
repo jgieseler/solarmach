@@ -1811,7 +1811,7 @@ class SolarMACH():
             fieldline_polarities.append(ref_objects[0].polarity)
             self.pfss_table["Reference flux tube lon range"] = [(np.nan, np.nan) if i<len(self.body_dict) else (self.reference_long_min, self.reference_long_max) for i in range(len(self.body_dict)+1)]
 
-        self.pfss_table["Magnetic footpoint (PFSS)"] = photospheric_footpoints
+        self.pfss_table["Magnetic footpoint (long, lat) at photosphere derived by PFSS"] = photospheric_footpoints
         self.pfss_table["Magnetic polarity"] = fieldline_polarities
 
         # Assemble the dataframe that contains the pfss-extrapolated magnetic fieldline footpoints
