@@ -587,17 +587,17 @@ class SolarMACH():
             # The reference latitude is by default None, but that is not a valid input value in a dataframe column
             # that contains float values. Therefore, the input value must be a nan if the original variable is None.
             # The warning of the upcoming error is copy-pasted below:
-            # FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. 
-            # In a future version, this will no longer exclude empty or all-NA columns when determining the 
+            # FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated.
+            # In a future version, this will no longer exclude empty or all-NA columns when determining the
             # result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
             table_reference_lat_value = self.reference_lat if self.reference_lat is not None else np.nan
             self.pfss_table = pd.concat([self.pfss_table,
                                          pd.DataFrame({"Spacecraft/Body": ["Reference Point"],
                                                        f"{coord_sys} longitude (°)": [self.reference_long],
-                                                       f"{coord_sys} latitude (°)": [table_reference_lat_value], 
+                                                       f"{coord_sys} latitude (°)": [table_reference_lat_value],
                                                        "Heliocentric_distance (R_Sun)": [1],
                                                        "Vsw": [np.nan]})],
-                                                       ignore_index=True)
+                                        ignore_index=True)
 
         # Does this still have a use?
         pass
@@ -725,7 +725,7 @@ class SolarMACH():
                             zorder=2.5)
         ax.add_patch(circle)
 
-        # deactivate plotting of the outer circle that limits the plotting area bc. it sometimes vanishes. 
+        # deactivate plotting of the outer circle that limits the plotting area bc. it sometimes vanishes.
         # it's "replaced" by the plt.Circle above
         ax.spines['polar'].set_linewidth(0)
 
@@ -1331,7 +1331,7 @@ class SolarMACH():
         photospheric_footpoints = []
         fieldline_polarities = []
 
-        # Collect the pfss-fieldline footpoints to a dictionary -> to be assembled into a pd DataFrame 
+        # Collect the pfss-fieldline footpoints to a dictionary -> to be assembled into a pd DataFrame
         # at the end.
         pfss_footpoints_dict = {}
 
@@ -1440,7 +1440,7 @@ class SolarMACH():
             # Save Earth's magnetic footpoint for later comparison:
             if body_lab == "Earth":
                 earth_footpoint = (fl_lon[0], fl_lat[0])
-            
+
             # Finally save all the collected footpoints to the dictionary
             pfss_footpoints_dict[body_id] = pfss_footpoints
 
@@ -1531,8 +1531,8 @@ class SolarMACH():
                 self.reference_long_max = max(varyref_objects_longitudes)
 
                 # TODO: IMPROVE!
-                # The following is a rather severe if-statement because it renders situations 
-                # with a real londitudinal spread of bigger than 180° unusable. 
+                # The following is a rather severe if-statement because it renders situations
+                # with a real londitudinal spread of bigger than 180° unusable.
                 # Unfortunately, there is no better solution as of now.
                 if self.reference_long_max-self.reference_long_min > 180:
                     varyref_objects_longitudes2 = []
@@ -1582,7 +1582,7 @@ class SolarMACH():
                     alpha_ref_min_comp = alpha_ref_min[-1] - 2*np.pi
                 else:
                     alpha_ref_min_comp = alpha_ref_min[-1]
-                
+
                 # While the second spiral is behind the first spiral in angle, extend the second spiral
                 while alpha_ref_max[-1] > alpha_ref_min_comp:
                     reference_array2 = np.append(reference_array2, reference_array2[-1] + 1)
@@ -1741,8 +1741,8 @@ class SolarMACH():
                                            head_width=0.75 * height)
 
             _leg2 = ax.legend([ref_arr], [reference_legend_label], loc=(1.05, 0.6),
-                             handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
-                             fontsize=15)
+                              handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), },
+                              fontsize=15)
             ax.add_artist(leg1)
 
         # replace 'SEMB-L1' in legend with 'L1' if present
@@ -1803,8 +1803,8 @@ class SolarMACH():
             # The reference latitude is by default None, but that is not a valid input value in a dataframe
             # that contains float values. Therefore the input value must be a nan if the original variable is None.
             # The warning of the upcoming error is copy-pasted below:
-            # FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. 
-            # In a future version, this will no longer exclude empty or all-NA columns when determining the 
+            # FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated.
+            # In a future version, this will no longer exclude empty or all-NA columns when determining the
             # result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
             table_reference_lat_value = self.reference_lat if self.reference_lat is not None else np.nan
             photospheric_footpoints.append((self.reference_long, table_reference_lat_value))
@@ -1840,9 +1840,9 @@ class SolarMACH():
             return fig, ax
 
     def plot_pfss_3d(self, active_area=(None, None, None, None), color_code='object', rss=2.5,
-                plot_spirals=True, plot_sun_body_line=False, plot_vertical_line=False,
-                markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True,
-                reference_vsw=400, zoom_out=False, return_plot_object=False):
+                     plot_spirals=True, plot_sun_body_line=False, plot_vertical_line=False,
+                     markers=False, numbered_markers=False, plot_equatorial_plane=True, plot_3d_grid=True,
+                     reference_vsw=400, zoom_out=False, return_plot_object=False):
         """
         Plots a 3D visualization of the Potential Field Source Surface (PFSS) model using Plotly.
 
@@ -2742,10 +2742,9 @@ class SolarMACH():
         else:
             return
 
-
-    def produce_pfss_footpoints_df(self, footpoints_dict:dict) -> None:
+    def produce_pfss_footpoints_df(self, footpoints_dict: dict) -> None:
         """
-        Produces a dataframe that contains the footpoints of 
+        Produces a dataframe that contains the footpoints of
         the pfss-extrapolated fieldlines. Attaches this dataframe to the class
         variable called 'pfss_footpoints'.
 
@@ -2767,6 +2766,7 @@ class SolarMACH():
 
         df.index.name = "Fieldline #"
         self.pfss_footpoints = df
+
 
 def sc_distance(sc1, sc2, dtime):
     """
@@ -2841,7 +2841,7 @@ def sto2car_sun(long, lat, dtime):
         A tuple containing:
             - Carrington longitude(s) in degrees (float or array-like)
             - Carrington latitude(s) in degrees (float or array-like)
-    """ 
+    """
     coord = SkyCoord(long*u.deg, lat*u.deg, aconst.R_sun, frame=frames.HeliographicStonyhurst, obstime=dtime)
     coord_trans = coord.transform_to(frames.HeliographicCarrington(observer='Sun'))
     return coord_trans.lon.value, coord_trans.lat.value
