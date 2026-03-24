@@ -10,8 +10,31 @@ on:
     # branches: [ "main" ]
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+    - name: Install ruff
+      run: |
+        uv venv .venv
+        source .venv/bin/activate
+        uv pip install ruff
+    - name: Lint with ruff
+      run: |
+        source .venv/bin/activate
+        # stop the build if there are Python syntax errors or undefined names
+        ruff check . --select=E9,F63,F7,F82 --exclude=.venv
+        # exit-zero treats all errors as warnings
+        ruff check . --select=E,F,C90 --ignore=E501 --exclude=.venv --exit-zero
+        # summary
+        ruff check . --select=E,F,C90 --ignore=E501 --exclude=.venv --statistics --quiet --exit-zero
 
+  build:
+    needs: lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -20,42 +43,40 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 pytest pytest-doctestplus pytest-cov pytest-mpl
-        # if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install .
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        uv venv .venv --python ${{ matrix.python-version }}
+        source .venv/bin/activate
+        uv pip install pytest pytest-doctestplus pytest-cov pytest-mpl
+        # uv pip install -r requirements.txt
+        uv pip install .
     - name: Test with pytest
       run: |
+        source .venv/bin/activate
         pytest -ra --mpl --mpl-baseline-path=baseline --mpl-baseline-relative --mpl-generate-summary=html --mpl-results-path='/home/runner/work/solarmach/solarmach/report/' --cov .
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    - name: Save PFSS plot as artifcat
+    - name: Save PFSS plot as artifact
       if: always()
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.python-version }}-pfss-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/tmp_solarmach_pfss.png"
-    - name: Save standard plot as artifcat
+    - name: Save standard plot as artifact
       if: always()
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.python-version }}-standard-plot-artifact
         path: "/home/runner/work/solarmach/solarmach/tmp_solarmach.png"
-    - name: Save pytest-mpl report as artifcat
+    - name: Save pytest-mpl report as artifact
       if: always()
       uses: actions/upload-artifact@v7
       with:
