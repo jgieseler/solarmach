@@ -63,7 +63,7 @@ def test_solarmach_get_sw_speed():
     date = '2023-02-28 15:00:00'
     sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
     try:
-        import speasy as spz
+        import speasy as spz  # noqa: F401
         vsw_stereoa = 636.0
         vsw_soho = 655.0
         vsw_psp = 476.0
@@ -103,7 +103,7 @@ def test_solarmach_wrong_datetime_format():
 
     # check SolarMACH
     with pytest.raises(ValueError):
-        sm = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
+        _ = SolarMACH(date=date, body_list=body_list, coord_sys='Stonyhurst')
 
 
 """
