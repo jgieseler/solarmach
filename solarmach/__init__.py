@@ -1,4 +1,4 @@
-from .version import version as __version__
+from .version import version as __version__  # noqa: F401
 
 # __all__ = []  # defines which functions, variables etc. will be loaded when running "from solarmach import *"
 
