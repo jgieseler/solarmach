@@ -1,4 +1,4 @@
-from .version import version as __version__
+from .version import version as __version__  # noqa: F401
 
 # __all__ = []  # defines which functions, variables etc. will be loaded when running "from solarmach import *"
 
@@ -20,7 +20,15 @@ from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
 
-from solarmach.pfss_utilities import calculate_pfss_solution, get_field_line_coords, get_gong_map, multicolorline, sphere, spheric2cartesian, vary_flines
+from solarmach.pfss_utilities import (
+    calculate_pfss_solution as calculate_pfss_solution,
+    get_field_line_coords,
+    get_gong_map as get_gong_map,
+    multicolorline,
+    sphere,
+    spheric2cartesian,
+    vary_flines,
+)
 
 # pd.options.display.max_rows = None
 # pd.options.display.float_format = '{:.1f}'.format
