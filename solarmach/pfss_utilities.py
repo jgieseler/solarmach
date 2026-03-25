@@ -602,29 +602,38 @@ def calculate_pfss_solution(gong_map, rss, coord_sys, nrho=35):
     return pfss_solution
 
 
-def load_gong_map(filepath=None):
+def load_gong_map(filepath:str):
     """
     https://gong.nso.edu/data/magmap/
     https://docs.sunpy.org/en/v4.0.6/generated/api/sunpy.net.dataretriever.GONGClient.html
     https://gong2.nso.edu/oQR/zqs/202104/mrzqs210413/
 
+    Raises:
+    -------
+    RuntimeError: No maps loaded
+        If filepath==[]
+    ValueError: Invalid input: {filepath}
+        If filepath is None or int
     """
-
-    if not filepath:
-        filepath = os.getcwd()
 
     # Load a GONG (Global Oscillation Network Group) synoptic magnetic map
-    if isinstance(filepath, str):
-
-        # Acquire a GONG map from which the pfss solution is calculated from
-        gong_map = sunpy.map.Map(filepath)
-
-    return gong_map
+    return sunpy.map.Map(filepath)
 
 
-def download_gong_map(timestr, filepath=None):
+def download_gong_map(timestr:str, tolerance:int, filepath:str, verbose:bool):
     """
     Gets the download link for a GONG synoptic map
+
+    Parameters:
+    -----------
+    timestr : {str}
+            String representation of the date and time, e.g., '2025-02-13 12:00'
+
+    tolerance : {int}
+            The maximum time difference, in hours, that is tolerated between the map and the given time string.
+
+    filepath : {str}
+            
     """
 
     import pandas as pd
@@ -634,19 +643,47 @@ def download_gong_map(timestr, filepath=None):
         filepath = os.getcwd()
 
     desired_time = pd.to_datetime(timestr, yearfirst=True)
-    desired_time_plus_hour = desired_time + pd.Timedelta(hours=1)
 
-    result = Fido.search(attrs.Time(desired_time, desired_time_plus_hour), attrs.Instrument('GONG'))
+    # Check tolerance type before feeding to pd.Timedelta
+    if not isinstance(tolerance, int):
+        raise TypeError(f"Input parameter 'tolerance' must be type int, but {type(tolerance)} was passed.")
+    desired_time_plus_hours = desired_time + pd.Timedelta(hours=tolerance)
 
-    file = Fido.fetch(result, path=filepath)
+    search_results = Fido.search(attrs.Time(desired_time, desired_time_plus_hours), attrs.Instrument("GONG"))
 
-    print(f"Downloaded GONG map to {file.data[0]}")
+    # result is a type of sunpy.net.fido_factory.UnifiedResponse, which is similar to a pd.DataFrame.
+    # It contains the queries for the given time period of existing gong maps that can be downloaded.
+    # All of the listed files will be downloaded, but that's undesired, so choose only the first entry
+    if search_results.file_num > 1:
+        search_results = search_results[0][0]
+    file = Fido.fetch(search_results, path=filepath)
+
+    if verbose:
+        print(f"Downloaded GONG map to {file.data[0]}")
+
     return file.data[0]
 
 
-def construct_gongmap_filename(timestr, directory):
+def construct_gongmap_filepath(timestr:str, directory:str, verbose:bool):
     """
     Constructs a default filepath
+    
+    Parameters:
+    -----------
+    timestr : {str}
+        The datetime string, e.g., '2025-09-16'
+
+    directory : {str}
+        The directory where the gong map is expected to be found
+
+    verbose : {bool}
+        Prints mid-step information.
+
+    Returns:
+    --------
+    filepath : {str, None}
+        The path to the file, including the name of the file. 
+        If file not found, returns None.
     """
 
     dtime = dateutil.parser.parse(timestr)
@@ -660,16 +697,28 @@ def construct_gongmap_filename(timestr, directory):
     filepath = f"{directory}{os.sep}{filename}"
     filepaths = glob.glob(filepath)
 
-    # If exactly one match, then that most probably is the right file
-    if len(filepaths) == 1:
-        print(f"Automatic file search based on given time found {filepaths[0]}")
-        return filepaths[0]
+    # If the list is not empty, there is at least one match
+    if len(filepaths) > 0:
+
+        # Make sure the paths are sorted (in case more than one)
+        filepaths = sorted(filepaths)
+        filepath = filepaths[0]
+
+    # No matches -> return None 
     else:
-        print(f"Automatic file search based on given time failed in directory {directory}")
-        return directory
+        filepath = None
+
+    # Just for printing information
+    if verbose:
+        if filepath is None:
+            print(f"Automatic file search based on time ({timestr}) failed in directory: {directory}")
+        else:
+            print(f"Automatic file search based on time ({timestr}) found: {filepath}")
+
+    return filepath
 
 
-def get_gong_map(time: str, filepath: str = None, autodownload=True):
+def get_gong_map(time:str, filepath:str=None, autodownload:bool=True, tolerance:int=1, verbose:bool=True):
     """
     A wrapper for functions load_gong_map() and download_gong_map().
     Returns a gong map if one is found or autodownload is True. If no map found and
@@ -681,22 +730,37 @@ def get_gong_map(time: str, filepath: str = None, autodownload=True):
         A pandas-compatible timestring, e.g., '2010-11-29 12:45'
     filepath : {str}, optional, default=None
         The path to the gong map file with the name of the file, e.g., 'use/xyz/gong_maps/mrzqs211009t0814c2249_105.fits.gz'
+        If no filename at the end of filepath, search for the file from inside the given directory.
         If no filepath provided, use the current directory.
     autodownload : {bool}, optional, default=True
         If file is not found, download it automatically.
+    tolerance : {int}, optional, default=1
+        In hours, the tolerance between the given timestamp and the timestamp of the gong map.
+    verbose : {bool}, optional, default=True
+        Enables print statements inside the functions.
     """
 
-    # Try to construct a filename from current working directory and given datetime
+    # Try to construct a complete filepath (including filename) from current working directory and given datetime.
+    # Here if filepath==None -> the second clause is not checked, i.e., no TypeError will be raised
+    # for trying to subscript a NoneType.
     if not filepath or filepath[-8:] not in (".fits.gz"):
-        filepath = construct_gongmap_filename(timestr=time, directory=filepath)
+        # Remember the given path to where the file is expected to be, before generating one with
+        # the complete path including the filename. If a file is not found in the 
+        save_dir = filepath if filepath is not None else os.getcwd()
+        filepath = construct_gongmap_filepath(timestr=time, directory=filepath, verbose=verbose)
 
     try:
         gong_map = load_gong_map(filepath=filepath)
-    except Exception:
+    except ValueError as vee_ee:
+        # ValueError is raised because a gong map was not found from the specified path
         if autodownload:
-            new_filepath = download_gong_map(time, filepath=filepath)
+            new_filepath = download_gong_map(time, tolerance=tolerance, filepath=save_dir, verbose=verbose)
             gong_map = load_gong_map(filepath=new_filepath)
         else:
-            return None
+            gong_map = None
+            # These are printed even if verbose=False, to avert a situation where user THINKS that
+            # they acquired a map but actually did not. One might consider changing this.
+            print(f"GONG map not found locally from given path: {save_dir}")
+            print("Automatic downloading not enabled, no GONG map obtained.")
 
     return gong_map
