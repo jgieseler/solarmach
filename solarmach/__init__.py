@@ -2886,19 +2886,18 @@ def _isstreamlit():
 
     Returns
     -------
-    use_streamlit : boolean
+    boolean
         True if code is run within streamlit, else False
     """
     # https://discuss.streamlit.io/t/how-to-check-if-code-is-run-inside-streamlit-and-not-e-g-ipython/23439
     try:
+        import sys
+        if "streamlit.runtime.scriptrunner" not in sys.modules:
+            return False
         from streamlit.runtime.scriptrunner import get_script_run_ctx
-        if not get_script_run_ctx(suppress_warning=True):
-            use_streamlit = False
-        else:
-            use_streamlit = True
+        return get_script_run_ctx(suppress_warning=True) is not None
     except ModuleNotFoundError:
-        use_streamlit = False
-    return use_streamlit
+        return False
 
 
 if _isstreamlit():
