@@ -64,10 +64,10 @@ docs = [
 ]
 [project.urls]
 Documentation = "https://solarmach.readthedocs.io"
-Source Code = "https://github.com/jgieseler/solarmach"
+"Source Code" = "https://github.com/jgieseler/solarmach"
 Changelog = "https://github.com/jgieseler/solarmach/releases"
-Issue Tracker = "https://github.com/jgieseler/solarmach/issues"
-Web App = "https://solar-mach.github.io"
+"Issue Tracker" = "https://github.com/jgieseler/solarmach/issues"
+"Web App" = "https://solar-mach.github.io"
 
 [tool.setuptools]
 zip-safe = false
