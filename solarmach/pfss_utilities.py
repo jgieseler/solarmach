@@ -791,28 +791,25 @@ def get_gong_map(time:str, filepath:str=None, autodownload:bool=True, tolerance:
         The loaded GONG map, or None if no map was found and autodownload is False.
     """
 
-    # Try to construct a complete filepath (including filename) from current working directory and given datetime.
-    # Here if filepath==None -> the second clause is not checked, i.e., no TypeError will be raised
-    # for trying to subscript a NoneType.
+    # If no full filepath (ending in '.fits.gz') is given, construct the expected filename from
+    # the given time. The short-circuit 'or' means filepath[-8:] is only evaluated if filepath
+    # is not None/empty, avoiding a TypeError on NoneType subscript.
     if not filepath or filepath[-8:] not in (".fits.gz"):
-        # Remember the given path to where the file is expected to be, before generating one with
-        # the complete path including the filename. If a file is not found in the 
+        # Save the directory separately — used as download destination if the file is not found locally.
         save_dir = filepath if filepath is not None else os.getcwd()
         filepath = construct_gongmap_filepath(timestr=time, directory=filepath, verbose=verbose)
 
-    try:
+    if filepath and os.path.exists(filepath):
         gong_map = load_gong_map(filepath=filepath)
-    except ValueError as vee_ee:
-        # ValueError is raised because a gong map was not found from the specified path
-        if autodownload:
-            new_filepath = download_gong_map(time, tolerance=tolerance, filepath=save_dir, verbose=verbose)
-            gong_map = load_gong_map(filepath=new_filepath)
-        else:
-            gong_map = None
-            # These are printed even if verbose=False, to avert a situation where user THINKS that
-            # they acquired a map but actually did not. One might consider changing this.
-            print(f"GONG map not found locally from given path: {save_dir}")
-            print("Automatic downloading not enabled, no GONG map obtained.")
+    elif autodownload:
+        new_filepath = download_gong_map(time, tolerance=tolerance, filepath=save_dir, verbose=verbose)
+        gong_map = load_gong_map(filepath=new_filepath)
+    else:
+        gong_map = None
+        # These are printed even if verbose=False, to avert a situation where user THINKS that
+        # they acquired a map but actually did not. One might consider changing this.
+        print(f"GONG map not found locally from given path: {save_dir}")
+        print("Automatic downloading not enabled, no GONG map obtained.")
 
     return gong_map
 
