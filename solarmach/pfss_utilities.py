@@ -638,6 +638,7 @@ def download_gong_map(timestr: str, tolerance: int, filepath: str, verbose: bool
 
     import pandas as pd
     from sunpy.net import Fido, attrs
+    from urllib.error import URLError
 
     if filepath is None:
         filepath = os.getcwd()
@@ -649,7 +650,11 @@ def download_gong_map(timestr: str, tolerance: int, filepath: str, verbose: bool
         raise TypeError(f"Input parameter 'tolerance' must be type int, but {type(tolerance)} was passed.")
     desired_time_plus_hours = desired_time + pd.Timedelta(hours=tolerance)
 
-    search_results = Fido.search(attrs.Time(desired_time, desired_time_plus_hours), attrs.Instrument("GONG"))
+    try:
+        search_results = Fido.search(attrs.Time(desired_time, desired_time_plus_hours), attrs.Instrument("GONG"))
+    except URLError as e:
+        raise ConnectionError(f"GONG server unreachable during search: {e}") from e
+
     if verbose:
         print(search_results)
     
