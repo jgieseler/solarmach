@@ -657,10 +657,11 @@ def download_gong_map(timestr: str, tolerance: int, filepath: str, verbose: bool
     try:
         if getattr(search_results, "errors", None):
             formatted = _format_errors(search_results.errors)
-            print(f"GONG search errors:\n{formatted}")
+            msg = f"GONG search errors:\n{formatted}"
+            print(msg)
             try:
                 import streamlit as st
-                st.error(f"GONG search errors:\n{formatted}")
+                st.error(msg)
             except ImportError:
                 pass
     except AttributeError:
@@ -679,6 +680,7 @@ def download_gong_map(timestr: str, tolerance: int, filepath: str, verbose: bool
             st.error(msg)
         except ImportError:
             pass
+        raise ConnectionError(msg)
 
     file = Fido.fetch(search_results, path=filepath)
 
@@ -686,12 +688,14 @@ def download_gong_map(timestr: str, tolerance: int, filepath: str, verbose: bool
     try:
         if getattr(file, "errors", None):
             formatted = _format_errors(file.errors)
-            print(f"GONG download errors:\n{formatted}")
+            msg = f"GONG download errors:\n{formatted}"
+            print(msg)
             try:
                 import streamlit as st
-                st.error(f"GONG download errors:\n{formatted}")
+                st.error(msg)
             except ImportError:
                 pass
+            raise ConnectionError(msg)
     except AttributeError:
         pass
 
