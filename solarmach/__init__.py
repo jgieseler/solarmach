@@ -816,7 +816,7 @@ class SolarMACH():
                 if markers.lower()=='numbers':
                     mark = i+1
                 ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            fontsize="small", weight='heavy',
+                            fontsize="small", weight='bold',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
@@ -1410,7 +1410,7 @@ class SolarMACH():
                 if markers.lower()=='numbers':
                     mark = i+1
                 ax.annotate(mark, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            fontsize="small", weight='heavy',
+                            fontsize="small", weight='bold',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
@@ -1765,7 +1765,7 @@ class SolarMACH():
                 if markers.lower()=='numbers':
                     mark = i+1
                 ax.annotate(mark, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
-                            fontsize="small", weight='heavy', textcoords=offset,
+                            fontsize="small", weight='bold', textcoords=offset,
                             horizontalalignment='center',
                             verticalalignment='center', zorder=100)
 
