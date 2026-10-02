@@ -1115,11 +1115,14 @@ class SolarMACH():
             return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
                                        head_width=0.75 * height)
 
-        handler_map = {mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow)}
+        handler_map = {}
+        try:
+            handler_map[mpatches.FancyArrow] = HandlerPatch(patch_func=legend_arrow)
+        except NameError:
+            pass
         if markers:
             handles, labels = ax.get_legend_handles_labels()
-            label_to_handle = dict(zip(labels, handles))
-            for i, body_id in enumerate(self.body_dict):
+            for i, (handle, body_id) in enumerate(zip(handles, self.body_dict)):
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
@@ -1129,8 +1132,7 @@ class SolarMACH():
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
                     mark = i+1
-                if body_id in label_to_handle:
-                    handler_map[label_to_handle[body_id]] = _NumberedHandlerLine2D(mark)
+                handler_map[handle] = _NumberedHandlerLine2D(mark)
 
         leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13, numpoints=1,
                          handler_map=handler_map)
@@ -1757,10 +1759,13 @@ class SolarMACH():
                 print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
 
         handler_map = {}
+        try:
+            handler_map[mpatches.FancyArrow] = HandlerPatch(patch_func=legend_arrow)
+        except NameError:
+            pass
         if markers:
             handles, labels = ax.get_legend_handles_labels()
-            label_to_handle = dict(zip(labels, handles))
-            for i, body_id in enumerate(self.body_dict):
+            for i, (handle, body_id) in enumerate(zip(handles, self.body_dict)):
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
@@ -1770,8 +1775,7 @@ class SolarMACH():
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
                     mark = i+1
-                if body_id in label_to_handle:
-                    handler_map[label_to_handle[body_id]] = _NumberedHandlerLine2D(mark)
+                handler_map[handle] = _NumberedHandlerLine2D(mark)
 
         leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13, numpoints=1,
                          handler_map=handler_map)
