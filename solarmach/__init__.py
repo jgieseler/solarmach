@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import scipy.constants as const
 from astropy.coordinates import SkyCoord
-from matplotlib.legend_handler import HandlerPatch
+from matplotlib.legend_handler import HandlerLine2D, HandlerPatch
 from sunpy import log
 from sunpy.coordinates import frames, get_horizons_coord
 from sunpy.time import parse_time
@@ -74,6 +74,19 @@ body_dict.update(dict.fromkeys(['Venus', 299], [299, 'Venus', 'darkorchid']))
 body_dict.update(dict.fromkeys(['Voyager1', 'Voyager 1', -31], [-31, 'Voyager 1', 'darkred']))
 body_dict.update(dict.fromkeys(['Voyager2', 'Voyager 2', -32], [-32, 'Voyager 2', 'midnightblue']))
 body_dict.update(dict.fromkeys(['WIND', 'Wind', 'wind', -8], [-8, 'Wind', 'slategray']))
+
+class _NumberedHandlerLine2D(HandlerLine2D):
+    def __init__(self, marker_label, **kwargs):
+        self.marker_label = marker_label
+        super().__init__(**kwargs)
+
+    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
+        artists = super().create_artists(legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans)
+        artists.append(matplotlib.text.Text(
+            width/2 - xdescent, height/2 - ydescent, str(self.marker_label),
+            color='white', fontsize='small', fontweight='bold',
+            ha='center', va='center_baseline', transform=trans))
+        return artists
 
 
 def print_body_list():
@@ -816,7 +829,8 @@ class SolarMACH():
                 if markers.lower()=='numbers':
                     mark = i+1
                 ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            fontsize="small", weight='heavy',
+                            xytext=(0, -1), textcoords='offset points',
+                            fontsize="small", weight='bold',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
@@ -1101,17 +1115,14 @@ class SolarMACH():
             return mpatches.FancyArrow(0, 0.5 * height, width, 0, length_includes_head=True,
                                        head_width=0.75 * height)
 
-        # leg1 = ax.legend(loc=(1.2, 0.7), fontsize=13)
-        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13, numpoints=1,
-                         handler_map={mpatches.FancyArrow: HandlerPatch(patch_func=legend_arrow), })
-
+        handler_map = {}
+        try:
+            handler_map[mpatches.FancyArrow] = HandlerPatch(patch_func=legend_arrow)
+        except NameError:
+            pass
         if markers:
-            offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
-            for i, body_id in enumerate(self.body_dict):
-                if outfile.split('.')[-1] == 'pdf':
-                    yoffset = i*19.25  # 18.5 19.5
-                else:
-                    yoffset = i*18.7  # 18.5 19.5
+            handles, labels = ax.get_legend_handles_labels()
+            for i, (handle, body_id) in enumerate(zip(handles, self.body_dict)):
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
@@ -1121,10 +1132,10 @@ class SolarMACH():
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
                     mark = i+1
-                ax.annotate(mark, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
-                            fontsize="small", weight='heavy', textcoords=offset,
-                            horizontalalignment='center',
-                            verticalalignment='center', zorder=100)
+                handler_map[handle] = _NumberedHandlerLine2D(mark)
+
+        leg1 = ax.legend(bbox_to_anchor=(1.1, 1.05), loc="upper left", fontsize=13, numpoints=1,
+                         handler_map=handler_map)
 
         if self.reference_long is not None:
             # leg2 = ax.legend([ref_arr], ['reference long.'], loc=(1.2, 0.6),
@@ -1410,7 +1421,8 @@ class SolarMACH():
                 if markers.lower()=='numbers':
                     mark = i+1
                 ax.annotate(mark, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            fontsize="small", weight='heavy',
+                            xytext=(0, -1), textcoords='offset points',
+                            fontsize="small", weight='bold',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
@@ -1746,15 +1758,14 @@ class SolarMACH():
             else:
                 print("Ill-defined 'long_sector'. It should be a 2-element list defining the start and end longitude of the cone in degrees; e.g. 'long_sector=[15,45]'")
 
-        leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13, numpoints=1)
-
+        handler_map = {}
+        try:
+            handler_map[mpatches.FancyArrow] = HandlerPatch(patch_func=legend_arrow)
+        except NameError:
+            pass
         if markers:
-            offset = matplotlib.text.OffsetFrom(leg1, (0.0, 1.0))
-            for i, body_id in enumerate(self.body_dict):
-                if outfile.split('.')[-1] == 'pdf':
-                    yoffset = i*19.25  # 18.5 19.5
-                else:
-                    yoffset = i*18.7  # 18.5 19.5
+            handles, labels = ax.get_legend_handles_labels()
+            for i, (handle, body_id) in enumerate(zip(handles, self.body_dict)):
                 if markers.lower()=='letters':
                     if body_id[:6] == 'STEREO':
                         mark = str(body_id[-1])
@@ -1764,10 +1775,10 @@ class SolarMACH():
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
                     mark = i+1
-                ax.annotate(mark, xy=(1, 1), xytext=(18.3, -11-yoffset), color='white',
-                            fontsize="small", weight='heavy', textcoords=offset,
-                            horizontalalignment='center',
-                            verticalalignment='center', zorder=100)
+                handler_map[handle] = _NumberedHandlerLine2D(mark)
+
+        leg1 = ax.legend(loc=(1.05, 0.8), fontsize=13, numpoints=1,
+                         handler_map=handler_map)
 
         if self.reference_long:
             def legend_arrow(width, height, **_):
