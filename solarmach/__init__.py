@@ -1426,7 +1426,7 @@ class SolarMACH():
                     mark = i+1
                 xshift = {'J': 0.5}.get(str(mark), 0)
                 yshift = {'J': 1.0, 'W': -1.0}.get(str(mark), 0)
-                ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))),
+                ax.annotate(mark, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))),
                             xytext=(0 + xshift, -1 + yshift), textcoords='offset points',
                             color='white', fontsize='small', weight='bold',
                             horizontalalignment='center',
