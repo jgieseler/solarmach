@@ -82,8 +82,10 @@ class _NumberedHandlerLine2D(HandlerLine2D):
 
     def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
         artists = super().create_artists(legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans)
+        xshift = {'J': 0.5}.get(str(self.marker_label), 0)
+        yshift = {'J': 1.0, 'W': -1.0}.get(str(self.marker_label), 0)
         artists.append(matplotlib.text.Text(
-            width/2 - xdescent, height/2 - ydescent, str(self.marker_label),
+            width/2 - xdescent + xshift, height/2 - ydescent + yshift, str(self.marker_label),
             color='white', fontsize='small', fontweight='bold',
             ha='center', va='center_baseline', transform=trans))
         return artists
@@ -828,9 +830,11 @@ class SolarMACH():
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
                     mark = i+1
-                ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            xytext=(0, -1), textcoords='offset points',
-                            fontsize="small", weight='bold',
+                xshift = {'J': 0.5}.get(str(mark), 0)
+                yshift = {'J': 1.0, 'W': -1.0}.get(str(mark), 0)
+                ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))),
+                            xytext=(0 + xshift, -1 + yshift), textcoords='offset points',
+                            color='white', fontsize='small', weight='bold',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
@@ -1420,9 +1424,11 @@ class SolarMACH():
                         mark = str(body_id[0])
                 if markers.lower()=='numbers':
                     mark = i+1
-                ax.annotate(mark, xy=(np.deg2rad(body_long), r_scaler*dist_body*np.cos(np.deg2rad(body_lat))), color='white',
-                            xytext=(0, -1), textcoords='offset points',
-                            fontsize="small", weight='bold',
+                xshift = {'J': 0.5}.get(str(mark), 0)
+                yshift = {'J': 1.0, 'W': -1.0}.get(str(mark), 0)
+                ax.annotate(mark, xy=(np.deg2rad(body_long), dist_body*np.cos(np.deg2rad(body_lat))),
+                            xytext=(0 + xshift, -1 + yshift), textcoords='offset points',
+                            color='white', fontsize='small', weight='bold',
                             horizontalalignment='center',
                             verticalalignment='center')
             else:
