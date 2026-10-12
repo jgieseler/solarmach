@@ -32,8 +32,8 @@ authors:
 - given-names: drazerd
   family-names: ''
   affiliation: ''
-version: 0.5.4
-date-released: 2026-08-17
+version: 0.5.6
+date-released: 2026-10-12
 repository-code: https://github.com/jgieseler/solarmach
 license: BSD-3-Clause
 preferred-citation:
