@@ -138,6 +138,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0, silent=False):
 
     try:
         import speasy as spz
+        from speasy.core.impex import MissingCredentials
     except ModuleNotFoundError:
         print(f"Couldn't load required module speasy, using default_vsw={default_vsw}. Install it with 'pip install speasy' to use this functionality.")
         return default_vsw
@@ -228,7 +229,7 @@ def get_sw_speed(body, dtime, trange=1, default_vsw=400.0, silent=False):
             if not silent:
                 print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
             return default_vsw
-    except AttributeError:
+    except (AttributeError, MissingCredentials):
         if not silent:
             print(f"No Vsw data found for '{body}' on {dtime}, assuming default Vsw value of {default_vsw} km/s.")
         return default_vsw
